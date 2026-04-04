@@ -24,7 +24,7 @@ export default async function ProtectedLayout({
         name: firmUser.name,
         email: firmUser.email,
         firmId: firmUser.firmId,
-        firmName: 'Keystone Claims',
+        firmName: firmUser.firmName,
         role: firmUser.role,
       }}
     >

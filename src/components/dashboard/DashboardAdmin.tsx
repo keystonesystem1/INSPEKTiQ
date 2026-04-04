@@ -5,20 +5,46 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { buildDashboardData, demoAdjusters, demoClaims } from '@/lib/utils/demo-data';
 
-export function DashboardAdmin() {
+export function DashboardAdmin({
+  name,
+  firmName,
+  stats,
+}: {
+  name: string;
+  firmName: string;
+  stats: {
+    active: number;
+    unassigned: number;
+    newToday: number;
+    slaAtRisk: number;
+  };
+}) {
   const data = buildDashboardData('firm_admin');
+  const greetingName = name.charAt(0).toUpperCase() + name.slice(1);
+  const subtitleDate = new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date());
+  const liveStats = [
+    { id: '1', label: 'Active Claims', value: String(stats.active), accent: 'var(--blue)' },
+    { id: '2', label: 'SLA At-Risk', value: String(stats.slaAtRisk), accent: 'var(--orange)' },
+    { id: '3', label: 'Unassigned', value: String(stats.unassigned), accent: 'var(--orange)' },
+    { id: '4', label: 'New Today', value: String(stats.newToday), accent: 'var(--sage)' },
+  ];
 
   return (
     <div style={{ display: 'grid', gap: '24px' }}>
       <div>
         <h1 style={{ margin: 0, fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '26px', letterSpacing: '0.04em' }}>
-          {data.greeting}
+          {`Good morning, ${greetingName}.`}
         </h1>
-        <p style={{ margin: '6px 0 0', color: 'var(--muted)' }}>{data.subtitle}</p>
+        <p style={{ margin: '6px 0 0', color: 'var(--muted)' }}>{`Today, ${subtitleDate} · ${firmName} · Your daily brief is ready.`}</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '12px' }}>
-        {data.stats.map((stat) => (
+        {liveStats.map((stat) => (
           <StatCard key={stat.id} label={stat.label} value={stat.value} accent={stat.accent} />
         ))}
       </div>

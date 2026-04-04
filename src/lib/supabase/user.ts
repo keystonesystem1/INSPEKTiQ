@@ -7,11 +7,16 @@ interface FirmUserRecord {
   firm_id: string;
 }
 
+interface FirmRecord {
+  name: string;
+}
+
 export interface AuthenticatedFirmUser {
   id: string;
   email: string;
   role: Role;
   firmId: string;
+  firmName: string;
   name: string;
 }
 
@@ -35,11 +40,18 @@ export async function getAuthenticatedFirmUser(): Promise<AuthenticatedFirmUser 
     return null;
   }
 
+  const { data: firm } = await supabase
+    .from('firms')
+    .select('name')
+    .eq('id', firmUser.firm_id)
+    .single<FirmRecord>();
+
   return {
     id: user.id,
     email: user.email,
     role: firmUser.role,
     firmId: firmUser.firm_id,
+    firmName: firm?.name ?? 'Firm',
     name: user.email.split('@')[0] ?? 'User',
   };
 }
