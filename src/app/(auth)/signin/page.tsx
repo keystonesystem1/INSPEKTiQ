@@ -1,14 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FormInput } from '@/components/ui/FormInput';
 import { createClient } from '@/lib/supabase/client';
 
 export default function SignInPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('avery@keystoneclaims.io');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -31,8 +29,7 @@ export default function SignInPage() {
       return;
     }
 
-    router.push('/dashboard');
-    router.refresh();
+    window.location.href = '/dashboard';
   };
 
   return (
