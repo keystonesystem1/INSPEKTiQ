@@ -1,26 +1,106 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Orbitron:wght@900&display=swap');
+@import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0a0a0a;
+  --surface: #0f1923;
+  --card: #162130;
+  --card-hi: #1c2b3d;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-hi: rgba(255, 255, 255, 0.14);
+  --sage: #5bc273;
+  --sage-light: #6dd882;
+  --sage-dim: rgba(91, 194, 115, 0.12);
+  --sage-glow: rgba(91, 194, 115, 0.25);
+  --blue: #4298cc;
+  --blue-dim: rgba(66, 152, 204, 0.12);
+  --orange: #e07b3f;
+  --orange-dim: rgba(224, 123, 63, 0.13);
+  --red: #e05c5c;
+  --red-dim: rgba(224, 92, 92, 0.13);
+  --bronze: #c9a84c;
+  --bronze-dim: rgba(201, 168, 76, 0.12);
+  --white: #f2f2f4;
+  --muted: rgba(242, 242, 244, 0.45);
+  --faint: rgba(242, 242, 244, 0.18);
+  --nav-h: 56px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  min-height: 100%;
+}
+
+html {
+  background: var(--bg);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background:
+    radial-gradient(circle at top right, rgba(91, 194, 115, 0.06), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(66, 152, 204, 0.05), transparent 24%),
+    var(--bg);
+  color: var(--white);
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  background: none;
+}
+
+::selection {
+  background: rgba(91, 194, 115, 0.25);
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.page-enter {
+  animation: page-enter 0.18s ease;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
