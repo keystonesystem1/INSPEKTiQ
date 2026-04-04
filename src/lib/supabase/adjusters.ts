@@ -1,5 +1,4 @@
 import { createAdminClient } from '@/lib/supabase/admin';
-import { createClient } from '@/lib/supabase/server';
 
 export interface AdjusterOption {
   id: string;
@@ -23,16 +22,15 @@ async function getUserEmailsById(userIds: string[]): Promise<Map<string, string>
   }
 
   const userIdSet = new Set(userIds);
+  const matchedUsers = users.filter((user) => userIdSet.has(user.id));
 
   return new Map(
-    users
-      .filter((user) => userIdSet.has(user.id))
-      .map((user) => [user.id, user.email ?? '']),
+    matchedUsers.map((user) => [user.id, user.email ?? '']),
   );
 }
 
 export async function getAdjusters(firmId: string): Promise<AdjusterOption[]> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('firm_users')
     .select('id, user_id')
@@ -53,7 +51,6 @@ export async function getAdjusters(firmId: string): Promise<AdjusterOption[]> {
   }
 
   const usersById = await getUserEmailsById(userIds);
-
   return data
     .map((row) => ({
       id: row.id as string,
