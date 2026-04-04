@@ -93,6 +93,9 @@ export async function getClaimById(
   userId: string,
 ): Promise<Claim | null> {
   const supabase = await createClient();
+  // INSPEKTiT writes directly to the shared claims.status column in Supabase.
+  // INSPEKTiQ reads that column fresh on each page load through getClaimById/getClaims,
+  // so status changes made in INSPEKTiT flow through automatically without extra sync code.
   let query = supabase
     .from('claims')
     .select(

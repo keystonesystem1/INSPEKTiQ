@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { ClaimDocuments } from '@/lib/supabase/documents';
+import type { ClaimInspectionData } from '@/lib/supabase/inspections';
 import type { Claim, NoteItem, Role, TimelineItem } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { OverviewTab } from '@/components/claims/ClaimDetail/tabs/OverviewTab';
@@ -27,12 +28,14 @@ export function ClaimTabs({
   role,
   notes,
   documents,
+  inspection,
   timeline,
 }: {
   claim: Claim;
   role: Role;
   notes: NoteItem[];
   documents: ClaimDocuments;
+  inspection: ClaimInspectionData;
   timeline: TimelineItem[];
 }) {
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('Overview');
@@ -72,7 +75,7 @@ export function ClaimTabs({
         {activeTab === 'Overview' ? <OverviewTab claim={claim} /> : null}
         {activeTab === 'Notes' ? <NotesTab role={role} notes={notes} claimId={claim.id} /> : null}
         {activeTab === 'Documents' ? <DocumentsTab documents={documents} /> : null}
-        {activeTab === 'Inspection' ? <InspectionTab claim={claim} /> : null}
+        {activeTab === 'Inspection' ? <InspectionTab inspection={inspection} /> : null}
         {activeTab === 'Time & Expense' ? <TimeExpenseTab role={role} /> : null}
         {activeTab === 'Tasks' ? <TasksTab /> : null}
         {activeTab === 'Reserves' ? <ReservesTab claim={claim} role={role} /> : null}
