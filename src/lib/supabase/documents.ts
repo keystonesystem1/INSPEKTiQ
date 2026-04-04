@@ -11,6 +11,9 @@ export interface ClaimPhotoDocument {
   path: string;
   filename: string;
   section: string;
+  subsection: string;
+  label: string;
+  caption: string;
   signedUrl: string;
 }
 
@@ -27,6 +30,9 @@ interface StorageObjectRow {
 interface PhotoRow {
   storage_path: string | null;
   section: string | null;
+  subsection: string | null;
+  label: string | null;
+  caption: string | null;
 }
 
 function getFilename(path: string) {
@@ -38,7 +44,7 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
 
   const { data: photoRows, error: photosError } = await supabase
     .from('photos')
-    .select('storage_path, section')
+    .select('storage_path, section, subsection, label, caption')
     .eq('claim_id', claimId);
 
   if (photosError) {
@@ -46,7 +52,7 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
   }
 
   const validPhotoRows = ((photoRows ?? []) as PhotoRow[]).filter(
-    (row): row is { storage_path: string; section: string | null } => Boolean(row.storage_path),
+    (row): row is PhotoRow & { storage_path: string } => Boolean(row.storage_path),
   );
 
   const photoSignedResults = await Promise.all(
@@ -59,6 +65,9 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
         path: row.storage_path,
         filename: getFilename(row.storage_path),
         section: row.section ?? 'Other',
+        subsection: row.subsection ?? '',
+        label: row.label ?? getFilename(row.storage_path),
+        caption: row.caption ?? '',
         signedUrl: data?.signedUrl ?? '',
       };
     }),
@@ -71,13 +80,20 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
     .from('objects')
     .select('name, created_at')
     .eq('bucket_id', 'generated-reports')
-    .ilike('name', `%/${claimId}/%`);
+    .limit(1000);
 
   if (reportsError) {
     console.error('getClaimDocuments reports error:', reportsError);
   }
 
-  const validReportRows = ((reportRows ?? []) as StorageObjectRow[]).filter((row) => Boolean(row.name));
+  const validReportRows = ((reportRows ?? []) as StorageObjectRow[]).filter((row) => {
+    if (!row.name) {
+      return false;
+    }
+
+    const [, pathClaimId] = row.name.split('/');
+    return pathClaimId === claimId && row.name.toLowerCase().endsWith('.pdf');
+  });
 
   const reportSignedResults = await Promise.all(
     validReportRows.map(async (row) => {

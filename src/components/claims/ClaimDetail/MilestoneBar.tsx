@@ -13,14 +13,45 @@ const stages: Array<{ key: MilestoneKey; label: string }> = [
   { key: 'closed', label: 'Closed' },
 ];
 
+function getStageKeyFromStatus(status: Claim['status']): MilestoneKey {
+  switch (status) {
+    case 'assigned':
+      return 'assigned';
+    case 'accepted':
+      return 'accepted';
+    case 'contacted':
+      return 'contacted';
+    case 'scheduled':
+      return 'scheduled';
+    case 'inspected':
+      return 'inspected';
+    case 'in_review':
+    case 'pending_te':
+    case 'pending_carrier_direction':
+    case 'pending_engineer':
+    case 'on_hold':
+      return 'in_review';
+    case 'approved':
+      return 'approved';
+    case 'submitted':
+      return 'submitted';
+    case 'closed':
+      return 'closed';
+    case 'received':
+    default:
+      return 'received';
+  }
+}
+
 export function MilestoneBar({ claim }: { claim: Claim }) {
-  const currentIndex = stages.findIndex((stage) => !claim.milestones[stage.key]);
+  const currentStage = getStageKeyFromStatus(claim.status);
+  const currentIndex = stages.findIndex((stage) => stage.key === currentStage);
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', padding: '10px 0 18px', gap: 0 }}>
       {stages.map((stage, index) => {
-        const done = Boolean(claim.milestones[stage.key]) && (currentIndex === -1 || index < currentIndex);
-        const current = !done && index === currentIndex;
+        const done = index < currentIndex;
+        const current = index === currentIndex;
 
         return (
           <div key={stage.key} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>

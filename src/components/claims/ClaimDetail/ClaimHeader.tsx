@@ -4,7 +4,6 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import type { Claim, ClaimStatus, Role } from '@/lib/types';
 import type { AdjusterOption } from '@/lib/supabase/adjusters';
 import { canApproveClaims } from '@/lib/utils/roles';
@@ -82,7 +81,6 @@ export function ClaimHeader({
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-          <Badge tone="orange" large>{status.replace('_', ' ')}</Badge>
           {role !== 'carrier' ? (
             <select
               value={status}

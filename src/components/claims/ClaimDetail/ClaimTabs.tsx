@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { OverviewTab } from '@/components/claims/ClaimDetail/tabs/OverviewTab';
 import { NotesTab } from '@/components/claims/ClaimDetail/tabs/NotesTab';
 import { DocumentsTab } from '@/components/claims/ClaimDetail/tabs/DocumentsTab';
+import { PhotosTab } from '@/components/claims/ClaimDetail/tabs/PhotosTab';
 import { InspectionTab } from '@/components/claims/ClaimDetail/tabs/InspectionTab';
 import { TimeExpenseTab } from '@/components/claims/ClaimDetail/tabs/TimeExpenseTab';
 import { TasksTab } from '@/components/claims/ClaimDetail/tabs/TasksTab';
@@ -21,7 +22,7 @@ import { LinksTab } from '@/components/claims/ClaimDetail/tabs/LinksTab';
 import { TimelineTab } from '@/components/claims/ClaimDetail/tabs/TimelineTab';
 import { OverviewCustomizer } from '@/components/claims/ClaimDetail/OverviewCustomizer';
 
-const tabs = ['Overview', 'Notes', 'Documents', 'Inspection', 'Time & Expense', 'Tasks', 'Reserves', 'Claimants', 'Coverages', 'Loss Locations', 'Carrier Forms', 'Firm Forms', 'Links', 'Timeline'] as const;
+const tabs = ['Overview', 'Notes', 'Documents', 'Photos', 'Inspection', 'Time & Expense', 'Tasks', 'Reserves', 'Claimants', 'Coverages', 'Loss Locations', 'Carrier Forms', 'Firm Forms', 'Links', 'Timeline'] as const;
 
 export function ClaimTabs({
   claim,
@@ -75,6 +76,7 @@ export function ClaimTabs({
         {activeTab === 'Overview' ? <OverviewTab claim={claim} /> : null}
         {activeTab === 'Notes' ? <NotesTab role={role} notes={notes} claimId={claim.id} /> : null}
         {activeTab === 'Documents' ? <DocumentsTab documents={documents} /> : null}
+        {activeTab === 'Photos' ? <PhotosTab documents={documents} /> : null}
         {activeTab === 'Inspection' ? <InspectionTab inspection={inspection} /> : null}
         {activeTab === 'Time & Expense' ? <TimeExpenseTab role={role} /> : null}
         {activeTab === 'Tasks' ? <TasksTab /> : null}
