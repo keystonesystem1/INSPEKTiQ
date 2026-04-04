@@ -1,12 +1,11 @@
-import { cookies } from 'next/headers';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { ClaimsList } from '@/components/claims/ClaimsList';
 import { Button } from '@/components/ui/Button';
-import { canCreateClaims, getRoleFromCookie } from '@/lib/utils/roles';
+import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
+import { canCreateClaims } from '@/lib/utils/roles';
 
 export default async function ClaimsPage() {
-  const cookieStore = await cookies();
-  const role = getRoleFromCookie(cookieStore.get('inspektiq-role')?.value) ?? 'firm_admin';
+  const { role } = await requireAuthenticatedFirmUser();
 
   return (
     <div>

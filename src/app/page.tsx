@@ -1,9 +1,11 @@
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
 
 export default async function HomePage() {
-  const cookieStore = await cookies();
-  const role = cookieStore.get('inspektiq-role')?.value;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  redirect(role ? '/dashboard' : '/signin');
+  redirect(user ? '/dashboard' : '/signin');
 }

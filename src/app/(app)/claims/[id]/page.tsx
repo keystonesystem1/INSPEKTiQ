@@ -1,7 +1,6 @@
-import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { demoClaims, demoNotes, demoTimeline } from '@/lib/utils/demo-data';
-import { getRoleFromCookie } from '@/lib/utils/roles';
+import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
 import { Card } from '@/components/ui/Card';
 import { ClaimHeader } from '@/components/claims/ClaimDetail/ClaimHeader';
 import { MilestoneBar } from '@/components/claims/ClaimDetail/MilestoneBar';
@@ -14,8 +13,7 @@ export default async function ClaimDetailPage({
 }) {
   const { id } = await params;
   const claim = demoClaims.find((item) => item.id === id);
-  const cookieStore = await cookies();
-  const role = getRoleFromCookie(cookieStore.get('inspektiq-role')?.value) ?? 'firm_admin';
+  const { role } = await requireAuthenticatedFirmUser();
 
   if (!claim) notFound();
 

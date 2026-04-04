@@ -5,20 +5,32 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FormInput } from '@/components/ui/FormInput';
-import { ROLE_TABS, type Role } from '@/lib/utils/roles';
-import { createRoleSession } from '@/hooks/useUser';
-
-const roleOptions = Object.keys(ROLE_TABS) as Role[];
+import { createClient } from '@/lib/supabase/client';
 
 export default function SignInPage() {
   const router = useRouter();
-  const [name, setName] = useState('Avery Stone');
-  const [firmName, setFirmName] = useState('Keystone Claims');
   const [email, setEmail] = useState('avery@keystoneclaims.io');
-  const [role, setRole] = useState<Role>('firm_admin');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSignIn = () => {
-    createRoleSession({ name, email, firmName, role });
+  const handleSignIn = async () => {
+    const supabase = createClient();
+    setSubmitting(true);
+    setError('');
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setSubmitting(false);
+
+    if (signInError) {
+      setError(signInError.message);
+      return;
+    }
+
     router.push('/dashboard');
     router.refresh();
   };
@@ -71,32 +83,40 @@ export default function SignInPage() {
         </div>
 
         <div style={{ display: 'grid', gap: '14px' }}>
-          <FormInput label="Name" value={name} onChange={setName} />
           <FormInput label="Email" value={email} onChange={setEmail} />
-          <FormInput label="Firm Name" value={firmName} onChange={setFirmName} />
           <label style={{ display: 'grid', gap: '5px' }}>
             <span className="nav-label" style={{ color: 'var(--muted)' }}>
-              Role
+              Password
             </span>
-            <select
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
               className="form-input"
-              value={role}
-              onChange={(event) => setRole(event.target.value as Role)}
-            >
-              {roleOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option.replace('_', ' ')}
-                </option>
-              ))}
-            </select>
+              style={{
+                background: 'var(--card)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '9px 12px',
+                color: 'var(--white)',
+                width: '100%',
+              }}
+            />
           </label>
+          {error ? (
+            <p style={{ margin: 0, color: 'var(--red)', fontSize: '12px' }}>
+              {error}
+            </p>
+          ) : null}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', gap: '12px' }}>
           <p style={{ margin: 0, color: 'var(--faint)', maxWidth: '280px' }}>
-            Supabase credentials remain untouched. This screen also supports local demo sessions for role QA.
+            Supabase credentials remain untouched. Sign in now uses the live auth session instead of the demo cookie path.
           </p>
-          <Button onClick={handleSignIn}>Enter Workspace</Button>
+          <Button onClick={handleSignIn} disabled={submitting}>
+            {submitting ? 'Signing In' : 'Enter Workspace'}
+          </Button>
         </div>
       </Card>
     </main>

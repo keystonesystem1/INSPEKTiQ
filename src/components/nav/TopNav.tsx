@@ -5,7 +5,6 @@ import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Avatar } from '@/components/ui/Avatar';
 import { NavTab } from '@/components/nav/NavTab';
-import { clearRoleSession } from '@/hooks/useUser';
 import type { UserSession } from '@/lib/types';
 import { ROLE_TABS } from '@/lib/utils/roles';
 
@@ -101,7 +100,6 @@ export function TopNav({ user }: { user: UserSession }) {
             </span>
             <button
               onClick={() => {
-                clearRoleSession();
                 router.push('/signout');
               }}
               style={{ color: 'var(--muted)', textAlign: 'left', cursor: 'pointer' }}

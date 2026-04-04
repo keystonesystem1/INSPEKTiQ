@@ -24,6 +24,7 @@ export interface UserSession {
   name: string;
   email: string;
   firmName: string;
+  firmId?: string;
   role: Role;
 }
 
