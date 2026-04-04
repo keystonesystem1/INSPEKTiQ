@@ -1,35 +1,100 @@
 import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
+import type { ClaimDocuments } from '@/lib/supabase/documents';
 
-export function DocumentsTab() {
-  const files = [
-    ['Report', 'Draft estimate packet', '3.2 MB', 'Apr 4', 'Pending'],
-    ['Carrier', 'Policy declaration', '814 KB', 'Apr 2', 'Reviewed'],
-    ['Adjuster', 'Roof slope photos', '42 MB', 'Apr 3', 'Synced'],
-  ];
+function formatTimestamp(value?: string) {
+  if (!value) {
+    return '';
+  }
+
+  return new Date(value).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+export function DocumentsTab({ documents }: { documents: ClaimDocuments }) {
+  const photoSections = documents.photos.reduce<Record<string, typeof documents.photos>>((accumulator, photo) => {
+    accumulator[photo.section] ??= [];
+    accumulator[photo.section].push(photo);
+    return accumulator;
+  }, {});
 
   return (
-    <Card>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          {['All Files', 'Reports', 'Carrier', 'Adjuster'].map((label, index) => (
-            <button key={label} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: index === 0 ? 'var(--sage-dim)' : 'transparent', color: index === 0 ? 'var(--sage)' : 'var(--muted)', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              {label}
-            </button>
-          ))}
+    <div style={{ display: 'grid', gap: '16px' }}>
+      <Card>
+        <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '14px' }}>
+          Reports
         </div>
-        <Button size="sm">Upload</Button>
-      </div>
-      {files.map(([type, title, size, uploaded, status]) => (
-        <div key={title} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 100px 90px 90px', padding: '12px 0', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
-          <span style={{ color: 'var(--muted)' }}>{type}</span>
-          <strong>{title}</strong>
-          <span>{size}</span>
-          <span>{uploaded}</span>
-          <Badge tone={status === 'Pending' ? 'orange' : 'blue'}>{status}</Badge>
+        {documents.reports.length === 0 ? (
+          <div style={{ color: 'var(--muted)' }}>No reports uploaded.</div>
+        ) : (
+          documents.reports.map((report) => (
+            <div key={report.path} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '12px 0', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 600 }}>{report.filename}</div>
+                <div style={{ color: 'var(--muted)', fontSize: '11px' }}>{formatTimestamp(report.createdAt)}</div>
+              </div>
+              <a
+                href={report.signedUrl}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  fontFamily: 'Barlow Condensed, sans-serif',
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'var(--sage)',
+                }}
+              >
+                Download
+              </a>
+            </div>
+          ))
+        )}
+      </Card>
+
+      <Card>
+        <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '14px' }}>
+          Photos
         </div>
-      ))}
-    </Card>
+        {documents.photos.length === 0 ? (
+          <div style={{ color: 'var(--muted)' }}>No documents uploaded.</div>
+        ) : (
+          Object.entries(photoSections).map(([section, photos]) => (
+            <div key={section} style={{ paddingBottom: '16px' }}>
+              <div style={{ marginBottom: '10px', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+                {section}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
+                {photos.map((photo) => (
+                  <a
+                    key={photo.path}
+                    href={photo.signedUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ display: 'grid', gap: '8px', color: 'inherit', textDecoration: 'none' }}
+                  >
+                    <img
+                      src={photo.signedUrl}
+                      alt={photo.filename}
+                      style={{
+                        width: '100%',
+                        aspectRatio: '4 / 3',
+                        objectFit: 'cover',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border)',
+                      }}
+                    />
+                    <div style={{ color: 'var(--muted)', fontSize: '11px' }}>{photo.filename}</div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))
+        )}
+      </Card>
+    </div>
   );
 }
