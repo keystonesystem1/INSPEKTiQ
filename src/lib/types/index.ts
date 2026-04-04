@@ -9,13 +9,17 @@ export type Role =
 export type ClaimStatus =
   | 'received'
   | 'assigned'
+  | 'contacted'
   | 'scheduled'
   | 'inspected'
   | 'in_review'
   | 'approved'
   | 'submitted'
   | 'closed'
-  | 'on_hold';
+  | 'on_hold'
+  | 'pending_te'
+  | 'pending_carrier_direction'
+  | 'pending_engineer';
 
 export type BadgeTone = 'sage' | 'blue' | 'orange' | 'red' | 'bronze' | 'faint';
 

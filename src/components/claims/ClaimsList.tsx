@@ -17,6 +17,9 @@ const claimFilters: Array<{ label: string; value: ClaimStatus | 'all' }> = [
   { label: 'Submitted', value: 'submitted' },
   { label: 'Closed', value: 'closed' },
   { label: 'On Hold', value: 'on_hold' },
+  { label: 'Pending T&E', value: 'pending_te' },
+  { label: 'Pending Carrier Direction', value: 'pending_carrier_direction' },
+  { label: 'Pending Engineer', value: 'pending_engineer' },
 ];
 
 export function ClaimsList({ role, claims }: { role: Role; claims: Claim[] }) {
