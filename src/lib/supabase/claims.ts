@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { getUserEmailsById } from '@/lib/supabase/adjusters';
-import type { Claim, ClaimStatus } from '@/lib/types';
+import type { Claim, ClaimStatus, Role } from '@/lib/types';
 
 interface RawClaim {
   id: string;
@@ -57,15 +57,25 @@ function mapClaimRow(raw: RawClaim, adjusterEmail?: string): Claim {
   };
 }
 
-export async function getClaims(firmId: string): Promise<Claim[]> {
+export async function getClaims(
+  firmId: string,
+  role: Role,
+  userId: string,
+): Promise<Claim[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from('claims')
     .select(
       'id, claim_number, insured_name, carrier, loss_type, date_of_loss, status, city, state, loss_address, policy_number, loss_description, assigned_user_id, loss_lat, loss_lng, created_at',
     )
     .eq('firm_id', firmId)
     .order('created_at', { ascending: false });
+
+  if (role === 'adjuster') {
+    query = query.eq('assigned_user_id', userId);
+  }
+
+  const { data, error } = await query;
   if (error) console.error('getClaims error:', error);
   const claims = (data ?? []) as RawClaim[];
   const usersById = await getUserEmailsById(
@@ -76,16 +86,26 @@ export async function getClaims(firmId: string): Promise<Claim[]> {
   return claims.map((claim) => mapClaimRow(claim, claim.assigned_user_id ? usersById.get(claim.assigned_user_id) : undefined));
 }
 
-export async function getClaimById(id: string, firmId: string): Promise<Claim | null> {
+export async function getClaimById(
+  id: string,
+  firmId: string,
+  role: Role,
+  userId: string,
+): Promise<Claim | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from('claims')
     .select(
       'id, claim_number, insured_name, insured_phone, insured_email, carrier, loss_type, date_of_loss, status, city, state, loss_address, policy_number, loss_description, assigned_user_id, loss_lat, loss_lng, examiner_name, created_at',
     )
     .eq('id', id)
-    .eq('firm_id', firmId)
-    .single();
+    .eq('firm_id', firmId);
+
+  if (role === 'adjuster') {
+    query = query.eq('assigned_user_id', userId);
+  }
+
+  const { data, error } = await query.single();
   if (error || !data) return null;
   const claim = data as RawClaim;
   const usersById = await getUserEmailsById(

@@ -13,8 +13,8 @@ export default async function ClaimDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { role, firmId } = await requireAuthenticatedFirmUser();
-  const claim = await getClaimById(id, firmId);
+  const { id: userId, role, firmId } = await requireAuthenticatedFirmUser();
+  const claim = await getClaimById(id, firmId, role, userId);
   const adjusters = await getAdjusters(firmId);
 
   if (!claim) redirect('/claims');

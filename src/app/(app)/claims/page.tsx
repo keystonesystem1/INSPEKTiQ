@@ -6,8 +6,8 @@ import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
 import { canCreateClaims } from '@/lib/utils/roles';
 
 export default async function ClaimsPage() {
-  const { role, firmId } = await requireAuthenticatedFirmUser();
-  const claims = await getClaims(firmId);
+  const { id, role, firmId } = await requireAuthenticatedFirmUser();
+  const claims = await getClaims(firmId, role, id);
 
   return (
     <div>
