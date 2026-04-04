@@ -1,14 +1,7 @@
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 
 export function DocumentsTab() {
-  const files = [
-    ['Report', 'Draft estimate packet', '3.2 MB', 'Apr 4', 'Pending'],
-    ['Carrier', 'Policy declaration', '814 KB', 'Apr 2', 'Reviewed'],
-    ['Adjuster', 'Roof slope photos', '42 MB', 'Apr 3', 'Synced'],
-  ];
-
   return (
     <Card>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
@@ -21,15 +14,7 @@ export function DocumentsTab() {
         </div>
         <Button size="sm">Upload</Button>
       </div>
-      {files.map(([type, title, size, uploaded, status]) => (
-        <div key={title} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 100px 90px 90px', padding: '12px 0', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
-          <span style={{ color: 'var(--muted)' }}>{type}</span>
-          <strong>{title}</strong>
-          <span>{size}</span>
-          <span>{uploaded}</span>
-          <Badge tone={status === 'Pending' ? 'orange' : 'blue'}>{status}</Badge>
-        </div>
-      ))}
+      <div style={{ padding: '24px 0', color: 'var(--muted)', fontSize: '13px' }}>No documents uploaded yet.</div>
     </Card>
   );
 }

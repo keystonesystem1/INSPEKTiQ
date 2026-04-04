@@ -15,7 +15,9 @@ export function NotesTab({ notes, role }: { notes: NoteItem[]; role: Role }) {
           </button>
         ))}
       </div>
-      {visibleNotes.map((note) => (
+      {visibleNotes.length === 0 ? (
+        <div style={{ padding: '24px 0', color: 'var(--muted)', fontSize: '13px' }}>No notes yet.</div>
+      ) : visibleNotes.map((note) => (
         <div key={note.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <div style={{ width: '28px', height: '28px', borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'var(--sage-dim)', color: 'var(--sage)', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '10px' }}>{note.initials}</div>

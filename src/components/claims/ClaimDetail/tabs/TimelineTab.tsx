@@ -4,7 +4,9 @@ import type { TimelineItem } from '@/lib/types';
 export function TimelineTab({ items }: { items: TimelineItem[] }) {
   return (
     <Card>
-      {items.map((item) => (
+      {items.length === 0 ? (
+        <div style={{ padding: '24px 0', color: 'var(--muted)', fontSize: '13px' }}>No timeline events yet.</div>
+      ) : items.map((item) => (
         <div key={item.id} style={{ display: 'flex', gap: '14px', padding: '10px 0' }}>
           <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: `2px solid var(--${item.tone})`, color: `var(--${item.tone})`, display: 'grid', placeItems: 'center', fontSize: '8px' }}>•</div>
           <div style={{ flex: 1 }}>

@@ -30,7 +30,7 @@ export function OverviewTab({ claim }: { claim: Claim }) {
             ['Name', claim.insured],
             ['Address', claim.address],
             ['City', `${claim.city}, ${claim.state}`],
-            ['Special Instructions', 'Review detached structures before wrap-up.'],
+            ['Special Instructions', 'None'],
           ].map(([label, value]) => (
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
               <span style={{ color: 'var(--muted)' }}>{label}</span><strong style={{ textAlign: 'right' }}>{value}</strong>
