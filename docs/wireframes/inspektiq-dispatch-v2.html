@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INSPEKTiQ — Dispatch v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Orbitron:wght@900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0A0A;--surface:#0F1923;--card:#162130;--card-hi:#1C2B3D;
+  --border:rgba(255,255,255,0.07);--border-hi:rgba(255,255,255,0.15);
+  --sage:#5BC273;--sage-dim:rgba(91,194,115,0.12);
+  --blue:#4298CC;--blue-dim:rgba(66,152,204,0.12);
+  --orange:#E07B3F;--orange-dim:rgba(224,123,63,0.13);
+  --red:#E05C5C;--red-dim:rgba(224,92,92,0.13);
+  --bronze:#C9A84C;--bronze-dim:rgba(201,168,76,0.12);
+  --white:#F2F2F4;--muted:rgba(242,242,244,0.45);--faint:rgba(242,242,244,0.17);
+  --nav-h:52px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;overflow:hidden}
+
+nav{height:var(--nav-h);background:var(--bg);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:0;position:relative;z-index:100}
+.logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;margin-right:32px}
+.logo .iq{color:var(--sage)}
+.ntab{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;
+  letter-spacing:0.1em;text-transform:uppercase;padding:7px 12px;border-radius:5px;
+  cursor:pointer;color:var(--muted);transition:all 0.12s;position:relative}
+.ntab:hover{color:var(--white)}
+.ntab.active{color:var(--sage)}
+.ntab.active::after{content:'';position:absolute;bottom:-1px;left:12px;right:12px;
+  height:2px;background:var(--sage);border-radius:2px 2px 0 0}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.nav-av{width:30px;height:30px;border-radius:50%;background:var(--sage-dim);
+  border:1.5px solid var(--sage);display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;color:var(--sage)}
+.lasso-pill{display:none;align-items:center;gap:6px;background:var(--sage-dim);
+  border:1px solid rgba(91,194,115,0.3);border-radius:6px;padding:5px 12px;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:0.08em;text-transform:uppercase;color:var(--sage)}
+.lasso-pill.show{display:flex}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.lasso-dot{width:6px;height:6px;border-radius:50%;background:var(--sage);animation:pulse 1.2s infinite}
+
+.app{display:flex;height:calc(100vh - var(--nav-h))}
+
+/* LEFT PANEL */
+.left-panel{width:290px;min-width:290px;background:var(--surface);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.panel-head{padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.panel-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--white);
+  display:flex;justify-content:space-between;align-items:center}
+.panel-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.filter-bar{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;gap:4px;flex-wrap:wrap;flex-shrink:0}
+.fp{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:9px;
+  letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:4px;
+  cursor:pointer;border:1px solid var(--border);color:var(--muted);background:transparent;transition:all 0.12s}
+.fp:hover{color:var(--white);border-color:var(--border-hi)}
+.fp.on{background:var(--sage-dim);border-color:rgba(91,194,115,0.25);color:var(--sage)}
+.claims-list{flex:1;overflow-y:auto}
+.ci{padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;
+  transition:background 0.1s;position:relative}
+.ci:hover{background:var(--card)}
+.ci.sel{background:rgba(91,194,115,0.07);border-left:2px solid var(--sage)}
+.ci.dimmed{opacity:0.28;pointer-events:none}
+.ci-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px}
+.ci-name{font-size:13px;font-weight:500;color:var(--white)}
+.ci-meta{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:4px}
+.ci-tags{display:flex;gap:3px;flex-wrap:wrap}
+
+/* BADGE */
+.b{display:inline-flex;align-items:center;font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;font-size:9px;letter-spacing:0.07em;text-transform:uppercase;
+  padding:2px 6px;border-radius:3px}
+.b-r{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,92,92,0.2)}
+.b-o{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(224,123,63,0.2)}
+.b-s{background:var(--sage-dim);color:var(--sage);border:1px solid rgba(91,194,115,0.2)}
+.b-bl{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(66,152,204,0.2)}
+.b-f{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid var(--border)}
+.b-br{background:var(--bronze-dim);color:var(--bronze);border:1px solid rgba(201,168,76,0.2)}
+
+/* MAP */
+.map-center{flex:1;position:relative;overflow:hidden;background:#080F18}
+.map-bg{position:absolute;inset:0;pointer-events:none}
+.road-h{position:absolute;background:rgba(255,255,255,0.05);height:1px;left:0;right:0}
+.road-v{position:absolute;background:rgba(255,255,255,0.05);width:1px;top:0;bottom:0}
+.road-mh{position:absolute;background:rgba(255,255,255,0.09);height:2px;left:0;right:0}
+.road-mv{position:absolute;background:rgba(255,255,255,0.09);width:2px;top:0;bottom:0}
+.ml{position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:600;
+  font-size:9px;letter-spacing:0.08em;color:rgba(255,255,255,0.12);text-transform:uppercase;pointer-events:none}
+
+/* CLAIM PINS */
+.map-pin{position:absolute;cursor:pointer;transform:translate(-50%,-100%);
+  transition:transform 0.12s,filter 0.2s;z-index:10}
+.map-pin:hover{transform:translate(-50%,-100%) scale(1.25);z-index:20}
+.map-pin.sel-pin{transform:translate(-50%,-100%) scale(1.15);z-index:15}
+.map-pin.dim-pin{filter:saturate(0.1) brightness(0.4);pointer-events:none}
+.pin-body{width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+  display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.2)}
+.pin-inner{transform:rotate(45deg);font-family:'Barlow Condensed',sans-serif;
+  font-weight:800;font-size:9px;color:#0A0A0A}
+.pin-label{position:absolute;top:-34px;left:50%;transform:translateX(-50%);
+  background:var(--card-hi);border:1px solid var(--border-hi);border-radius:4px;
+  padding:2px 7px;font-size:10px;font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;color:var(--white);white-space:nowrap;opacity:0;transition:opacity 0.12s;pointer-events:none}
+.map-pin:hover .pin-label{opacity:1}
+.pin-r .pin-body{background:var(--red)}
+.pin-o .pin-body{background:var(--orange)}
+.pin-s .pin-body{background:var(--sage)}
+
+/* ADJ PINS */
+.adj-pin{position:absolute;transform:translate(-50%,-50%);z-index:8;cursor:pointer}
+.adj-pb{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;border:2px solid}
+.adj-pl{position:absolute;top:37px;left:50%;transform:translateX(-50%);
+  background:var(--card-hi);border:1px solid var(--border-hi);border-radius:4px;
+  padding:2px 8px;font-size:10px;font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;color:var(--white);white-space:nowrap;pointer-events:none}
+
+/* LASSO BOX */
+.lasso-box{position:absolute;border:2px dashed var(--sage);background:rgba(91,194,115,0.05);
+  pointer-events:none;z-index:50;display:none;border-radius:3px}
+
+/* MAP CONTROLS */
+.map-ctrl{position:absolute;top:14px;left:14px;display:flex;flex-direction:column;gap:6px;z-index:40}
+.ctrl-group{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.mb{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:0.08em;text-transform:uppercase;padding:8px 12px;cursor:pointer;
+  color:var(--muted);border-bottom:1px solid var(--border);background:transparent;
+  transition:all 0.12s;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.mb:last-child{border-bottom:none}
+.mb:hover{color:var(--white);background:rgba(255,255,255,0.04)}
+.mb.on{color:var(--sage);background:var(--sage-dim)}
+
+/* LASSO POPOVER */
+.lasso-popover{position:absolute;top:14px;left:160px;z-index:200;
+  background:var(--card);border:1px solid var(--border-hi);border-radius:10px;
+  width:300px;box-shadow:0 8px 32px rgba(0,0,0,0.5);display:none}
+.lasso-popover.show{display:block}
+.lp-head{padding:12px 16px 10px;border-bottom:1px solid var(--border)}
+.lp-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--white);margin-bottom:2px}
+.lp-sub{font-size:11px;color:var(--muted)}
+.lp-section{padding:10px 16px;border-bottom:1px solid var(--border)}
+.lp-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:9px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.lp-chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:9px;
+  letter-spacing:0.07em;text-transform:uppercase;padding:4px 9px;border-radius:4px;
+  cursor:pointer;border:1px solid var(--border);color:var(--muted);background:transparent;
+  transition:all 0.12s;user-select:none}
+.chip:hover{color:var(--white);border-color:var(--border-hi)}
+.chip.on{background:var(--sage-dim);border-color:rgba(91,194,115,0.3);color:var(--sage)}
+.lp-slider{padding:10px 16px;border-bottom:1px solid var(--border)}
+.slider-row{display:flex;align-items:center;gap:10px}
+.lp-slider input[type=range]{flex:1;accent-color:var(--sage)}
+.slider-val{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;
+  color:var(--sage);min-width:28px;text-align:right}
+.lp-actions{padding:10px 16px;display:flex;gap:8px;justify-content:flex-end}
+.lp-apply{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;padding:8px 14px;border-radius:6px;
+  cursor:pointer;background:var(--sage);color:var(--bg);border:none;transition:all 0.12s}
+.lp-apply:hover{background:#6DD882}
+.lp-cancel{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;padding:8px 14px;border-radius:6px;
+  cursor:pointer;background:transparent;color:var(--muted);border:1px solid var(--border);transition:all 0.12s}
+.lp-cancel:hover{color:var(--white);border-color:var(--border-hi)}
+
+/* FAB */
+.assign-fab{position:absolute;bottom:14px;right:14px;display:none;z-index:40}
+.assign-fab.show{display:block}
+@keyframes glow{0%,100%{box-shadow:0 0 16px rgba(91,194,115,0.3)}50%{box-shadow:0 0 28px rgba(91,194,115,0.55)}}
+.fab-btn{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;
+  letter-spacing:0.1em;text-transform:uppercase;padding:13px 22px;border-radius:8px;
+  background:var(--sage);color:var(--bg);border:none;cursor:pointer;
+  animation:glow 1.8s infinite;transition:background 0.12s}
+.fab-btn:hover{background:#6DD882}
+
+/* LASSO COUNT */
+.lasso-count{position:absolute;top:60px;left:50%;transform:translateX(-50%);
+  background:var(--card-hi);border:1px solid var(--sage);border-radius:8px;
+  padding:8px 18px;z-index:60;display:none;text-align:center}
+.lasso-count.show{display:block}
+.lc-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;color:var(--sage)}
+.lc-sub{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:9px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)}
+
+/* MAP LEGEND */
+.map-legend{position:absolute;bottom:14px;left:14px;background:var(--card);
+  border:1px solid var(--border);border-radius:8px;padding:10px 14px;z-index:30}
+.leg-r{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);margin-bottom:3px}
+.leg-r:last-child{margin-bottom:0}
+.leg-d{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* RIGHT PANEL */
+.right-panel{width:300px;min-width:300px;background:var(--surface);
+  border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.rp-head{padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.rp-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--white);
+  display:flex;justify-content:space-between;align-items:center}
+.rp-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.adj-list{flex:1;overflow-y:auto}
+.adj-item{padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s}
+.adj-item:hover{background:var(--card)}
+.adj-avail{border-left:2px solid var(--sage)}
+.adj-busy{border-left:2px solid var(--orange)}
+.adj-remote{border-left:2px solid var(--faint)}
+.ai-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;flex-shrink:0}
+.ai-info{flex:1}
+.ai-name{font-size:13px;font-weight:500;color:var(--white)}
+.ai-status{font-size:11px;margin-top:1px}
+.cap-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.cap-fill{height:100%;border-radius:2px;transition:width 0.3s}
+.cap-meta{font-size:10px;color:var(--faint);font-family:'Barlow Condensed',sans-serif;margin-bottom:8px}
+.certs{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:8px}
+.ai-actions{display:flex;gap:6px}
+.abtn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:9px;
+  letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:4px;
+  cursor:pointer;border:1px solid;transition:all 0.12s}
+.abtn-s{border-color:rgba(91,194,115,0.3);color:var(--sage);background:var(--sage-dim)}
+.abtn-s:hover{background:var(--sage);color:var(--bg)}
+.abtn-g{border-color:var(--border);color:var(--muted);background:transparent}
+.abtn-g:hover{border-color:var(--border-hi);color:var(--white)}
+
+/* TOOLTIP */
+.tt{position:fixed;background:var(--card-hi);border:1px solid var(--border-hi);
+  border-radius:8px;padding:12px 14px;min-width:200px;pointer-events:none;
+  z-index:500;opacity:0;transition:opacity 0.15s}
+.tt.show{opacity:1}
+.tt-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;
+  color:var(--white);margin-bottom:6px}
+.tt-row{display:flex;justify-content:space-between;gap:16px;margin-bottom:3px;font-size:12px}
+.tt-l{color:var(--muted)}
+.tt-v{color:var(--white);font-weight:500}
+
+/* ASSIGN MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:300;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.15s}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:1px solid var(--border-hi);border-radius:12px;
+  width:540px;max-width:92vw;overflow:hidden}
+.m-head{padding:20px 24px 16px;border-bottom:1px solid var(--border)}
+.m-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;
+  letter-spacing:0.04em;color:var(--white);margin-bottom:3px}
+.m-sub{font-size:12px;color:var(--muted)}
+.m-body{padding:18px 24px}
+.m-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.claims-scroll{max-height:150px;overflow-y:auto;margin-bottom:14px}
+.sc-item{display:flex;align-items:center;gap:10px;padding:7px 10px;
+  background:var(--card);border-radius:5px;margin-bottom:4px;font-size:12px}
+.sc-check{width:14px;height:14px;border-radius:3px;background:var(--sage);
+  display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--bg);flex-shrink:0}
+.sc-name{font-weight:500;color:var(--white);flex:1}
+.sc-tags{display:flex;gap:3px}
+.adj-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.adj-opt{background:var(--card);border:1.5px solid var(--border);border-radius:8px;
+  padding:12px 14px;cursor:pointer;transition:all 0.12s;position:relative}
+.adj-opt:hover{border-color:var(--border-hi)}
+.adj-opt.chosen{border-color:var(--sage);background:var(--sage-dim)}
+.adj-opt.mismatch{border-color:rgba(224,123,63,0.3)}
+.mismatch-flag{position:absolute;top:8px;right:8px}
+.ao-nm{font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px}
+.ao-meta{font-size:11px;color:var(--muted);margin-bottom:4px}
+.ao-certs{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px}
+.ao-avail{font-size:11px;font-weight:500}
+.m-notify{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;
+  background:var(--card);border-radius:6px;font-size:12px;color:var(--muted);margin-bottom:0}
+.m-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.btn{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;
+  letter-spacing:0.1em;text-transform:uppercase;padding:9px 18px;border-radius:6px;
+  cursor:pointer;border:none;transition:all 0.12s}
+.btn-p{background:var(--sage);color:var(--bg)}
+.btn-p:hover{background:#6DD882}
+.btn-g{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-g:hover{color:var(--white);border-color:var(--border-hi)}
+
+/* OVERRIDE MODAL */
+.override-modal{background:var(--surface);border:1px solid rgba(224,123,63,0.4);
+  border-radius:12px;width:420px;max-width:90vw;overflow:hidden}
+.override-header{background:var(--orange-dim);padding:16px 20px;
+  border-bottom:1px solid rgba(224,123,63,0.2)}
+.override-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;
+  letter-spacing:0.04em;color:var(--orange);margin-bottom:4px}
+.override-sub{font-size:12px;color:var(--muted)}
+.override-body{padding:18px 20px}
+.warnings-list{margin-bottom:14px}
+.warn-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;
+  background:rgba(224,123,63,0.07);border:1px solid rgba(224,123,63,0.15);
+  border-radius:6px;margin-bottom:6px;font-size:12px;color:var(--muted)}
+.warn-icon{color:var(--orange);font-size:14px;flex-shrink:0;margin-top:1px}
+.warn-text{line-height:1.5}
+.warn-text strong{color:var(--white)}
+.reason-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.reason-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:6px;
+  padding:9px 12px;font-family:'Barlow',sans-serif;font-size:13px;color:var(--white);
+  outline:none;transition:border-color 0.12s;resize:none}
+.reason-input:focus{border-color:var(--orange)}
+.reason-input::placeholder{color:var(--faint)}
+.override-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.btn-warn{background:var(--orange);color:#0A0A0A;font-family:'Barlow Condensed',sans-serif;
+  font-weight:800;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;
+  padding:9px 18px;border-radius:6px;cursor:pointer;border:none;transition:all 0.12s}
+.btn-warn:hover{background:#F08C50}
+
+/* TOAST */
+#toast{position:fixed;top:66px;left:50%;transform:translateX(-50%);
+  background:var(--sage);color:var(--bg);font-family:'Barlow Condensed',sans-serif;
+  font-weight:800;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;
+  padding:10px 22px;border-radius:7px;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none}
+
+/* PROTO NOTE */
+.proto-note{position:fixed;bottom:12px;right:12px;background:var(--card);
+  border:1px solid var(--border-hi);border-radius:8px;padding:10px 14px;
+  font-size:10px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;
+  font-weight:600;letter-spacing:0.05em;z-index:200;line-height:1.65;max-width:270px}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.modal-bg.open .modal,.modal-bg.open .override-modal{animation:fadeUp 0.15s ease}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">INSPEKT<span class="iq">iQ</span></div>
+  <div class="ntab">Dashboard</div>
+  <div class="ntab">Claims</div>
+  <div class="ntab">Clients</div>
+  <div class="ntab active">Dispatch</div>
+  <div class="ntab">Adjusters</div>
+  <div class="ntab">Calendar</div>
+  <div class="ntab">Billing</div>
+  <div class="ntab">Settings</div>
+  <div class="nav-r">
+    <div class="lasso-pill" id="lasso-pill">
+      <div class="lasso-dot"></div>
+      Lasso Active — Draw on map
+    </div>
+    <div class="nav-av">MT</div>
+  </div>
+</nav>
+
+<div class="app">
+
+<!-- LEFT: UNASSIGNED CLAIMS -->
+<div class="left-panel">
+  <div class="panel-head">
+    <div class="panel-title">Unassigned <span style="color:var(--orange)" id="left-count">8</span></div>
+    <div class="panel-sub">Click to select · Lasso on map to bulk select</div>
+  </div>
+  <div class="filter-bar">
+    <div class="fp on" onclick="leftFilter('all',this)">All</div>
+    <div class="fp" onclick="leftFilter('residential',this)">Residential</div>
+    <div class="fp" onclick="leftFilter('commercial',this)">Commercial</div>
+    <div class="fp" onclick="leftFilter('sla',this)">SLA Risk</div>
+    <div class="fp" onclick="leftFilter('twia',this)">TWIA</div>
+    <div class="fp" onclick="leftFilter('wind',this)">Wind</div>
+    <div class="fp" onclick="leftFilter('hail',this)">Hail</div>
+  </div>
+  <div class="claims-list" id="left-list"></div>
+</div>
+
+<!-- MAP -->
+<div class="map-center" id="map"
+  onmousedown="startLasso(event)"
+  onmousemove="moveLasso(event)"
+  onmouseup="endLasso(event)">
+
+  <div class="map-bg" id="map-bg"></div>
+  <div class="ml" style="top:16%;left:43%">WACO</div>
+  <div class="ml" style="top:60%;left:20%">WOODWAY</div>
+  <div class="ml" style="top:28%;left:66%">BELLMEAD</div>
+  <div class="ml" style="top:74%;left:55%">HEWITT</div>
+
+  <div id="claim-pins"></div>
+
+  <!-- Adjuster pins -->
+  <div class="adj-pin" style="left:47%;top:50%" onclick="adjPinTip(event,'Andrew Owen','Waco TX','3/5 capacity','Wind,Hail,Residential,Commercial','State Farm,Allstate,USAA')">
+    <div class="adj-pb" style="background:var(--blue-dim);color:var(--blue);border-color:var(--blue)">AO</div>
+    <div class="adj-pl">Andrew O.</div>
+  </div>
+  <div class="adj-pin" style="left:33%;top:64%" onclick="adjPinTip(event,'Kim Lee','Woodway TX','0/10 capacity','Wind,Hail,Residential,TWIA','State Farm,Allstate,USAA,Travelers')">
+    <div class="adj-pb" style="background:var(--sage-dim);color:var(--sage);border-color:var(--sage)">KL</div>
+    <div class="adj-pl" style="color:var(--sage)">Kim L.</div>
+  </div>
+  <div class="adj-pin" style="left:69%;top:32%" onclick="adjPinTip(event,'Sarah Mitchell','Bellmead TX','2/5 capacity','Wind,Hail,Residential','State Farm,Allstate')">
+    <div class="adj-pb" style="background:var(--orange-dim);color:var(--orange);border-color:var(--orange)">SM</div>
+    <div class="adj-pl">Sarah M.</div>
+  </div>
+
+  <div class="lasso-box" id="lasso-box"></div>
+
+  <!-- LASSO PRE-FILTER POPOVER -->
+  <div class="lasso-popover" id="lasso-popover">
+    <div class="lp-head">
+      <div class="lp-title">Lasso Filters</div>
+      <div class="lp-sub">Only matching claims will be grabbable</div>
+    </div>
+    <div class="lp-section">
+      <div class="lp-label">Loss Type</div>
+      <div class="lp-chips">
+        <div class="chip on" onclick="toggleChip(this)">Wind</div>
+        <div class="chip on" onclick="toggleChip(this)">Hail</div>
+        <div class="chip on" onclick="toggleChip(this)">Wind+Hail</div>
+        <div class="chip" onclick="toggleChip(this)">Fire</div>
+        <div class="chip" onclick="toggleChip(this)">Flood</div>
+        <div class="chip" onclick="toggleChip(this)">Liability</div>
+      </div>
+    </div>
+    <div class="lp-section">
+      <div class="lp-label">Claim Category</div>
+      <div class="lp-chips">
+        <div class="chip on" onclick="toggleChip(this)">Residential</div>
+        <div class="chip on" onclick="toggleChip(this)">Commercial</div>
+        <div class="chip" onclick="toggleChip(this)">Farm/Ranch</div>
+        <div class="chip" onclick="toggleChip(this)">Industrial</div>
+      </div>
+    </div>
+    <div class="lp-section">
+      <div class="lp-label">Certifications Required</div>
+      <div class="lp-chips">
+        <div class="chip" onclick="toggleChip(this)">TWIA Only</div>
+        <div class="chip" onclick="toggleChip(this)">Flood Cert</div>
+        <div class="chip" onclick="toggleChip(this)">Commercial Lic</div>
+        <div class="chip" onclick="toggleChip(this)">Any</div>
+      </div>
+    </div>
+    <div class="lp-section">
+      <div class="lp-label">Carrier</div>
+      <div class="lp-chips">
+        <div class="chip on" onclick="toggleChip(this)">State Farm</div>
+        <div class="chip on" onclick="toggleChip(this)">Allstate</div>
+        <div class="chip on" onclick="toggleChip(this)">USAA</div>
+        <div class="chip" onclick="toggleChip(this)">Travelers</div>
+        <div class="chip" onclick="toggleChip(this)">Chubb</div>
+      </div>
+    </div>
+    <div class="lp-slider">
+      <div class="lp-label">Max Claims to Select</div>
+      <div class="slider-row">
+        <input type="range" min="1" max="30" value="15" step="1"
+          oninput="document.getElementById('max-val').textContent=this.value">
+        <div class="slider-val" id="max-val">15</div>
+      </div>
+    </div>
+    <div class="lp-actions">
+      <div class="lp-cancel" onclick="cancelLasso()">Cancel</div>
+      <div class="lp-apply" onclick="applyLassoFilters()">Apply & Draw →</div>
+    </div>
+  </div>
+
+  <!-- Map controls -->
+  <div class="map-ctrl">
+    <div class="ctrl-group">
+      <div class="mb" id="lasso-btn" onclick="openLassoPopover(this)">◎ Lasso Select</div>
+      <div class="mb on" onclick="toggleLayer('claims',this)">● Show Claims</div>
+      <div class="mb on" onclick="toggleLayer('adj',this)">● Show Adjusters</div>
+    </div>
+    <div class="ctrl-group">
+      <div class="mb">⊕ Zoom In</div>
+      <div class="mb">⊖ Zoom Out</div>
+    </div>
+    <div class="mb" id="clear-btn" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:6px"
+      onclick="clearAll()">✕ Clear Selection</div>
+  </div>
+
+  <div class="lasso-count" id="lasso-count">
+    <div class="lc-num" id="lasso-num">0</div>
+    <div class="lc-sub">Claims Selected</div>
+  </div>
+
+  <div class="assign-fab" id="assign-fab">
+    <button class="fab-btn" onclick="openAssignModal()">✓ Assign <span id="fab-count">0</span> Claims →</button>
+  </div>
+
+  <div class="map-legend">
+    <div class="leg-r"><div class="leg-d" style="background:var(--red)"></div>SLA Overdue</div>
+    <div class="leg-r"><div class="leg-d" style="background:var(--orange)"></div>SLA At Risk</div>
+    <div class="leg-r"><div class="leg-d" style="background:var(--sage)"></div>New — No SLA Issue</div>
+    <div class="leg-r"><div class="leg-d" style="background:var(--blue)"></div>Adjuster Location</div>
+  </div>
+</div>
+
+<!-- RIGHT: ADJUSTERS -->
+<div class="right-panel">
+  <div class="rp-head">
+    <div class="rp-title">Adjusters <span class="b b-s" style="font-size:9px">1 Available</span></div>
+    <div class="rp-sub">Profiles show capability · Warning on mismatch</div>
+  </div>
+  <div class="filter-bar">
+    <div class="fp on">All</div>
+    <div class="fp">Available</div>
+    <div class="fp">Waco Area</div>
+    <div class="fp">TWIA</div>
+    <div class="fp">Residential</div>
+    <div class="fp">Commercial</div>
+  </div>
+  <div class="adj-list" id="adj-list"></div>
+</div>
+
+</div>
+
+<!-- ASSIGN MODAL -->
+<div class="modal-bg" id="assign-modal">
+  <div class="modal">
+    <div class="m-head">
+      <div class="m-title">Assign Claims</div>
+      <div class="m-sub" id="m-sub">3 claims selected · Select an adjuster</div>
+    </div>
+    <div class="m-body">
+      <div class="m-label">Selected Claims</div>
+      <div class="claims-scroll" id="modal-claims"></div>
+      <div class="m-label">Assign To</div>
+      <div class="adj-opts" id="modal-adjs"></div>
+      <div class="m-notify">
+        <span style="font-size:14px">📱</span>
+        <span>Adjuster receives push notification + email. They must <strong style="color:var(--white)">accept</strong> before claims go active. Mismatches are flagged below.</span>
+      </div>
+    </div>
+    <div class="m-footer">
+      <div style="font-size:12px;color:var(--muted)" id="m-chosen-label">
+        Choose an adjuster above
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-g" onclick="closeAssignModal()">Cancel</button>
+        <button class="btn btn-p" id="m-confirm-btn" onclick="tryConfirmAssign()">Confirm Assignment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERRIDE MODAL -->
+<div class="modal-bg" id="override-modal">
+  <div class="override-modal">
+    <div class="override-header">
+      <div class="override-title">⚠ Capability Mismatch</div>
+      <div class="override-sub" id="override-sub">This adjuster doesn't meet all requirements for selected claims.</div>
+    </div>
+    <div class="override-body">
+      <div class="warnings-list" id="warnings-list"></div>
+      <div class="reason-label">Reason for Override (required)</div>
+      <textarea class="reason-input" id="override-reason" rows="3"
+        placeholder="Explain why this assignment should proceed despite the mismatch..."></textarea>
+    </div>
+    <div class="override-footer">
+      <button class="btn btn-g" onclick="closeOverride()">Cancel</button>
+      <button class="btn-warn" onclick="confirmOverride()">Override & Assign</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast">✓ Claims assigned successfully</div>
+<div class="tt" id="tt"></div>
+
+<div class="proto-note">
+  <strong style="color:var(--sage)">Smart Dispatch interactions:</strong><br>
+  · Click ◎ Lasso Select → set filters → Apply & Draw<br>
+  · Draw on map — only matching claims are grabbed<br>
+  · Click claim in left panel to select individually<br>
+  · Click adjuster pins for capability summary<br>
+  · Try assigning TWIA claim to non-TWIA adjuster<br>
+  · Override requires a typed reason to proceed
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────
+const CLAIMS = [
+  {id:1,name:'Carol Nguyen',    addr:'4490 Bosque Blvd',  type:'Wind',     cat:'residential',carrier:'Allstate',   sla:'overdue', certs:[],      twia:false, x:42,y:54},
+  {id:2,name:'Robert Finley',   addr:'1201 Clay Ave',     type:'Hail',     cat:'residential',carrier:'State Farm', sla:'warning', certs:[],      twia:false, x:52,y:42},
+  {id:3,name:'Donna Castellano',addr:'3309 Franklin Ave', type:'Wind+Hail',cat:'residential',carrier:'Allstate',   sla:'warning', certs:[],      twia:false, x:38,y:37},
+  {id:4,name:'Marcus Thibodaux',addr:'2201 Bosque Blvd',  type:'Wind',     cat:'residential',carrier:'USAA',       sla:'ok',      certs:[],      twia:false, x:56,y:60},
+  {id:5,name:'James Whitfield', addr:'901 Lake Air Dr',   type:'Hail',     cat:'residential',carrier:'Travelers',  sla:'ok',      certs:[],      twia:false, x:61,y:47},
+  {id:6,name:'Apex Roofing LLC',addr:'820 W Waco Dr',     type:'Hail',     cat:'commercial', carrier:'Chubb',      sla:'warning', certs:['Commercial Lic'],twia:false,x:44,y:70},
+  {id:7,name:'First Baptist',   addr:'100 Church St',     type:'Wind+Hail',cat:'commercial', carrier:'Church Mut.',sla:'ok',      certs:['Commercial Lic'],twia:false,x:27,y:72},
+  {id:8,name:'Rosa Valdez',     addr:'3120 Sanger Ave',   type:'Wind',     cat:'residential',carrier:'State Farm', sla:'ok',      certs:['TWIA Cert'],    twia:true, x:65,y:55},
+];
+
+const ADJUSTERS = [
+  {initials:'KL',name:'Kim Lee',    loc:'Woodway TX',  active:0, max:10,avail:'available',
+   types:['Wind','Hail','Wind+Hail','Residential'],carriers:['State Farm','Allstate','USAA','Travelers'],
+   certs:['TWIA Cert'],color:'sage',bg:'var(--sage-dim)',fg:'var(--sage)'},
+  {initials:'AO',name:'Andrew Owen',loc:'Waco TX',     active:3, max:5, avail:'busy',
+   types:['Wind','Hail','Wind+Hail','Residential','Commercial'],carriers:['State Farm','Allstate','USAA'],
+   certs:[],color:'blue',bg:'var(--blue-dim)',fg:'var(--blue)'},
+  {initials:'SM',name:'Sarah Mitchell',loc:'Bellmead TX',active:2,max:5,avail:'busy',
+   types:['Wind','Hail','Residential'],carriers:['State Farm','Allstate'],
+   certs:[],color:'orange',bg:'var(--orange-dim)',fg:'var(--orange)'},
+  {initials:'JR',name:'James Rivera',loc:'Dallas TX',  active:1, max:8, avail:'remote',
+   types:['Wind','Hail','Commercial','Industrial'],carriers:['Chubb','Travelers','USAA'],
+   certs:['Commercial Lic','Flood Cert'],color:'faint',bg:'rgba(255,255,255,0.05)',fg:'var(--muted)'},
+];
+
+let selected = new Set();
+let lassoMode = false;
+let lassoDrawing = false;
+let lassoSx=0,lassoSy=0;
+let lassoFiltersActive = false;
+let leftFilter_ = 'all';
+let chosenAdj = null;
+
+const SLA_PIN = {overdue:'pin-r',warning:'pin-o',ok:'pin-s'};
+const SLA_B   = {overdue:'b-r', warning:'b-o', ok:'b-f'};
+const SLA_LBL = {overdue:'SLA Overdue',warning:'SLA At Risk',ok:'New'};
+
+// ── LEFT PANEL ────────────────────────────────────────
+function renderLeft() {
+  const filt = c => {
+    if(leftFilter_==='all') return true;
+    if(leftFilter_==='residential') return c.cat==='residential';
+    if(leftFilter_==='commercial') return c.cat==='commercial';
+    if(leftFilter_==='sla') return c.sla!=='ok';
+    if(leftFilter_==='twia') return c.twia;
+    if(leftFilter_==='wind') return c.type.includes('Wind');
+    if(leftFilter_==='hail') return c.type.toLowerCase().includes('hail');
+    return true;
+  };
+  const list = document.getElementById('left-list');
+  list.innerHTML = CLAIMS.filter(filt).map(c => {
+    const sel = selected.has(c.id);
+    const dim = lassoFiltersActive && !claimMatchesLassoFilters(c);
+    return `<div class="ci${sel?' sel':''}${dim?' dimmed':''}" id="lci-${c.id}" onclick="toggleClaim(${c.id})">
+      <div class="ci-row"><div class="ci-name">${c.name}</div><span class="b ${SLA_B[c.sla]}">${SLA_LBL[c.sla]}</span></div>
+      <div class="ci-meta">${c.addr}<br>${c.type} · ${c.carrier}</div>
+      <div class="ci-tags">
+        <span class="b b-f">${c.cat}</span>
+        ${c.twia?'<span class="b b-br">TWIA</span>':''}
+        ${c.certs.length?`<span class="b b-bl">${c.certs[0]}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function leftFilter(f,el) {
+  leftFilter_=f;
+  document.querySelectorAll('.left-panel .fp').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  renderLeft();
+}
+
+// ── MAP PINS ──────────────────────────────────────────
+function renderPins() {
+  document.getElementById('claim-pins').innerHTML = CLAIMS.map(c => {
+    const sel = selected.has(c.id);
+    const dim = lassoFiltersActive && !claimMatchesLassoFilters(c);
+    return `<div class="map-pin ${SLA_PIN[c.sla]}${sel?' sel-pin':''}${dim?' dim-pin':''}"
+      id="pin-${c.id}" style="left:${c.x}%;top:${c.y}%"
+      onclick="pinClick(event,${c.id})">
+      <div class="pin-body"><div class="pin-inner">${c.id}</div></div>
+      <div class="pin-label">${c.name}</div>
+    </div>`;
+  }).join('');
+}
+
+function pinClick(e,id) {
+  e.stopPropagation();
+  const c = CLAIMS.find(x=>x.id===id);
+  if(!c) return;
+  if(lassoMode) { toggleClaim(id); return; }
+  const tt = document.getElementById('tt');
+  tt.innerHTML=`<div class="tt-title">${c.name}</div>
+    <div class="tt-row"><span class="tt-l">Address</span><span class="tt-v">${c.addr}</span></div>
+    <div class="tt-row"><span class="tt-l">Type</span><span class="tt-v">${c.type}</span></div>
+    <div class="tt-row"><span class="tt-l">Carrier</span><span class="tt-v">${c.carrier}</span></div>
+    <div class="tt-row"><span class="tt-l">SLA</span><span class="tt-v" style="color:${c.sla==='overdue'?'var(--red)':c.sla==='warning'?'var(--orange)':'var(--sage)'}">${SLA_LBL[c.sla]}</span></div>
+    ${c.twia?'<div class="tt-row"><span class="tt-l">Cert</span><span class="tt-v" style="color:var(--bronze)">TWIA Required</span></div>':''}
+    <div style="margin-top:8px"><div class="abtn abtn-s" style="display:inline-block" onclick="toggleClaim(${id});document.getElementById('tt').classList.remove('show')">+ Select</div></div>`;
+  tt.style.left=(e.clientX+14)+'px'; tt.style.top=(e.clientY-90)+'px';
+  tt.classList.add('show');
+  setTimeout(()=>tt.classList.remove('show'),3500);
+}
+
+function adjPinTip(e,name,loc,cap,types,carriers) {
+  e.stopPropagation();
+  const tt=document.getElementById('tt');
+  tt.innerHTML=`<div class="tt-title">${name}</div>
+    <div class="tt-row"><span class="tt-l">Location</span><span class="tt-v">${loc}</span></div>
+    <div class="tt-row"><span class="tt-l">Capacity</span><span class="tt-v">${cap}</span></div>
+    <div class="tt-row"><span class="tt-l">Types</span><span class="tt-v" style="max-width:140px;text-align:right">${types}</span></div>
+    <div class="tt-row"><span class="tt-l">Carriers</span><span class="tt-v" style="max-width:140px;text-align:right">${carriers}</span></div>`;
+  tt.style.left=(e.clientX+14)+'px'; tt.style.top=(e.clientY-80)+'px';
+  tt.classList.add('show');
+  setTimeout(()=>tt.classList.remove('show'),3000);
+}
+
+// ── SELECTION ─────────────────────────────────────────
+function toggleClaim(id) {
+  if(lassoFiltersActive && !claimMatchesLassoFilters(CLAIMS.find(c=>c.id===id))) return;
+  if(selected.has(id)) selected.delete(id); else selected.add(id);
+  updateUI();
+}
+
+function clearAll() {
+  selected.clear(); updateUI();
+  if(lassoMode) cancelLasso();
+}
+
+function updateUI() {
+  renderLeft(); renderPins();
+  const n = selected.size;
+  document.getElementById('assign-fab').classList.toggle('show',n>0);
+  document.getElementById('fab-count').textContent = n;
+  document.getElementById('clear-btn').style.display = n>0 ? 'flex':'none';
+}
+
+// ── LASSO ─────────────────────────────────────────────
+function openLassoPopover(el) {
+  const pop = document.getElementById('lasso-popover');
+  pop.classList.toggle('show');
+  el.classList.toggle('on', pop.classList.contains('show'));
+}
+
+function toggleChip(el) { el.classList.toggle('on'); }
+
+function applyLassoFilters() {
+  document.getElementById('lasso-popover').classList.remove('show');
+  document.getElementById('lasso-btn').classList.add('on');
+  lassoMode = true;
+  lassoFiltersActive = true;
+  document.getElementById('lasso-pill').classList.add('show');
+  document.getElementById('map').style.cursor = 'crosshair';
+  renderLeft(); renderPins();
+}
+
+function cancelLasso() {
+  document.getElementById('lasso-popover').classList.remove('show');
+  document.getElementById('lasso-btn').classList.remove('on');
+  lassoMode = false; lassoFiltersActive = false;
+  document.getElementById('lasso-pill').classList.remove('show');
+  document.getElementById('map').style.cursor = 'default';
+  renderLeft(); renderPins();
+}
+
+function claimMatchesLassoFilters(c) {
+  const chips = [...document.querySelectorAll('.lasso-popover .chip.on')].map(ch=>ch.textContent.trim());
+  const typeChips = ['Wind','Hail','Wind+Hail','Fire','Flood','Liability'].filter(t=>chips.includes(t));
+  const catChips  = ['Residential','Commercial','Farm/Ranch','Industrial'].filter(t=>chips.includes(t));
+  const certChips = ['TWIA Only','Flood Cert','Commercial Lic','Any'].filter(t=>chips.includes(t));
+  const carrChips = ['State Farm','Allstate','USAA','Travelers','Chubb'].filter(t=>chips.includes(t));
+  if(typeChips.length && !typeChips.some(t=>c.type.includes(t))) return false;
+  if(catChips.length && !catChips.some(t=>c.cat.toLowerCase()===t.toLowerCase())) return false;
+  if(carrChips.length && !carrChips.includes(c.carrier)) return false;
+  return true;
+}
+
+// Lasso draw
+let lassoActive=false,lsx=0,lsy=0;
+function startLasso(e) {
+  if(!lassoMode) return;
+  if(e.target.closest('.map-ctrl,.map-legend,.lasso-popover,.adj-pin,.map-pin,.assign-fab,.lasso-count')) return;
+  lassoActive=true; const r=document.getElementById('map').getBoundingClientRect();
+  lsx=e.clientX-r.left; lsy=e.clientY-r.top;
+  const b=document.getElementById('lasso-box');
+  b.style.display='block'; b.style.left=lsx+'px'; b.style.top=lsy+'px';
+  b.style.width='0'; b.style.height='0';
+}
+function moveLasso(e) {
+  if(!lassoActive) return;
+  const r=document.getElementById('map').getBoundingClientRect();
+  const cx=e.clientX-r.left,cy=e.clientY-r.top;
+  const b=document.getElementById('lasso-box');
+  const x=Math.min(cx,lsx),y=Math.min(cy,lsy),w=Math.abs(cx-lsx),h=Math.abs(cy-lsy);
+  b.style.left=x+'px'; b.style.top=y+'px'; b.style.width=w+'px'; b.style.height=h+'px';
+  const mw=r.width,mh=r.height;
+  const maxN=parseInt(document.getElementById('max-val').textContent)||15;
+  let count=0;
+  CLAIMS.forEach(c=>{
+    if(!claimMatchesLassoFilters(c)) return;
+    const px=(c.x/100)*mw,py=(c.y/100)*mh;
+    if(px>=x&&px<=x+w&&py>=y&&py<=y+h) count++;
+  });
+  count=Math.min(count,maxN);
+  const lc=document.getElementById('lasso-count');
+  if(w>20||h>20){document.getElementById('lasso-num').textContent=count;lc.classList.add('show');}
+  else{lc.classList.remove('show');}
+}
+function endLasso(e) {
+  if(!lassoActive) return;
+  lassoActive=false;
+  const b=document.getElementById('lasso-box');
+  const r=document.getElementById('map').getBoundingClientRect();
+  const bx=parseFloat(b.style.left),by=parseFloat(b.style.top),
+        bw=parseFloat(b.style.width),bh=parseFloat(b.style.height);
+  b.style.display='none';
+  document.getElementById('lasso-count').classList.remove('show');
+  if(bw>20&&bh>20){
+    const mw=r.width,mh=r.height;
+    const maxN=parseInt(document.getElementById('max-val').textContent)||15;
+    let grabbed=0;
+    CLAIMS.forEach(c=>{
+      if(grabbed>=maxN||!claimMatchesLassoFilters(c)) return;
+      const px=(c.x/100)*mw,py=(c.y/100)*mh;
+      if(px>=bx&&px<=bx+bw&&py>=by&&py<=by+bh){selected.add(c.id);grabbed++;}
+    });
+    updateUI();
+  }
+}
+
+// ── LAYERS ────────────────────────────────────────────
+function toggleLayer(layer,el) {
+  el.classList.toggle('on');
+  if(layer==='claims') document.getElementById('claim-pins').style.display=el.classList.contains('on')?'block':'none';
+  if(layer==='adj') document.querySelectorAll('.adj-pin').forEach(p=>p.style.display=el.classList.contains('on')?'block':'none');
+}
+
+// ── ADJUSTERS PANEL ───────────────────────────────────
+function renderAdjPanel() {
+  const list=document.getElementById('adj-list');
+  list.innerHTML=ADJUSTERS.map(a=>{
+    const pct=Math.round((a.active/a.max)*100);
+    const avLbl=a.avail==='available'?`<span style="color:var(--sage)">✓ Fully available</span>`:
+      a.avail==='remote'?`<span style="color:var(--muted)">Remote — travel needed</span>`:
+      `<span style="color:var(--orange)">${a.active}/${a.max} capacity</span>`;
+    const capColor=a.avail==='available'?'var(--sage)':a.avail==='remote'?'var(--faint)':'var(--orange)';
+    return `<div class="adj-item adj-${a.avail}" onclick="quickAssign('${a.name}')">
+      <div class="ai-top">
+        <div class="av" style="background:${a.bg};color:${a.fg}">${a.initials}</div>
+        <div class="ai-info"><div class="ai-name">${a.name}</div><div class="ai-status">${avLbl}</div></div>
+      </div>
+      <div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${capColor}"></div></div>
+      <div class="cap-meta">${a.loc} · ${a.active}/${a.max} active claims</div>
+      <div class="certs">${a.certs.map(c=>`<span class="b b-br">${c}</span>`).join('')}
+        ${a.types.slice(0,3).map(t=>`<span class="b b-f">${t}</span>`).join('')}
+      </div>
+      <div class="ai-actions">
+        <div class="abtn abtn-s" onclick="event.stopPropagation();quickAssign('${a.name}')">Assign Claims</div>
+        <div class="abtn abtn-g">View Calendar</div>
+        <div class="abtn abtn-g">Profile</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function quickAssign(adjName) {
+  if(selected.size===0) CLAIMS.forEach(c=>selected.add(c.id));
+  updateUI();
+  chosenAdj = adjName;
+  openAssignModal();
+}
+
+// ── ASSIGN MODAL ──────────────────────────────────────
+function openAssignModal() {
+  const n=selected.size;
+  document.getElementById('m-sub').textContent=`${n} claim${n>1?'s':''} selected · Select an adjuster`;
+  const claims=[...selected].map(id=>CLAIMS.find(c=>c.id===id)).filter(Boolean);
+  document.getElementById('modal-claims').innerHTML=claims.map(c=>`
+    <div class="sc-item">
+      <div class="sc-check">✓</div>
+      <div class="sc-name">${c.name}</div>
+      <div class="sc-tags">
+        <span class="b b-f">${c.type}</span>
+        ${c.twia?'<span class="b b-br">TWIA</span>':''}
+        ${c.certs.map(ce=>`<span class="b b-bl">${ce}</span>`).join('')}
+      </div>
+    </div>`).join('');
+
+  document.getElementById('modal-adjs').innerHTML=ADJUSTERS.map(a=>{
+    const mismatches=getAdjMismatches(a,claims);
+    const hasMismatch=mismatches.length>0;
+    const chosen=chosenAdj===a.name;
+    const avLbl=a.avail==='available'
+      ?`<span style="color:var(--sage)">✓ Available</span>`
+      :a.avail==='remote'
+      ?`<span style="color:var(--muted)">Remote</span>`
+      :`<span style="color:var(--orange)">${a.active}/${a.max}</span>`;
+    return `<div class="adj-opt${chosen?' chosen':''}${hasMismatch?' mismatch':''}"
+      onclick="selectModalAdj(this,'${a.name}')">
+      ${hasMismatch?`<div class="mismatch-flag"><span class="b b-o">⚠ ${mismatches.length} issue${mismatches.length>1?'s':''}</span></div>`:''}
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+        <div class="av" style="width:26px;height:26px;font-size:10px;background:${a.bg};color:${a.fg}">${a.initials}</div>
+        <div class="ao-nm">${a.name}</div>
+      </div>
+      <div class="ao-meta">${a.loc} · ${a.active}/${a.max} active</div>
+      <div class="ao-certs">${a.certs.map(c=>`<span class="b b-br" style="font-size:8px">${c}</span>`).join('')}</div>
+      <div class="ao-avail">${avLbl}</div>
+    </div>`;
+  }).join('');
+
+  if(chosenAdj) {
+    document.querySelectorAll('.adj-opt').forEach(el=>{
+      if(el.querySelector('.ao-nm').textContent===chosenAdj) el.classList.add('chosen');
+    });
+    document.getElementById('m-chosen-label').innerHTML=
+      `Assigning to: <strong style="color:var(--sage)">${chosenAdj}</strong>`;
+  }
+
+  document.getElementById('assign-modal').classList.add('open');
+}
+
+function selectModalAdj(el,name) {
+  document.querySelectorAll('.adj-opt').forEach(o=>o.classList.remove('chosen'));
+  el.classList.add('chosen'); chosenAdj=name;
+  document.getElementById('m-chosen-label').innerHTML=
+    `Assigning to: <strong style="color:var(--sage)">${name}</strong>`;
+}
+
+function closeAssignModal() {
+  document.getElementById('assign-modal').classList.remove('open');
+  chosenAdj=null;
+}
+
+function tryConfirmAssign() {
+  if(!chosenAdj) return;
+  const adj=ADJUSTERS.find(a=>a.name===chosenAdj);
+  if(!adj) return;
+  const claims=[...selected].map(id=>CLAIMS.find(c=>c.id===id)).filter(Boolean);
+  const mismatches=getAdjMismatches(adj,claims);
+  if(mismatches.length>0) {
+    closeAssignModal();
+    showOverrideModal(adj,mismatches);
+  } else {
+    confirmAssign();
+  }
+}
+
+// ── MISMATCH CHECK ────────────────────────────────────
+function getAdjMismatches(adj,claims) {
+  const issues=[];
+  claims.forEach(c=>{
+    if(c.twia && !adj.certs.includes('TWIA Cert'))
+      issues.push(`<strong>${c.name}</strong> requires TWIA certification — ${adj.name} is not TWIA certified`);
+    if(c.certs.includes('Commercial Lic') && !adj.certs.includes('Commercial Lic'))
+      issues.push(`<strong>${c.name}</strong> requires Commercial License — ${adj.name} does not have it`);
+    if(!adj.carriers.includes(c.carrier))
+      issues.push(`<strong>${c.name}</strong> is a ${c.carrier} claim — ${adj.name} is not approved for ${c.carrier}`);
+  });
+  if(adj.active >= adj.max)
+    issues.push(`<strong>${adj.name}</strong> is at maximum capacity (${adj.active}/${adj.max} claims)`);
+  return [...new Set(issues)];
+}
+
+// ── OVERRIDE MODAL ────────────────────────────────────
+function showOverrideModal(adj,mismatches) {
+  document.getElementById('override-sub').textContent=
+    `${mismatches.length} issue${mismatches.length>1?'s':''} found assigning to ${adj.name}`;
+  document.getElementById('warnings-list').innerHTML=mismatches.map(m=>`
+    <div class="warn-item"><div class="warn-icon">⚠</div><div class="warn-text">${m}</div></div>`).join('');
+  document.getElementById('override-reason').value='';
+  document.getElementById('override-modal').classList.add('open');
+}
+
+function closeOverride() {
+  document.getElementById('override-modal').classList.remove('open');
+}
+
+function confirmOverride() {
+  const reason=document.getElementById('override-reason').value.trim();
+  if(!reason) {
+    document.getElementById('override-reason').style.borderColor='var(--red)';
+    document.getElementById('override-reason').placeholder='⚠ Reason is required to override';
+    setTimeout(()=>{
+      document.getElementById('override-reason').style.borderColor='';
+      document.getElementById('override-reason').placeholder='Explain why this assignment should proceed despite the mismatch...';
+    },2000);
+    return;
+  }
+  closeOverride();
+  confirmAssign();
+}
+
+function confirmAssign() {
+  const n=selected.size;
+  const toast=document.getElementById('toast');
+  toast.textContent=`✓ ${n} claim${n>1?'s':''} assigned to ${chosenAdj}`;
+  toast.style.opacity='1';
+  setTimeout(()=>toast.style.opacity='0',3000);
+  selected.clear(); chosenAdj=null; updateUI();
+  if(lassoMode) cancelLasso();
+}
+
+// ── MAP BG ────────────────────────────────────────────
+function buildMap() {
+  const bg=document.getElementById('map-bg');
+  let h='';
+  for(let i=6;i<100;i+=9){h+=`<div class="road-h" style="top:${i}%"></div><div class="road-v" style="left:${i}%"></div>`;}
+  [22,48,72].forEach(p=>{h+=`<div class="road-mh" style="top:${p}%"></div>`;});
+  [28,52,76].forEach(p=>{h+=`<div class="road-mv" style="left:${p}%"></div>`;});
+  h+=`<div style="position:absolute;width:200%;height:2px;background:rgba(255,255,255,0.07);top:38%;left:-50%;transform:rotate(-7deg)"></div>`;
+  h+=`<div style="position:absolute;width:200%;height:1.5px;background:rgba(255,255,255,0.04);top:62%;left:-50%;transform:rotate(4deg)"></div>`;
+  bg.innerHTML=h;
+}
+
+// Click outside to close tooltip/popover
+document.getElementById('map').addEventListener('click',e=>{
+  if(!e.target.closest('.map-pin,.lasso-popover,.map-ctrl')) {
+    document.getElementById('tt').classList.remove('show');
+  }
+  if(!e.target.closest('.lasso-popover,.map-ctrl')) {
+    document.getElementById('lasso-popover').classList.remove('show');
+  }
+});
+
+// ── INIT ─────────────────────────────────────────────
+buildMap(); renderLeft(); renderPins(); renderAdjPanel();
+</script>
+</body>
+</html>

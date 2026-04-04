@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INSPEKTiQ — Wireframe Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Orbitron:wght@900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0A0A0A;
+  --surface:   #0F1923;
+  --card:      #162130;
+  --card-hi:   #1C2B3D;
+  --border:    rgba(255,255,255,0.07);
+  --border-hi: rgba(255,255,255,0.13);
+  --sage:      #5BC273;
+  --sage-dim:  rgba(91,194,115,0.12);
+  --sage-glow: rgba(91,194,115,0.25);
+  --blue:      #4298CC;
+  --blue-dim:  rgba(66,152,204,0.12);
+  --orange:    #E07B3F;
+  --orange-dim:rgba(224,123,63,0.12);
+  --red:       #E05C5C;
+  --red-dim:   rgba(224,92,92,0.12);
+  --bronze:    #C9A84C;
+  --white:     #F2F2F4;
+  --muted:     rgba(242,242,244,0.45);
+  --faint:     rgba(242,242,244,0.22);
+  --nav-h:     56px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;font-size:14px;line-height:1.5;overflow:hidden}
+
+/* ── NAV ─────────────────────────────────────────────── */
+nav{
+  position:fixed;top:0;left:0;right:0;height:var(--nav-h);
+  background:var(--bg);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:0;z-index:100;
+}
+.nav-logo{
+  font-family:'Orbitron',sans-serif;font-weight:900;font-size:15px;
+  letter-spacing:0.04em;margin-right:36px;white-space:nowrap;
+  cursor:pointer;
+}
+.nav-logo .inspekt{color:var(--white)}
+.nav-logo .iq{color:var(--sage)}
+.nav-tabs{display:flex;align-items:center;gap:2px;flex:1}
+.nav-tab{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;
+  letter-spacing:0.12em;text-transform:uppercase;
+  padding:8px 14px;border-radius:6px;cursor:pointer;
+  color:var(--muted);transition:all 0.15s;position:relative;
+}
+.nav-tab:hover{color:var(--white);background:rgba(255,255,255,0.05)}
+.nav-tab.active{color:var(--sage)}
+.nav-tab.active::after{
+  content:'';position:absolute;bottom:-1px;left:14px;right:14px;height:2px;
+  background:var(--sage);border-radius:2px 2px 0 0;
+}
+.nav-right{display:flex;align-items:center;gap:12px;margin-left:auto}
+.nav-search{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:7px 12px 7px 34px;font-family:'Barlow',sans-serif;font-size:13px;
+  color:var(--white);width:220px;outline:none;position:relative;
+  transition:border-color 0.15s;
+}
+.nav-search:focus{border-color:var(--sage)}
+.search-wrap{position:relative}
+.search-wrap::before{
+  content:'⌕';position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  color:var(--faint);font-size:15px;pointer-events:none;
+}
+.nav-avatar{
+  width:32px;height:32px;border-radius:50%;background:var(--sage-dim);
+  border:1.5px solid var(--sage);display:flex;align-items:center;
+  justify-content:center;font-family:'Barlow Condensed',sans-serif;
+  font-weight:800;font-size:12px;color:var(--sage);cursor:pointer;
+  transition:all 0.15s;
+}
+.nav-avatar:hover{background:var(--sage);color:var(--bg)}
+
+/* ── LAYOUT ──────────────────────────────────────────── */
+.layout{
+  display:flex;height:100vh;padding-top:var(--nav-h);
+}
+.main{flex:1;overflow-y:auto;padding:28px 32px}
+.page{display:none}
+.page.active{display:block}
+
+/* ── TYPOGRAPHY ──────────────────────────────────────── */
+.page-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;
+  letter-spacing:0.04em;color:var(--white);margin-bottom:4px;
+}
+.page-sub{font-size:13px;color:var(--muted);margin-bottom:24px;font-weight:400}
+h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;
+  letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+
+/* ── CARDS ───────────────────────────────────────────── */
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:18px 20px;transition:border-color 0.15s;
+}
+.card:hover{border-color:var(--border-hi)}
+.card-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;
+}
+.card-link{color:var(--sage);font-size:11px;cursor:pointer;letter-spacing:0.05em}
+.card-link:hover{opacity:0.8}
+
+/* ── STAT CARDS ──────────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:24px}
+.stats-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:16px 18px;transition:all 0.15s;cursor:default;
+}
+.stat-card:hover{border-color:var(--border-hi);background:var(--card-hi)}
+.stat-label{
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:10px;
+  letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;
+}
+.stat-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:32px;line-height:1}
+.stat-num.sage{color:var(--sage)}
+.stat-num.orange{color:var(--orange)}
+.stat-num.blue{color:var(--blue)}
+.stat-num.red{color:var(--red)}
+.stat-trend{font-size:11px;color:var(--muted);margin-top:6px}
+
+/* ── BADGES ──────────────────────────────────────────── */
+.badge{
+  display:inline-flex;align-items:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:0.08em;text-transform:uppercase;
+  padding:3px 8px;border-radius:4px;
+}
+.badge-sage{background:var(--sage-dim);color:var(--sage);border:1px solid rgba(91,194,115,0.2)}
+.badge-orange{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(224,123,63,0.2)}
+.badge-blue{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(66,152,204,0.2)}
+.badge-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,92,92,0.2)}
+.badge-faint{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid var(--border)}
+.badge-bronze{background:rgba(201,168,76,0.12);color:var(--bronze);border:1px solid rgba(201,168,76,0.2)}
+
+/* ── SLA DOT ─────────────────────────────────────────── */
+.sla-dot{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:16px;height:16px;border-radius:50%;font-size:9px;font-weight:800;
+  font-family:'Barlow Condensed',sans-serif;margin-left:5px;
+}
+.sla-dot.red{background:var(--red);color:#fff}
+.sla-dot.orange{background:var(--orange);color:#fff}
+
+/* ── PILLS ───────────────────────────────────────────── */
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.pill{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;
+  letter-spacing:0.08em;text-transform:uppercase;
+  padding:6px 12px;border-radius:6px;cursor:pointer;
+  border:1px solid var(--border);color:var(--muted);background:transparent;
+  transition:all 0.15s;white-space:nowrap;display:flex;align-items:center;gap:5px;
+}
+.pill:hover{border-color:var(--border-hi);color:var(--white)}
+.pill.active{background:var(--sage-dim);border-color:rgba(91,194,115,0.3);color:var(--sage)}
+
+/* ── BUTTONS ─────────────────────────────────────────── */
+.btn{
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;
+  letter-spacing:0.1em;text-transform:uppercase;
+  padding:9px 16px;border-radius:7px;cursor:pointer;border:none;
+  transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;
+}
+.btn-primary{background:var(--sage);color:var(--bg)}
+.btn-primary:hover{background:#6DD882;transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--border-hi);color:var(--white)}
+.btn-sm{padding:6px 11px;font-size:10px}
+
+/* ── TABLE ───────────────────────────────────────────── */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead th{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);
+  padding:12px 14px;text-align:left;background:var(--surface);
+  border-bottom:1px solid var(--border);
+}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--card-hi)}
+tbody td{padding:13px 14px;font-size:13px;color:var(--white);vertical-align:middle}
+.claim-num{color:var(--sage);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px}
+.due-warn{color:var(--orange)}
+.due-late{color:var(--red)}
+
+/* ── TWO COL ─────────────────────────────────────────── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+/* ── ACTIVITY ────────────────────────────────────────── */
+.act-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.act-item:last-child{border-bottom:none;padding-bottom:0}
+.act-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.act-dot.sage{background:var(--sage)}
+.act-dot.orange{background:var(--orange)}
+.act-dot.faint{background:var(--faint)}
+.act-dot.blue{background:var(--blue)}
+.act-body{flex:1}
+.act-main{font-size:13px;color:var(--white);line-height:1.4}
+.act-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.act-time{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--faint);white-space:nowrap;min-width:52px;text-align:right}
+
+/* ── ALERT ITEMS ─────────────────────────────────────── */
+.alert-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.alert-item:last-child{border-bottom:none;padding-bottom:0}
+.alert-icon{width:28px;height:28px;border-radius:6px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:12px}
+.alert-icon.red{background:var(--red-dim)}
+.alert-icon.orange{background:var(--orange-dim)}
+.alert-body{flex:1}
+.alert-name{font-size:13px;font-weight:500;color:var(--white)}
+.alert-sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ── CLAIM DETAIL ────────────────────────────────────── */
+.detail-header{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:20px 24px;margin-bottom:20px;
+}
+.detail-name{
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:24px;
+  color:var(--white);margin-bottom:6px;
+}
+.detail-meta{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.detail-meta span{font-size:12px;color:var(--muted)}
+.detail-meta span strong{color:var(--white);font-weight:500}
+.detail-tabs{display:flex;gap:2px;margin-bottom:20px;overflow-x:auto;
+  border-bottom:1px solid var(--border);padding-bottom:0}
+.detail-tab{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;
+  letter-spacing:0.1em;text-transform:uppercase;
+  padding:10px 16px;cursor:pointer;color:var(--muted);
+  border-bottom:2px solid transparent;transition:all 0.15s;white-space:nowrap;
+  margin-bottom:-1px;
+}
+.detail-tab:hover{color:var(--white)}
+.detail-tab.active{color:var(--sage);border-bottom-color:var(--sage)}
+.detail-pane{display:none}
+.detail-pane.active{display:block}
+
+/* ── INFO ROWS ───────────────────────────────────────── */
+.info-row{display:flex;justify-content:space-between;padding:10px 0;
+  border-bottom:1px solid var(--border);font-size:13px}
+.info-row:last-child{border-bottom:none}
+.info-label{color:var(--muted)}
+.info-val{color:var(--white);font-weight:500;text-align:right}
+
+/* ── ADJUSTER ROW ────────────────────────────────────── */
+.adj-row{display:flex;align-items:center;gap:12px;padding:10px 0;
+  border-bottom:1px solid var(--border)}
+.adj-row:last-child{border-bottom:none}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-family:'Barlow Condensed',sans-serif;
+  font-weight:800;font-size:11px;flex-shrink:0}
+.adj-info{flex:1}
+.adj-name{font-size:13px;font-weight:500;color:var(--white)}
+.adj-load{font-size:11px;color:var(--muted);margin-top:1px}
+
+/* ── UNASSIGNED ──────────────────────────────────────── */
+.unassign-row{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--border)}
+.unassign-row:last-child{border-bottom:none}
+.unassign-info{flex:1}
+.unassign-name{font-size:13px;font-weight:500;color:var(--white)}
+.unassign-meta{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ── QUEUE ITEM ──────────────────────────────────────── */
+.queue-item{padding:14px 0;border-bottom:1px solid var(--border)}
+.queue-item:last-child{border-bottom:none;padding-bottom:0}
+.queue-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.queue-name{font-size:13px;font-weight:500;color:var(--white)}
+.queue-meta{font-size:11px;color:var(--muted);margin-bottom:8px}
+.queue-actions{display:flex;gap:8px}
+
+/* ── BACK BTN ────────────────────────────────────────── */
+.back-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;
+  letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--muted);cursor:pointer;margin-bottom:20px;
+  transition:color 0.15s;
+}
+.back-btn:hover{color:var(--sage)}
+.back-btn::before{content:'←';font-size:14px}
+
+/* ── SECTION HEADER ──────────────────────────────────── */
+.sec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+
+/* ── SCROLLBAR ───────────────────────────────────────── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px}
+
+/* ── ROLE SWITCHER (prototype only) ─────────────────── */
+.proto-bar{
+  position:fixed;bottom:16px;right:16px;z-index:200;
+  background:var(--card);border:1px solid var(--border-hi);border-radius:10px;
+  padding:10px 14px;display:flex;flex-direction:column;gap:6px;
+}
+.proto-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:9px;
+  letter-spacing:0.12em;text-transform:uppercase;color:var(--faint);margin-bottom:2px}
+.proto-btns{display:flex;gap:4px;flex-wrap:wrap;max-width:280px}
+.proto-btn{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:0.06em;text-transform:uppercase;
+  padding:4px 9px;border-radius:4px;cursor:pointer;
+  border:1px solid var(--border);color:var(--muted);background:transparent;
+  transition:all 0.1s;
+}
+.proto-btn:hover{color:var(--white);border-color:var(--border-hi)}
+.proto-btn.active{background:var(--sage-dim);border-color:rgba(91,194,115,0.3);color:var(--sage)}
+
+/* ── MORNING GREETING ────────────────────────────────── */
+.greeting-block{margin-bottom:24px}
+.greeting-text{
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;
+  color:var(--white);line-height:1.2;
+}
+.greeting-sub{font-size:13px;color:var(--muted);margin-top:4px;font-weight:300}
+.greeting-alert{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--orange-dim);border:1px solid rgba(224,123,63,0.2);
+  border-radius:6px;padding:5px 10px;margin-top:10px;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;
+  letter-spacing:0.06em;text-transform:uppercase;color:var(--orange);
+}
+
+/* ── DISPATCH ────────────────────────────────────────── */
+.dispatch-layout{display:grid;grid-template-columns:280px 1fr 260px;gap:0;height:calc(100vh - var(--nav-h) - 56px);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.dispatch-panel{background:var(--card);border-right:1px solid var(--border);overflow-y:auto}
+.dispatch-panel:last-child{border-right:none;border-left:1px solid var(--border)}
+.dispatch-map{background:#0F1923;position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+.dispatch-panel-title{
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;
+  letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);
+  padding:14px 16px 10px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.dispatch-claim{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s}
+.dispatch-claim:hover{background:var(--card-hi)}
+.dispatch-claim-name{font-size:13px;font-weight:500;color:var(--white)}
+.dispatch-claim-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.dispatch-adj{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer;transition:background 0.1s}
+.dispatch-adj:hover{background:var(--card-hi)}
+.map-placeholder{color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-align:center}
+.map-lasso-hint{font-size:11px;color:var(--faint);margin-top:4px}
+.map-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin:2px}
+
+/* ── CLAIM MINI ROW ──────────────────────────────────── */
+.claim-mini{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.claim-mini:last-child{border-bottom:none}
+.claim-mini-name{font-size:13px;font-weight:500;color:var(--white)}
+.claim-mini-meta{font-size:11px;color:var(--muted);margin-top:1px}
+
+/* ── ANIMATIONS ──────────────────────────────────────── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.page.active{animation:fadeIn 0.18s ease}
+.detail-pane.active{animation:fadeIn 0.15s ease}
+
+/* ── T&E TABLE ───────────────────────────────────────── */
+.te-row{display:grid;grid-template-columns:90px 1fr 120px 90px;gap:12px;
+  padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;align-items:start}
+.te-row:last-child{border-bottom:none}
+.te-header{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);
+  display:grid;grid-template-columns:90px 1fr 120px 90px;gap:12px;
+  padding:0 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="goPage('dashboard')">
+    <span class="inspekt">INSPEKT</span><span class="iq">iQ</span>
+  </div>
+  <div class="nav-tabs" id="nav-tabs"></div>
+  <div class="nav-right">
+    <div class="search-wrap">
+      <input class="nav-search" placeholder="Search claims, insureds...">
+    </div>
+    <div class="nav-avatar" id="nav-av">AO</div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="layout">
+<div class="main" id="main">
+
+<!-- ════════════════ DASHBOARD ════════════════ -->
+<div class="page active" id="page-dashboard">
+  <div id="dash-content"></div>
+</div>
+
+<!-- ════════════════ CLAIMS ════════════════ -->
+<div class="page" id="page-claims">
+  <div class="sec-header">
+    <div>
+      <div class="page-title">Claims</div>
+      <div class="page-sub" id="claims-sub">All active and recent claim files</div>
+    </div>
+    <button class="btn btn-primary" id="new-claim-btn" onclick>+ New Claim</button>
+  </div>
+  <div class="pills" id="claims-pills">
+    <div class="pill active">All <span style="color:var(--muted)">(24)</span></div>
+    <div class="pill">Received <span class="sla-dot red">5</span></div>
+    <div class="pill">Assigned</div>
+    <div class="pill">Scheduled</div>
+    <div class="pill">Inspected</div>
+    <div class="pill">In Review <span class="sla-dot orange">2</span></div>
+    <div class="pill">Approved</div>
+    <div class="pill">Submitted</div>
+    <div class="pill">Closed</div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Claim #</th>
+          <th>Insured</th>
+          <th>Client</th>
+          <th>Type</th>
+          <th>DOL</th>
+          <th>Adjuster</th>
+          <th>Due Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="claims-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════ CLAIM DETAIL ════════════════ -->
+<div class="page" id="page-detail">
+  <div class="back-btn" onclick="goPage('claims')">Back to Claims</div>
+  <div class="detail-header">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div class="detail-name">Chekota Owen</div>
+        <div class="detail-meta">
+          <span><strong>#PMI-2026-084471</strong></span>
+          <span>State Farm</span>
+          <span>Wind + Hail</span>
+          <span>DOL <strong>03/14/2026</strong></span>
+          <span>Adjuster <strong>Andrew Owen</strong></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="badge badge-sage">Inspected</span>
+        <button class="btn btn-primary btn-sm">Approve Report</button>
+        <button class="btn btn-ghost btn-sm">...</button>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:24px">
+      <span style="font-size:12px;color:var(--muted)">Due <strong style="color:var(--orange)">Apr 1, 2026</strong></span>
+      <span style="font-size:12px;color:var(--muted)">Inspected <strong style="color:var(--white)">Mar 30, 2026</strong></span>
+      <span style="font-size:12px;color:var(--muted)">Received <strong style="color:var(--white)">Mar 14, 2026</strong></span>
+    </div>
+  </div>
+  <div class="detail-tabs">
+    <div class="detail-tab active" onclick="showDetailTab('summary',this)">Summary</div>
+    <div class="detail-tab" onclick="showDetailTab('notes',this)">Notes</div>
+    <div class="detail-tab" onclick="showDetailTab('documents',this)">Documents</div>
+    <div class="detail-tab" onclick="showDetailTab('te',this)">Time & Expense</div>
+    <div class="detail-tab" onclick="showDetailTab('tasks',this)">Tasks</div>
+    <div class="detail-tab" onclick="showDetailTab('reserves',this)">Reserves</div>
+    <div class="detail-tab" onclick="showDetailTab('claimants',this)">Claimants</div>
+    <div class="detail-tab" onclick="showDetailTab('coverages',this)">Coverages</div>
+    <div class="detail-tab" onclick="showDetailTab('locations',this)">Loss Locations</div>
+    <div class="detail-tab" onclick="showDetailTab('carrier-forms',this)">Carrier Forms</div>
+    <div class="detail-tab" onclick="showDetailTab('firm-forms',this)">Firm Forms</div>
+    <div class="detail-tab" onclick="showDetailTab('links',this)">Links</div>
+  </div>
+
+  <!-- Summary -->
+  <div class="detail-pane active" id="dpane-summary">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Claim Info</div>
+        <div class="info-row"><span class="info-label">Claim #</span><span class="info-val">PMI-2026-084471</span></div>
+        <div class="info-row"><span class="info-label">Client</span><span class="info-val">State Farm</span></div>
+        <div class="info-row"><span class="info-label">Policy #</span><span class="info-val">SF-998821-TX</span></div>
+        <div class="info-row"><span class="info-label">Loss Type</span><span class="info-val">Wind + Hail</span></div>
+        <div class="info-row"><span class="info-label">Date of Loss</span><span class="info-val">03/14/2026</span></div>
+        <div class="info-row"><span class="info-label">Gross Claim</span><span class="info-val">$47,200.00</span></div>
+        <div class="info-row"><span class="info-label">Deductible</span><span class="info-val">$2,500.00</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Insured & Assignment</div>
+        <div class="info-row"><span class="info-label">Insured</span><span class="info-val">Chekota Owen</span></div>
+        <div class="info-row"><span class="info-label">Address</span><span class="info-val">4812 Whitetail Ridge Dr, Waco TX</span></div>
+        <div class="info-row"><span class="info-label">Cell</span><span class="info-val">(254) 555-0192</span></div>
+        <div class="info-row"><span class="info-label">Email</span><span class="info-val">c.owen@email.com</span></div>
+        <div class="info-row"><span class="info-label">Field Adjuster</span><span class="info-val">Andrew Owen</span></div>
+        <div class="info-row"><span class="info-label">Examiner</span><span class="info-val">Kelly Walton</span></div>
+        <div class="info-row"><span class="info-label">Staff Adjuster</span><span class="info-val">Rob Newbury</span></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="card-title">Inspection Summary</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;font-weight:300">
+        Hail damage confirmed across main roof slope, east-facing dormer, and gutters (full perimeter). 3-tab asphalt shingles, approx 15 squares. Ridge cap damaged. AC unit with visible impact on fins. North elevation siding impacted. Three windows on screened porch damaged. Interior — master bedroom ceiling stain consistent with wind-driven rain intrusion at ridge.
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="detail-pane" id="dpane-notes">
+    <div class="sec-header">
+      <div>
+        <h3>Claim Notes</h3>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm">Internal Note</button>
+        <button class="btn btn-primary btn-sm">+ Shared Note</button>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="av" style="background:var(--blue-dim);color:var(--blue)">KW</div>
+          <div>
+            <div style="font-size:13px;font-weight:500">Kelly Walton</div>
+            <div style="font-size:11px;color:var(--muted)">Apr 1, 2026 · 10:30 AM</div>
+          </div>
+        </div>
+        <span class="badge badge-faint">Internal</span>
+      </div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.65;font-weight:300">Report received and under review. Confirming ridge cap matching requirement with State Farm carrier guidelines before approval. Requested Andrew verify interior stain photos are timestamped correctly.</div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="av" style="background:var(--sage-dim);color:var(--sage)">AO</div>
+          <div>
+            <div style="font-size:13px;font-weight:500">Andrew Owen</div>
+            <div style="font-size:11px;color:var(--muted)">Mar 30, 2026 · 3:14 PM · via INSPEKTiT</div>
+          </div>
+        </div>
+        <span class="badge badge-sage">Shared</span>
+      </div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.65;font-weight:300">Inspection complete. 62 photos captured. Hail confirmed on roof, gutters, siding, and AC unit. Interior moisture stain in master bedroom — consistent with ridge failure. Report submitted for review.</div>
+    </div>
+  </div>
+
+  <!-- Documents -->
+  <div class="detail-pane" id="dpane-documents">
+    <div class="sec-header"><h3>Documents</h3><button class="btn btn-primary btn-sm">+ Upload</button></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>File Type</th><th>Title</th><th>Size</th><th>Uploaded</th><th>Reviewed</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-sage">First Report</span></td><td>Photo Report — Chekota Owen</td><td>13.55 MB</td><td>3/30/2026</td><td>4/1/2026</td><td><span class="badge badge-blue">Reviewed</span></td><td><button class="btn btn-ghost btn-sm">↓</button></td></tr>
+          <tr><td><span class="badge badge-sage">First Report</span></td><td>GLR — PMI-2026-084471</td><td>1.1 MB</td><td>3/30/2026</td><td>4/1/2026</td><td><span class="badge badge-blue">Reviewed</span></td><td><button class="btn btn-ghost btn-sm">↓</button></td></tr>
+          <tr><td><span class="badge badge-faint">Assignment</span></td><td>Assignment Email.pdf</td><td>0.2 MB</td><td>3/14/2026</td><td>—</td><td><span class="badge badge-faint">On File</span></td><td><button class="btn btn-ghost btn-sm">↓</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- T&E -->
+  <div class="detail-pane" id="dpane-te">
+    <div class="sec-header"><h3>Time & Expense</h3><button class="btn btn-primary btn-sm">+ Add Entry</button></div>
+    <div class="card">
+      <div class="te-header"><span>Date</span><span>Description</span><span>Type</span><span style="text-align:right">Amount</span></div>
+      <div class="te-row"><span style="color:var(--muted)">02/12/26</span><span>Received assignment, contacted insured, scheduled inspection</span><span class="badge badge-faint">Time</span><span style="text-align:right;color:var(--white)">0.50 hrs</span></div>
+      <div class="te-row"><span style="color:var(--muted)">02/13/26</span><span>Drive time to and from loss site</span><span class="badge badge-faint">Drive Time</span><span style="text-align:right;color:var(--white)">4.25 hrs</span></div>
+      <div class="te-row"><span style="color:var(--muted)">02/13/26</span><span>Mileage to and from loss site</span><span class="badge badge-faint">Mileage</span><span style="text-align:right;color:var(--white)">224 mi</span></div>
+      <div class="te-row"><span style="color:var(--muted)">02/13/26</span><span>On site inspection</span><span class="badge badge-faint">Time</span><span style="text-align:right;color:var(--white)">2.50 hrs</span></div>
+      <div class="te-row"><span style="color:var(--muted)">02/16/26</span><span>1st Report: Set up Xactimate, diagram, photos, ITV, GLR</span><span class="badge badge-faint">Time</span><span style="text-align:right;color:var(--white)">4.80 hrs</span></div>
+    </div>
+  </div>
+
+  <!-- Tasks -->
+  <div class="detail-pane" id="dpane-tasks">
+    <div class="sec-header"><h3>Tasks</h3><button class="btn btn-primary btn-sm">+ Add Task</button></div>
+    <div class="card">
+      <div class="claim-mini"><div><div class="claim-mini-name">Verify ridge cap matching requirement with carrier</div><div class="claim-mini-meta">Assigned to Kelly Walton · Due Apr 3</div></div><span class="badge badge-orange">Open</span></div>
+      <div class="claim-mini"><div><div class="claim-mini-name">Confirm interior stain photo timestamps</div><div class="claim-mini-meta">Assigned to Andrew Owen · Due Apr 2</div></div><span class="badge badge-orange">Open</span></div>
+      <div class="claim-mini"><div><div class="claim-mini-name">Upload signed proof of loss</div><div class="claim-mini-meta">Assigned to Andrew Owen · Completed Mar 30</div></div><span class="badge badge-sage">Done</span></div>
+    </div>
+  </div>
+
+  <!-- Reserves -->
+  <div class="detail-pane" id="dpane-reserves">
+    <div class="sec-header"><h3>Reserves</h3><button class="btn btn-primary btn-sm">+ Add Reserve</button></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Loc / Bldg</th><th>Description</th><th>Coverage Type</th><th style="text-align:right">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>001/001</td><td>4812 Whitetail Ridge Dr</td><td>Coverage A — Dwelling</td><td style="text-align:right;color:var(--sage)">$38,200.00</td></tr>
+          <tr><td>001/001</td><td>4812 Whitetail Ridge Dr</td><td>Coverage C — Personal Property</td><td style="text-align:right;color:var(--sage)">$9,000.00</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Stubs for remaining tabs -->
+  <div class="detail-pane" id="dpane-claimants"><div class="card"><div class="card-title">Claimants</div><div class="claim-mini"><div><div class="claim-mini-name">Chekota Owen (Primary)</div><div class="claim-mini-meta">(254) 555-0192 · c.owen@email.com</div></div></div></div></div>
+  <div class="detail-pane" id="dpane-coverages"><div class="card"><div class="card-title">Coverages</div><div class="info-row"><span class="info-label">Coverage A — Dwelling</span><span class="info-val">$180,000</span></div><div class="info-row"><span class="info-label">Coverage B — Other Structures</span><span class="info-val">$18,000</span></div><div class="info-row"><span class="info-label">Coverage C — Personal Property</span><span class="info-val">$90,000</span></div></div></div>
+  <div class="detail-pane" id="dpane-locations"><div class="card"><div class="card-title">Loss Locations</div><div class="info-row"><span class="info-label">001/001 Primary</span><span class="info-val">4812 Whitetail Ridge Dr, Waco TX 76712</span></div></div></div>
+  <div class="detail-pane" id="dpane-carrier-forms"><div class="card"><div class="card-title">Carrier Forms — State Farm</div><div class="claim-mini"><div><div class="claim-mini-name">2026 Wind Hail Guidelines</div><div class="claim-mini-meta">PDF · Updated 01/2026</div></div><button class="btn btn-ghost btn-sm">↓ Download</button></div><div class="claim-mini"><div><div class="claim-mini-name">Agreed Scope Checklist</div><div class="claim-mini-meta">DOCX · Updated 03/2025</div></div><button class="btn btn-ghost btn-sm">↓ Download</button></div></div></div>
+  <div class="detail-pane" id="dpane-firm-forms"><div class="card"><div class="card-title">Firm Forms — Team One</div><div class="claim-mini"><div><div class="claim-mini-name">10 Day Contact Letter — 2024</div><div class="claim-mini-meta">DOCX</div></div><button class="btn btn-ghost btn-sm">↓ Download</button></div><div class="claim-mini"><div><div class="claim-mini-name">30 Day Contact Letter — 2024</div><div class="claim-mini-meta">DOCX</div></div><button class="btn btn-ghost btn-sm">↓ Download</button></div></div></div>
+  <div class="detail-pane" id="dpane-links"><div class="card"><div class="card-title">Links & Resources</div><div class="claim-mini"><div class="claim-mini-name" style="color:var(--blue);cursor:pointer">Xactimate Online</div></div><div class="claim-mini"><div class="claim-mini-name" style="color:var(--blue);cursor:pointer">Eagle View</div></div><div class="claim-mini"><div class="claim-mini-name" style="color:var(--blue);cursor:pointer">Google Maps — Loss Location</div></div><div class="claim-mini"><div class="claim-mini-name" style="color:var(--blue);cursor:pointer">ACT Roof Measurements (Velocity)</div></div></div></div>
+</div>
+
+<!-- ════════════════ CLIENTS ════════════════ -->
+<div class="page" id="page-clients">
+  <div class="sec-header">
+    <div><div class="page-title">Clients</div><div class="page-sub">Carrier relationships, guidelines, and fee bills</div></div>
+    <button class="btn btn-primary">+ Add Client</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Client Name</th><th>Primary Contact</th><th>Active States</th><th>Open Claims</th><th>Fee Bill</th><th>Guidelines</th><th></th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:500">State Farm</td><td>Rob Newbury</td><td>TX, OK, LA</td><td><span class="badge badge-sage">8</span></td><td><span class="badge badge-blue">On File</span></td><td><span class="badge badge-blue">On File</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+        <tr><td style="font-weight:500">Allstate</td><td>Jasmine Myer</td><td>TX</td><td><span class="badge badge-sage">3</span></td><td><span class="badge badge-orange">Pending</span></td><td><span class="badge badge-blue">On File</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+        <tr><td style="font-weight:500">USAA</td><td>Anna Petrisky</td><td>TX, NM</td><td><span class="badge badge-sage">2</span></td><td><span class="badge badge-blue">On File</span></td><td><span class="badge badge-faint">Missing</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════ DISPATCH ════════════════ -->
+<div class="page" id="page-dispatch">
+  <div class="sec-header" style="margin-bottom:16px">
+    <div><div class="page-title">Dispatch</div><div class="page-sub">Assign unscheduled claims to available adjusters</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm">Filter Claims</button>
+      <button class="btn btn-primary btn-sm">Lasso Select</button>
+    </div>
+  </div>
+  <div class="dispatch-layout">
+    <div class="dispatch-panel">
+      <div class="dispatch-panel-title">Unassigned <span class="badge badge-orange" style="font-size:9px">3</span></div>
+      <div class="dispatch-claim">
+        <div class="dispatch-claim-name">Donna Castellano</div>
+        <div class="dispatch-claim-meta">3309 Franklin Ave · Waco TX · Allstate · Wind+Hail</div>
+        <div style="margin-top:6px"><span class="badge badge-faint" style="font-size:9px">Received 2h ago</span></div>
+      </div>
+      <div class="dispatch-claim">
+        <div class="dispatch-claim-name">Robert Finley</div>
+        <div class="dispatch-claim-meta">1201 Clay Ave · Waco TX · State Farm · Hail</div>
+        <div style="margin-top:6px"><span class="badge badge-orange" style="font-size:9px">SLA: 22 hrs left</span></div>
+      </div>
+      <div class="dispatch-claim">
+        <div class="dispatch-claim-name">Carol Nguyen</div>
+        <div class="dispatch-claim-meta">4490 Bosque Blvd · Waco TX · Allstate · Wind</div>
+        <div style="margin-top:6px"><span class="badge badge-red" style="font-size:9px">SLA: Overdue</span></div>
+      </div>
+    </div>
+    <div class="dispatch-map">
+      <div style="position:absolute;top:12px;left:12px;right:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <span class="badge badge-sage" style="font-size:9px">● Claim pin</span>
+        <span class="badge badge-blue" style="font-size:9px">● Adjuster location</span>
+        <span class="badge badge-faint" style="font-size:9px">Mapbox · Central Texas</span>
+      </div>
+      <div class="map-placeholder">Mapbox Map<br><span class="map-lasso-hint">Draw lasso to select multiple claims</span></div>
+      <div style="display:flex;gap:6px;margin-top:12px">
+        <span style="font-size:11px;color:var(--sage)">● Waco cluster (3 claims)</span>
+        <span style="font-size:11px;color:var(--blue)">● AO (Waco)</span>
+        <span style="font-size:11px;color:var(--blue)">● KL (available)</span>
+      </div>
+    </div>
+    <div class="dispatch-panel">
+      <div class="dispatch-panel-title">Adjusters</div>
+      <div class="dispatch-adj">
+        <div class="av" style="background:var(--sage-dim);color:var(--sage);border:1.5px solid var(--sage)">KL</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;color:var(--white)">Kim Lee</div>
+          <div style="font-size:11px;color:var(--sage)">Available · Waco TX</div>
+        </div>
+        <button class="btn btn-primary btn-sm">Assign</button>
+      </div>
+      <div class="dispatch-adj">
+        <div class="av" style="background:var(--blue-dim);color:var(--blue)">AO</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;color:var(--white)">Andrew Owen</div>
+          <div style="font-size:11px;color:var(--muted)">3 active · Waco TX</div>
+        </div>
+        <button class="btn btn-ghost btn-sm">Assign</button>
+      </div>
+      <div class="dispatch-adj">
+        <div class="av" style="background:var(--orange-dim);color:var(--orange)">SM</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;color:var(--white)">Sarah Mitchell</div>
+          <div style="font-size:11px;color:var(--muted)">2 active · Austin TX</div>
+        </div>
+        <button class="btn btn-ghost btn-sm">Assign</button>
+      </div>
+      <div class="dispatch-adj">
+        <div class="av" style="background:rgba(255,255,255,0.05);color:var(--faint)">JR</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;color:var(--white)">James Rivera</div>
+          <div style="font-size:11px;color:var(--muted)">1 active · Dallas TX</div>
+        </div>
+        <button class="btn btn-ghost btn-sm">Assign</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ ADJUSTERS ════════════════ -->
+<div class="page" id="page-adjusters">
+  <div class="sec-header">
+    <div><div class="page-title">Adjusters</div><div class="page-sub">Roster, performance, and document management</div></div>
+    <button class="btn btn-primary">+ Invite Adjuster</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Status</th><th>Active Claims</th><th>Completed</th><th>Avg SLA %</th><th>Paid YTD</th><th>Avg per Claim</th><th>Docs</th><th></th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:500">Andrew Owen</td><td><span class="badge badge-sage">Active</span></td><td>3</td><td>47</td><td><span style="color:var(--sage)">94%</span></td><td>$28,400</td><td>$604</td><td><span class="badge badge-blue">Complete</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+        <tr><td style="font-weight:500">Sarah Mitchell</td><td><span class="badge badge-sage">Active</span></td><td>2</td><td>31</td><td><span style="color:var(--sage)">91%</span></td><td>$18,200</td><td>$587</td><td><span class="badge badge-orange">Missing W9</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+        <tr><td style="font-weight:500">Kim Lee</td><td><span class="badge badge-blue">Invited</span></td><td>0</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge badge-faint">Pending</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════ CALENDAR ════════════════ -->
+<div class="page" id="page-calendar">
+  <div class="sec-header">
+    <div><div class="page-title">Calendar</div><div class="page-sub">Inspection schedule · Synced with INSPEKTiT</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm">Week</button>
+      <button class="btn btn-ghost btn-sm" style="background:var(--sage-dim);border-color:rgba(91,194,115,0.3);color:var(--sage)">Month</button>
+    </div>
+  </div>
+  <div class="two-col" style="gap:20px;align-items:start">
+    <div class="card" style="grid-column:1/2">
+      <div class="card-title">April 2026 <span class="card-link">← →</span></div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;margin-bottom:8px">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--faint);padding:4px">SUN</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--faint);padding:4px">MON</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--faint);padding:4px">TUE</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--faint);padding:4px">WED</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--faint);padding:4px">THU</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--faint);padding:4px">FRI</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--faint);padding:4px">SAT</div>
+      </div>
+      <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div class="card-title">Today — Apr 2</div>
+        <div class="claim-mini"><div><div class="claim-mini-name">Chekota Owen · 10:00 AM</div><div class="claim-mini-meta">4812 Whitetail Ridge Dr · Wind+Hail</div></div><span class="badge badge-sage">Confirmed</span></div>
+        <div class="claim-mini"><div><div class="claim-mini-name">Donna Castellano · 4:30 PM</div><div class="claim-mini-meta">3309 Franklin Ave · Wind+Hail</div></div><span class="badge badge-orange">Pending</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Needs Scheduling</div>
+        <div class="claim-mini"><div><div class="claim-mini-name">Carol Nguyen</div><div class="claim-mini-meta">4490 Bosque Blvd · SLA overdue</div></div><button class="btn btn-primary btn-sm">Schedule</button></div>
+        <div class="claim-mini"><div><div class="claim-mini-name">Robert Finley</div><div class="claim-mini-meta">1201 Clay Ave · 22 hrs left</div></div><button class="btn btn-primary btn-sm">Schedule</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ BILLING ════════════════ -->
+<div class="page" id="page-billing">
+  <div class="sec-header">
+    <div><div class="page-title">Billing</div><div class="page-sub">Invoices, pay summaries, and fee schedules</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm">Fee Schedules</button>
+      <button class="btn btn-primary btn-sm">+ New Invoice</button>
+    </div>
+  </div>
+  <div class="stats stats-3" style="margin-bottom:20px">
+    <div class="stat-card"><div class="stat-label">Pending Invoices</div><div class="stat-num orange">5</div><div class="stat-trend">$8,240 total outstanding</div></div>
+    <div class="stat-card"><div class="stat-label">Approved This Month</div><div class="stat-num sage">12</div><div class="stat-trend">$14,200 processed</div></div>
+    <div class="stat-card"><div class="stat-label">Paid YTD</div><div class="stat-num">$84,320</div><div class="stat-trend">Across 4 adjusters</div></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Date</th><th>Claim #</th><th>Insured</th><th>Invoice Type</th><th>% Comm</th><th>Service Fee</th><th>Mileage</th><th>Total Due</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--muted)">03/30/26</td><td class="claim-num">PMI-084471</td><td>Chekota Owen</td><td>Primary Invoice</td><td>60%</td><td>$1,240.00</td><td>$67.20</td><td style="color:var(--sage);font-weight:600">$1,307.20</td><td><span class="badge badge-orange">Pending</span></td><td><button class="btn btn-primary btn-sm">Approve</button></td></tr>
+        <tr><td style="color:var(--muted)">03/29/26</td><td class="claim-num">TEST-WAC-001</td><td>Patricia Garza</td><td>Primary Invoice</td><td>60%</td><td>$980.00</td><td>$42.00</td><td style="color:var(--sage);font-weight:600">$1,022.00</td><td><span class="badge badge-orange">Pending</span></td><td><button class="btn btn-primary btn-sm">Approve</button></td></tr>
+        <tr><td style="color:var(--muted)">03/15/26</td><td class="claim-num">TEST-WAC-002</td><td>Marcus Thibodaux</td><td>Primary Invoice</td><td>65%</td><td>$1,560.00</td><td>$84.00</td><td style="color:var(--white)">$1,644.00</td><td><span class="badge badge-blue">Approved</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════ SETTINGS ════════════════ -->
+<div class="page" id="page-settings">
+  <div class="page-title">Settings & Profile</div>
+  <div class="page-sub" style="margin-bottom:24px">Firm configuration, notifications, and account preferences</div>
+  <div class="two-col" style="align-items:start">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card">
+        <div class="card-title">Firm Profile</div>
+        <div class="info-row"><span class="info-label">Firm name</span><span class="info-val">Team One Insurance Services</span></div>
+        <div class="info-row"><span class="info-label">Portal URL</span><span class="info-val" style="color:var(--sage)">inspektiq.io</span></div>
+        <div class="info-row"><span class="info-label">Logo</span><span class="info-val" style="color:var(--blue);cursor:pointer">Upload</span></div>
+        <div class="info-row"><span class="info-label">Brand color</span><span class="info-val"><span style="display:inline-block;width:14px;height:14px;background:var(--sage);border-radius:3px;vertical-align:middle;margin-right:6px"></span>#5BC273</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">SLA Configuration</div>
+        <div class="info-row"><span class="info-label">Received → Assign</span><span class="info-val">24 hours</span></div>
+        <div class="info-row"><span class="info-label">Assign → First Contact</span><span class="info-val">48 hours</span></div>
+        <div class="info-row"><span class="info-label">First Contact → Inspection</span><span class="info-val">5 business days</span></div>
+        <div class="info-row"><span class="info-label">Inspection → Report</span><span class="info-val">5 business days</span></div>
+        <div class="info-row"><span class="info-label">Report → Approval</span><span class="info-val">3 business days</span></div>
+        <div style="margin-top:12px"><button class="btn btn-ghost btn-sm">Edit Thresholds</button></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card">
+        <div class="card-title">User Profile</div>
+        <div class="info-row"><span class="info-label">Name</span><span class="info-val">Andrew Owen</span></div>
+        <div class="info-row"><span class="info-label">Email</span><span class="info-val">andrew@keystonestack.com</span></div>
+        <div class="info-row"><span class="info-label">Role</span><span class="info-val"><span class="badge badge-sage">Firm Admin</span></span></div>
+        <div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-ghost btn-sm">Change Password</button><button class="btn btn-ghost btn-sm">Edit Profile</button></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Notifications</div>
+        <div class="info-row"><span class="info-label">New claim assigned</span><span class="info-val" style="color:var(--sage)">Email + In-app</span></div>
+        <div class="info-row"><span class="info-label">SLA alert</span><span class="info-val" style="color:var(--sage)">Email + In-app</span></div>
+        <div class="info-row"><span class="info-label">Report submitted</span><span class="info-val" style="color:var(--sage)">In-app only</span></div>
+        <div class="info-row"><span class="info-label">Invoice approved</span><span class="info-val" style="color:var(--sage)">Email + In-app</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Integrations</div>
+        <div class="info-row"><span class="info-label">Xactware email intake</span><span class="info-val"><span class="badge badge-sage">Active</span></span></div>
+        <div class="info-row"><span class="info-label">Intake inbox</span><span class="info-val" style="color:var(--blue);font-size:11px">teamone@intake.inspektiq.io</span></div>
+        <div class="info-row"><span class="info-label">Activity log</span><span class="info-val" style="color:var(--muted)">Disabled</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- PROTOTYPE ROLE SWITCHER -->
+<div class="proto-bar">
+  <div class="proto-label">Prototype — Preview as role</div>
+  <div class="proto-btns">
+    <button class="proto-btn active" onclick="setRole('admin')">Firm Admin</button>
+    <button class="proto-btn" onclick="setRole('examiner')">Examiner</button>
+    <button class="proto-btn" onclick="setRole('dispatcher')">Dispatcher</button>
+    <button class="proto-btn" onclick="setRole('adjuster')">Adjuster</button>
+  </div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────
+const ROLES = {
+  admin:      { label:'Firm Admin', initials:'AO', tabs:['dashboard','claims','clients','dispatch','adjusters','calendar','billing','settings'] },
+  examiner:   { label:'Examiner',   initials:'KW', tabs:['dashboard','claims','billing'] },
+  dispatcher: { label:'Dispatcher', initials:'MT', tabs:['dashboard','claims','dispatch','calendar'] },
+  adjuster:   { label:'Adjuster',   initials:'AO', tabs:['dashboard','claims','calendar'] },
+};
+
+const TAB_LABELS = {
+  dashboard:'Dashboard', claims:'Claims', clients:'Clients',
+  dispatch:'Dispatch', adjusters:'Adjusters', calendar:'Calendar',
+  billing:'Billing', settings:'Settings'
+};
+
+const CLAIMS = [
+  {num:'PMI-2026-084471',insured:'Chekota Owen',    client:'State Farm',type:'Wind+Hail',dol:'03/14/26',adj:'Andrew Owen', due:'04/01/26',status:'Inspected',  dueCls:'due-warn'},
+  {num:'TEST-WAC-003',   insured:'Donna Castellano',client:'Allstate',  type:'Wind+Hail',dol:'03/28/26',adj:'—',           due:'04/14/26',status:'Received',   dueCls:''},
+  {num:'TEST-WAC-002',   insured:'Marcus Thibodaux',client:'USAA',      type:'Wind',     dol:'03/28/26',adj:'Andrew Owen', due:'04/10/26',status:'Assigned',   dueCls:''},
+  {num:'TEST-WAC-001',   insured:'Patricia Garza',  client:'Travelers', type:'Hail',     dol:'03/28/26',adj:'Sarah M.',    due:'03/31/26',status:'In Review',  dueCls:'due-late'},
+  {num:'CLF-00126334',   insured:'Dixie Alexander', client:'Allstate',  type:'Wind',     dol:'02/15/26',adj:'James R.',    due:'04/17/26',status:'Approved',   dueCls:''},
+];
+
+const STATUS_BADGE = {
+  'Inspected':'badge-sage','Received':'badge-blue','Assigned':'badge-faint',
+  'In Review':'badge-bronze','Approved':'badge-orange','Closed':'badge-faint',
+};
+
+// ── STATE ─────────────────────────────────────────────
+let currentRole = 'admin';
+let currentPage = 'dashboard';
+
+// ── NAV ──────────────────────────────────────────────
+function renderNav() {
+  const r = ROLES[currentRole];
+  document.getElementById('nav-av').textContent = r.initials;
+  const tabs = document.getElementById('nav-tabs');
+  tabs.innerHTML = r.tabs.map(t =>
+    `<div class="nav-tab${t===currentPage?' active':''}" onclick="goPage('${t}')">${TAB_LABELS[t]}</div>`
+  ).join('');
+}
+
+function goPage(p) {
+  const r = ROLES[currentRole];
+  if (!r.tabs.includes(p)) return;
+  currentPage = p;
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  const pg = document.getElementById('page-'+p);
+  if (pg) pg.classList.add('active');
+  renderNav();
+  if (p==='dashboard') renderDashboard();
+  if (p==='claims') renderClaims();
+  if (p==='calendar') renderCalendar();
+  document.getElementById('main').scrollTop = 0;
+}
+
+// ── ROLE ─────────────────────────────────────────────
+function setRole(r) {
+  currentRole = r;
+  document.querySelectorAll('.proto-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  // If current page not in new role, go to dashboard
+  if (!ROLES[r].tabs.includes(currentPage)) currentPage = 'dashboard';
+  renderNav();
+  goPage(currentPage);
+}
+
+// ── DASHBOARD ─────────────────────────────────────────
+function renderDashboard() {
+  const c = document.getElementById('dash-content');
+  if (currentRole==='admin') c.innerHTML = dashAdmin();
+  else if (currentRole==='examiner') c.innerHTML = dashExaminer();
+  else if (currentRole==='dispatcher') c.innerHTML = dashDispatcher();
+  else if (currentRole==='adjuster') c.innerHTML = dashAdjuster();
+}
+
+function dashAdmin() { return `
+<div class="greeting-block">
+  <div class="greeting-text">Good morning, Andrew.</div>
+  <div class="greeting-sub">Thursday, April 3 · Team One Insurance Services · 24 active claims</div>
+  <div class="greeting-alert">⚠ 2 SLA alerts need attention today</div>
+</div>
+<div class="stats">
+  <div class="stat-card"><div class="stat-label">Active Claims</div><div class="stat-num blue">24</div><div class="stat-trend">↑ 3 since yesterday</div></div>
+  <div class="stat-card"><div class="stat-label">SLA At-Risk</div><div class="stat-num orange">2</div><div class="stat-trend">Carol Nguyen overdue</div></div>
+  <div class="stat-card"><div class="stat-label">Unassigned</div><div class="stat-num orange">3</div><div class="stat-trend">Need dispatch today</div></div>
+  <div class="stat-card"><div class="stat-label">New Today</div><div class="stat-num sage">2</div><div class="stat-trend">Via Xactware intake</div></div>
+</div>
+<div class="two-col">
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div class="card">
+      <div class="card-title">SLA Alerts <span class="card-link">View Claims →</span></div>
+      <div class="alert-item">
+        <div class="alert-icon red">⚑</div>
+        <div class="alert-body">
+          <div class="alert-name">Carol Nguyen — Received, overdue 6 hours</div>
+          <div class="alert-sub">Wind · Allstate · Unassigned · 4490 Bosque Blvd</div>
+        </div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-icon orange">⚑</div>
+        <div class="alert-body">
+          <div class="alert-name">Patricia Garza — In Review, 22 hours remaining</div>
+          <div class="alert-sub">Hail · Travelers · Examiner: Kelly Walton</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Unassigned Claims <span class="card-link">Open Dispatch →</span></div>
+      <div class="unassign-row"><div class="unassign-info"><div class="unassign-name">Donna Castellano</div><div class="unassign-meta">Allstate · Wind+Hail · Waco TX · 2h ago</div></div><button class="btn btn-primary btn-sm" onclick="goPage('dispatch')">Assign</button></div>
+      <div class="unassign-row"><div class="unassign-info"><div class="unassign-name">Robert Finley</div><div class="unassign-meta">State Farm · Hail · Waco TX · Yesterday</div></div><button class="btn btn-primary btn-sm" onclick="goPage('dispatch')">Assign</button></div>
+      <div class="unassign-row"><div class="unassign-info"><div class="unassign-name">Carol Nguyen</div><div class="unassign-meta">Allstate · Wind · Waco TX · Yesterday</div></div><button class="btn btn-primary btn-sm" onclick="goPage('dispatch')">Assign</button></div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div class="card">
+      <div class="card-title">Today's Activity</div>
+      <div class="act-item"><div class="act-dot sage"></div><div class="act-body"><div class="act-main">Chekota Owen — inspection completed</div><div class="act-meta">Andrew Owen via INSPEKTiT</div></div><div class="act-time">9:14 AM</div></div>
+      <div class="act-item"><div class="act-dot orange"></div><div class="act-body"><div class="act-main">Patricia Garza — report submitted for review</div><div class="act-meta">Sarah Mitchell</div></div><div class="act-time">8:02 AM</div></div>
+      <div class="act-item"><div class="act-dot blue"></div><div class="act-body"><div class="act-main">2 new claims received via Xactware intake</div><div class="act-meta">Castellano · Finley auto-created</div></div><div class="act-time">7:45 AM</div></div>
+      <div class="act-item"><div class="act-dot faint"></div><div class="act-body"><div class="act-main">Marcus Thibodaux — assigned to Andrew Owen</div><div class="act-meta">Kelly Walton</div></div><div class="act-time">Yesterday</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Adjuster Workload</div>
+      <div class="adj-row"><div class="av" style="background:var(--sage-dim);color:var(--sage)">AO</div><div class="adj-info"><div class="adj-name">Andrew Owen</div><div class="adj-load">3 active claims · Waco TX</div></div></div>
+      <div class="adj-row"><div class="av" style="background:var(--orange-dim);color:var(--orange)">SM</div><div class="adj-info"><div class="adj-name">Sarah Mitchell</div><div class="adj-load">2 active claims · Austin TX</div></div></div>
+      <div class="adj-row"><div class="av" style="background:var(--blue-dim);color:var(--blue)">JR</div><div class="adj-info"><div class="adj-name">James Rivera</div><div class="adj-load">1 active claim · Dallas TX</div></div></div>
+      <div class="adj-row"><div class="av" style="background:rgba(91,194,115,0.08);color:var(--sage)">KL</div><div class="adj-info"><div class="adj-name">Kim Lee</div><div class="adj-load" style="color:var(--sage)">Available · Waco TX</div></div></div>
+    </div>
+  </div>
+</div>`; }
+
+function dashExaminer() { return `
+<div class="greeting-block">
+  <div class="greeting-text">Good morning, Kelly.</div>
+  <div class="greeting-sub">Thursday, April 3 · 2 reports waiting on your review</div>
+</div>
+<div class="stats stats-3">
+  <div class="stat-card"><div class="stat-label">Awaiting Review</div><div class="stat-num orange">2</div><div class="stat-trend">Oldest: 2 days</div></div>
+  <div class="stat-card"><div class="stat-label">Approved This Week</div><div class="stat-num sage">4</div><div class="stat-trend">↑ On track</div></div>
+  <div class="stat-card"><div class="stat-label">Bills Pending</div><div class="stat-num">3</div><div class="stat-trend">$3,200 outstanding</div></div>
+</div>
+<div class="card">
+  <div class="card-title">Your Review Queue</div>
+  <div class="queue-item">
+    <div class="queue-header"><div class="queue-name">Patricia Garza — Hail · Travelers</div><span class="badge badge-red">2 days waiting</span></div>
+    <div class="queue-meta">TEST-WAC-001 · Submitted by Sarah Mitchell · 38 photos · 1.4 MB</div>
+    <div class="queue-actions"><button class="btn btn-primary btn-sm">Approve Report</button><button class="btn btn-ghost btn-sm">Request Changes</button><button class="btn btn-ghost btn-sm">View Claim →</button></div>
+  </div>
+  <div class="queue-item" style="padding-bottom:0">
+    <div class="queue-header"><div class="queue-name">Chekota Owen — Wind+Hail · State Farm</div><span class="badge badge-orange">Just submitted</span></div>
+    <div class="queue-meta">PMI-2026-084471 · Submitted by Andrew Owen · 62 photos · 13.5 MB</div>
+    <div class="queue-actions"><button class="btn btn-primary btn-sm">Approve Report</button><button class="btn btn-ghost btn-sm">Request Changes</button><button class="btn btn-ghost btn-sm">View Claim →</button></div>
+  </div>
+</div>`; }
+
+function dashDispatcher() { return `
+<div class="greeting-block">
+  <div class="greeting-text">Good morning, Mike.</div>
+  <div class="greeting-sub">Thursday, April 3 · 3 claims need dispatch today</div>
+  <div class="greeting-alert">⚑ Carol Nguyen SLA overdue — dispatch immediately</div>
+</div>
+<div class="stats stats-3">
+  <div class="stat-card"><div class="stat-label">Unassigned</div><div class="stat-num orange">3</div><div class="stat-trend">1 overdue SLA</div></div>
+  <div class="stat-card"><div class="stat-label">Scheduled Today</div><div class="stat-num blue">2</div><div class="stat-trend">Waco area</div></div>
+  <div class="stat-card"><div class="stat-label">Available Adjusters</div><div class="stat-num sage">1</div><div class="stat-trend">Kim Lee · Waco TX</div></div>
+</div>
+<div class="two-col">
+  <div class="card"><div class="card-title">Unassigned — Needs Dispatch <span class="card-link" onclick="goPage('dispatch')">Open Map →</span></div>
+    <div class="unassign-row"><div class="unassign-info"><div class="unassign-name">Carol Nguyen <span class="badge badge-red" style="margin-left:6px;font-size:9px">Overdue</span></div><div class="unassign-meta">4490 Bosque Blvd · Waco TX · Allstate</div></div><button class="btn btn-primary btn-sm" onclick="goPage('dispatch')">Assign</button></div>
+    <div class="unassign-row"><div class="unassign-info"><div class="unassign-name">Donna Castellano</div><div class="unassign-meta">3309 Franklin Ave · Waco TX · Allstate</div></div><button class="btn btn-primary btn-sm" onclick="goPage('dispatch')">Assign</button></div>
+    <div class="unassign-row"><div class="unassign-info"><div class="unassign-name">Robert Finley</div><div class="unassign-meta">1201 Clay Ave · Waco TX · State Farm</div></div><button class="btn btn-primary btn-sm" onclick="goPage('dispatch')">Assign</button></div>
+  </div>
+  <div class="card"><div class="card-title">Adjuster Availability</div>
+    <div class="adj-row"><div class="av" style="background:var(--sage-dim);color:var(--sage)">KL</div><div class="adj-info"><div class="adj-name">Kim Lee</div><div class="adj-load" style="color:var(--sage)">Available · Waco TX</div></div><button class="btn btn-primary btn-sm" onclick="goPage('dispatch')">Assign Claims</button></div>
+    <div class="adj-row"><div class="av" style="background:var(--blue-dim);color:var(--blue)">AO</div><div class="adj-info"><div class="adj-name">Andrew Owen</div><div class="adj-load">3 active · Waco TX</div></div></div>
+    <div class="adj-row"><div class="av" style="background:var(--orange-dim);color:var(--orange)">SM</div><div class="adj-info"><div class="adj-name">Sarah Mitchell</div><div class="adj-load">2 active · Austin TX</div></div></div>
+  </div>
+</div>`; }
+
+function dashAdjuster() { return `
+<div class="greeting-block">
+  <div class="greeting-text">Good morning, Andrew.</div>
+  <div class="greeting-sub">Thursday, April 3 · You have 1 inspection today at 10:00 AM</div>
+</div>
+<div class="stats stats-3">
+  <div class="stat-card"><div class="stat-label">Active Assignments</div><div class="stat-num blue">3</div><div class="stat-trend">1 today</div></div>
+  <div class="stat-card"><div class="stat-label">Completed This Week</div><div class="stat-num sage">1</div><div class="stat-trend">Chekota Owen</div></div>
+  <div class="stat-card"><div class="stat-label">SLA At-Risk</div><div class="stat-num orange">1</div><div class="stat-trend">Marcus Thibodaux</div></div>
+</div>
+<div class="card">
+  <div class="card-title">Your Active Claims</div>
+  <div class="claim-mini"><div><div class="claim-mini-name">Chekota Owen <span class="badge badge-orange" style="margin-left:8px;font-size:9px">Due today</span></div><div class="claim-mini-meta">Wind+Hail · 4812 Whitetail Ridge Dr · Today 10:00 AM</div></div><button class="btn btn-ghost btn-sm" onclick="goPage('detail')">Open →</button></div>
+  <div class="claim-mini"><div><div class="claim-mini-name">Marcus Thibodaux</div><div class="claim-mini-meta">Wind · 2201 Bosque Blvd · Apr 5 · 9:00 AM</div></div><button class="btn btn-ghost btn-sm" onclick="goPage('detail')">Open →</button></div>
+  <div class="claim-mini"><div><div class="claim-mini-name">Robert Finley <span class="badge badge-faint" style="margin-left:8px;font-size:9px">New — Accept</span></div><div class="claim-mini-meta">Hail · 1201 Clay Ave · Not yet scheduled</div></div><button class="btn btn-primary btn-sm">Accept</button></div>
+</div>`; }
+
+// ── CLAIMS TABLE ──────────────────────────────────────
+function renderClaims() {
+  const r = ROLES[currentRole];
+  document.getElementById('new-claim-btn').style.display =
+    (currentRole==='admin'||currentRole==='dispatcher') ? 'inline-flex':'none';
+
+  let rows = CLAIMS;
+  if (currentRole==='adjuster') rows = CLAIMS.filter(c=>c.adj==='Andrew Owen');
+
+  document.getElementById('claims-tbody').innerHTML = rows.map(c => `
+    <tr onclick="goPage('detail')">
+      <td class="claim-num">${c.num}</td>
+      <td>${c.insured}</td>
+      <td>${c.client}</td>
+      <td>${c.type}</td>
+      <td style="color:var(--muted)">${c.dol}</td>
+      <td>${c.adj}</td>
+      <td class="${c.dueCls}">${c.due}</td>
+      <td><span class="badge ${STATUS_BADGE[c.status]||'badge-faint'}">${c.status}</span></td>
+    </tr>`).join('');
+}
+
+// ── CALENDAR ──────────────────────────────────────────
+function renderCalendar() {
+  const grid = document.getElementById('cal-grid');
+  const appts = {2:'2 appts',5:'1 appt',8:'1 appt',10:'3 appts',15:'2 appts',18:'1 appt'};
+  let html = '';
+  // April 2026 starts on Wednesday (index 3)
+  for (let i=0;i<3;i++) html += `<div style="padding:6px;min-height:52px"></div>`;
+  for (let d=1;d<=30;d++) {
+    const isToday = d===2;
+    const hasAppt = appts[d];
+    html += `<div style="padding:5px;min-height:52px;border-radius:6px;border:1px solid ${isToday?'var(--sage)':'var(--border)'};background:${isToday?'var(--sage-dim)':'transparent'};cursor:pointer;transition:background 0.1s" onmouseover="this.style.background='var(--card-hi)'" onmouseout="this.style.background='${isToday?'var(--sage-dim)':'transparent'}'">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:${isToday?'900':'600'};font-size:13px;color:${isToday?'var(--sage)':'var(--muted)'}">${d}</div>
+      ${hasAppt?`<div style="margin-top:3px;background:var(--sage);border-radius:3px;padding:1px 4px;font-size:9px;font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--bg)">${hasAppt}</div>`:''}
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+// ── DETAIL TABS ───────────────────────────────────────
+function showDetailTab(id, el) {
+  document.querySelectorAll('.detail-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.detail-tab').forEach(t=>t.classList.remove('active'));
+  const pane = document.getElementById('dpane-'+id);
+  if (pane) pane.classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+// ── INIT ──────────────────────────────────────────────
+renderNav();
+renderDashboard();
+renderClaims();
+</script>
+</body>
+</html>

@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INSPEKTiQ — Calendar & Schedule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Orbitron:wght@900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0A0A0A;
+  --surface:   #0F1923;
+  --card:      #162130;
+  --card-hi:   #1C2B3D;
+  --border:    rgba(255,255,255,0.07);
+  --border-hi: rgba(255,255,255,0.13);
+  --sage:      #5BC273;
+  --sage-dim:  rgba(91,194,115,0.12);
+  --blue:      #4298CC;
+  --blue-dim:  rgba(66,152,204,0.12);
+  --orange:    #E07B3F;
+  --orange-dim:rgba(224,123,63,0.13);
+  --red:       #E05C5C;
+  --red-dim:   rgba(224,92,92,0.13);
+  --white:     #F2F2F4;
+  --muted:     rgba(242,242,244,0.45);
+  --faint:     rgba(242,242,244,0.2);
+  --nav-h:     52px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--white);
+  font-family:'Barlow',sans-serif;overflow:hidden}
+
+/* NAV */
+nav{height:var(--nav-h);background:var(--bg);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:0}
+.logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;margin-right:32px;cursor:pointer}
+.logo .iq{color:var(--sage)}
+.ntab{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;
+  letter-spacing:0.1em;text-transform:uppercase;padding:7px 12px;border-radius:5px;
+  cursor:pointer;color:var(--muted);transition:all 0.12s;position:relative}
+.ntab:hover{color:var(--white);background:rgba(255,255,255,0.04)}
+.ntab.active{color:var(--sage)}
+.ntab.active::after{content:'';position:absolute;bottom:-1px;left:12px;right:12px;
+  height:2px;background:var(--sage);border-radius:2px 2px 0 0}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.nav-av{width:30px;height:30px;border-radius:50%;background:var(--sage-dim);
+  border:1.5px solid var(--sage);display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;color:var(--sage)}
+.view-toggle{display:flex;gap:2px;background:var(--surface);border:1px solid var(--border);
+  border-radius:6px;padding:3px}
+.vtab{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:4px;
+  cursor:pointer;color:var(--muted);transition:all 0.12s}
+.vtab.active{background:var(--sage);color:var(--bg)}
+.vtab:not(.active):hover{color:var(--white)}
+
+/* LAYOUT */
+.app{display:flex;height:calc(100vh - var(--nav-h))}
+
+/* LEFT QUEUE */
+.queue{width:280px;min-width:280px;background:var(--surface);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.queue-head{padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.queue-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--white);margin-bottom:2px}
+.queue-sub{font-size:11px;color:var(--muted)}
+.queue-filters{padding:10px 12px;border-bottom:1px solid var(--border);
+  display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap}
+.qfilt{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:9px;
+  letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:4px;
+  cursor:pointer;border:1px solid var(--border);color:var(--muted);background:transparent;
+  transition:all 0.12s}
+.qfilt:hover{color:var(--white);border-color:var(--border-hi)}
+.qfilt.active{background:var(--sage-dim);border-color:rgba(91,194,115,0.25);color:var(--sage)}
+.queue-list{flex:1;overflow-y:auto;padding:8px 0}
+.qitem{padding:12px 16px;border-bottom:1px solid var(--border);cursor:grab;
+  transition:background 0.1s;position:relative;user-select:none}
+.qitem:hover{background:var(--card)}
+.qitem.dragging{opacity:0.5;cursor:grabbing}
+.qitem-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.qitem-name{font-size:13px;font-weight:500;color:var(--white);line-height:1.3}
+.qitem-meta{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:6px}
+.qitem-actions{display:flex;gap:6px}
+.qbtn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:9px;
+  letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:4px;
+  cursor:pointer;border:1px solid;transition:all 0.12s}
+.qbtn-sage{border-color:rgba(91,194,115,0.3);color:var(--sage);background:var(--sage-dim)}
+.qbtn-sage:hover{background:var(--sage);color:var(--bg)}
+.qbtn-ghost{border-color:var(--border);color:var(--muted);background:transparent}
+.qbtn-ghost:hover{border-color:var(--border-hi);color:var(--white)}
+.drag-hint{font-size:10px;color:var(--faint);padding:8px 16px;
+  font-family:'Barlow Condensed',sans-serif;letter-spacing:0.06em;text-align:center}
+
+.badge{display:inline-flex;align-items:center;font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;
+  padding:2px 6px;border-radius:3px}
+.b-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,92,92,0.2)}
+.b-orange{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(224,123,63,0.2)}
+.b-sage{background:var(--sage-dim);color:var(--sage);border:1px solid rgba(91,194,115,0.2)}
+.b-blue{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(66,152,204,0.2)}
+.b-faint{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid var(--border)}
+
+/* CENTER CALENDAR */
+.cal-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.cal-head{padding:12px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;flex-shrink:0;background:var(--bg)}
+.cal-nav{display:flex;align-items:center;gap:8px}
+.cal-arr{width:28px;height:28px;border-radius:5px;background:var(--surface);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--muted);font-size:13px;transition:all 0.12s}
+.cal-arr:hover{border-color:var(--border-hi);color:var(--white)}
+.cal-month{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;
+  letter-spacing:0.06em;color:var(--white);min-width:160px}
+.today-btn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;padding:5px 10px;border-radius:5px;
+  cursor:pointer;border:1px solid var(--border);color:var(--muted);background:transparent;
+  transition:all 0.12s}
+.today-btn:hover{color:var(--white);border-color:var(--border-hi)}
+.cal-meta{margin-left:auto;display:flex;align-items:center;gap:10px}
+.legend{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.leg-dot{width:8px;height:8px;border-radius:50%}
+.weather-strip{display:flex;gap:0;overflow:hidden}
+
+/* CALENDAR GRID */
+.cal-grid-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);
+  background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.dow{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--faint);
+  padding:8px 12px;text-align:center}
+.cal-grid{flex:1;display:grid;grid-template-columns:repeat(7,1fr);
+  grid-template-rows:repeat(5,1fr);overflow:hidden}
+.cal-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+  padding:8px 10px;cursor:pointer;transition:background 0.1s;position:relative;
+  overflow:hidden;min-height:0;display:flex;flex-direction:column}
+.cal-cell:hover{background:rgba(255,255,255,0.02)}
+.cal-cell.today{background:var(--sage-dim)}
+.cal-cell.today .cell-day{color:var(--sage)}
+.cal-cell.drop-target{background:rgba(91,194,115,0.08);outline:1px dashed var(--sage)}
+.cal-cell.other-month .cell-day{color:var(--faint)}
+.cal-cell:nth-child(7n){border-right:none}
+.cell-day{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;
+  color:var(--muted);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.cell-weather{font-size:10px;color:var(--faint)}
+.appt{border-radius:4px;padding:3px 6px;margin-bottom:2px;font-size:10px;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.04em;
+  cursor:pointer;transition:opacity 0.1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appt:hover{opacity:0.85}
+.appt.sage{background:rgba(91,194,115,0.2);color:var(--sage);border-left:2px solid var(--sage)}
+.appt.blue{background:rgba(66,152,204,0.2);color:var(--blue);border-left:2px solid var(--blue)}
+.appt.orange{background:rgba(224,123,63,0.2);color:var(--orange);border-left:2px solid var(--orange)}
+.appt.red{background:rgba(224,92,92,0.15);color:var(--red);border-left:2px solid var(--red)}
+.more-appts{font-size:9px;color:var(--faint);font-family:'Barlow Condensed',sans-serif;
+  font-weight:600;letter-spacing:0.06em;margin-top:2px}
+
+/* RIGHT MAP PANEL */
+.map-panel{width:320px;min-width:320px;background:var(--surface);
+  border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;
+  transition:width 0.25s,opacity 0.25s}
+.map-panel.collapsed{width:0;min-width:0;opacity:0;pointer-events:none}
+.map-head{padding:14px 16px 10px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.map-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--white)}
+.map-close{width:24px;height:24px;border-radius:4px;background:var(--card);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--muted);font-size:12px;transition:all 0.12s}
+.map-close:hover{color:var(--white);border-color:var(--border-hi)}
+.map-box{flex:1;background:var(--card);position:relative;overflow:hidden}
+.map-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px}
+.map-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)}
+/* Fake map grid */
+.fake-map{position:absolute;inset:0;opacity:0.15}
+.fake-road-h{position:absolute;height:1px;background:var(--white);left:0;right:0}
+.fake-road-v{position:absolute;width:1px;background:var(--white);top:0;bottom:0}
+.map-pin{position:absolute;width:24px;height:24px;border-radius:50% 50% 50% 0;
+  transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:transform 0.15s}
+.map-pin:hover{transform:rotate(-45deg) scale(1.2)}
+.map-pin-inner{transform:rotate(45deg);font-size:9px;font-weight:800}
+.pin-home{background:var(--blue);border:2px solid rgba(255,255,255,0.3)}
+.pin-sage{background:var(--sage);border:2px solid rgba(255,255,255,0.3)}
+.pin-orange{background:var(--orange);border:2px solid rgba(255,255,255,0.3)}
+.pin-red{background:var(--red);border:2px solid rgba(255,255,255,0.3)}
+.map-legend{padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0}
+.map-leg-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);
+  margin-bottom:4px}
+.map-leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.map-route-info{background:var(--card);border:1px solid var(--border);border-radius:6px;
+  padding:10px 12px;margin:10px 14px 0;flex-shrink:0}
+.route-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.route-stat{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
+.route-val{font-weight:500;color:var(--white)}
+
+/* DAY DETAIL DRAWER */
+.day-drawer{position:absolute;bottom:0;left:0;right:0;background:var(--surface);
+  border-top:1px solid var(--border);padding:14px 20px;
+  transform:translateY(100%);transition:transform 0.2s;z-index:10}
+.day-drawer.open{transform:translateY(0)}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.drawer-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;
+  letter-spacing:0.06em;color:var(--white)}
+.drawer-close{cursor:pointer;color:var(--muted);font-size:16px;transition:color 0.12s}
+.drawer-close:hover{color:var(--white)}
+.drawer-appts{display:flex;gap:10px;flex-wrap:wrap}
+.drawer-appt{background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:12px 14px;min-width:200px;cursor:pointer;transition:border-color 0.12s}
+.drawer-appt:hover{border-color:var(--border-hi)}
+.da-time{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;
+  color:var(--sage);margin-bottom:3px}
+.da-name{font-size:13px;font-weight:500;color:var(--white);margin-bottom:2px}
+.da-meta{font-size:11px;color:var(--muted)}
+.da-actions{display:flex;gap:6px;margin-top:8px}
+
+/* TOOLTIP */
+.tooltip{position:fixed;background:var(--card-hi);border:1px solid var(--border-hi);
+  border-radius:8px;padding:12px 14px;min-width:200px;pointer-events:none;
+  z-index:500;opacity:0;transition:opacity 0.15s;font-size:12px}
+.tooltip.show{opacity:1}
+.tt-name{font-size:13px;font-weight:500;color:var(--white);margin-bottom:4px}
+.tt-row{display:flex;justify-content:space-between;gap:12px;margin-bottom:2px}
+.tt-label{color:var(--muted)}
+.tt-val{color:var(--white);font-weight:500}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;
+  display:flex;align-items:center;justify-content:center;opacity:0;
+  pointer-events:none;transition:opacity 0.15s}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:1px solid var(--border-hi);border-radius:12px;
+  padding:24px;width:480px;max-width:90vw}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;
+  letter-spacing:0.04em;color:var(--white);margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:20px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)}
+.form-input{background:var(--card);border:1px solid var(--border);border-radius:6px;
+  padding:9px 12px;font-family:'Barlow',sans-serif;font-size:13px;color:var(--white);
+  outline:none;transition:border-color 0.12s;width:100%}
+.form-input:focus{border-color:var(--sage)}
+.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.btn{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;
+  letter-spacing:0.1em;text-transform:uppercase;padding:9px 16px;border-radius:6px;
+  cursor:pointer;border:none;transition:all 0.12s}
+.btn-primary{background:var(--sage);color:var(--bg)}
+.btn-primary:hover{background:#6DD882}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--white);border-color:var(--border-hi)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px}
+
+/* WEATHER ROW */
+.weather-row{display:grid;grid-template-columns:repeat(7,1fr);
+  background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.weather-cell{padding:4px 8px;text-align:center;border-right:1px solid var(--border)}
+.weather-cell:last-child{border-right:none}
+.wtemp{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted)}
+.wicon{font-size:12px}
+
+/* PROTO NOTE */
+.proto-note{position:fixed;bottom:12px;right:12px;background:var(--card);
+  border:1px solid var(--border-hi);border-radius:8px;padding:8px 12px;
+  font-size:10px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;
+  font-weight:600;letter-spacing:0.06em;z-index:300;max-width:260px;line-height:1.5}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.modal-bg.open .modal{animation:fadeIn 0.15s ease}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">INSPEKT<span class="iq">iQ</span></div>
+  <div class="ntab">Dashboard</div>
+  <div class="ntab">Claims</div>
+  <div class="ntab">Clients</div>
+  <div class="ntab">Dispatch</div>
+  <div class="ntab">Adjusters</div>
+  <div class="ntab active">Calendar</div>
+  <div class="ntab">Billing</div>
+  <div class="ntab">Settings</div>
+  <div class="nav-r">
+    <div class="view-toggle">
+      <div class="vtab" onclick="switchView('week',this)">Week</div>
+      <div class="vtab active" onclick="switchView('month',this)">Month</div>
+    </div>
+    <div class="nav-av">AO</div>
+  </div>
+</nav>
+
+<!-- APP -->
+<div class="app">
+
+  <!-- LEFT: NEEDS SCHEDULING QUEUE -->
+  <div class="queue">
+    <div class="queue-head">
+      <div class="queue-title">Needs Scheduling <span style="color:var(--orange);margin-left:6px">5</span></div>
+      <div class="queue-sub">Drag onto a calendar day to schedule</div>
+    </div>
+    <div class="queue-filters">
+      <div class="qfilt active">All</div>
+      <div class="qfilt">SLA Risk</div>
+      <div class="qfilt">Residential</div>
+      <div class="qfilt">Commercial</div>
+    </div>
+    <div class="queue-list" id="queue-list">
+      <!-- populated by JS -->
+    </div>
+    <div class="drag-hint">↑ Drag any claim onto the calendar</div>
+  </div>
+
+  <!-- CENTER: CALENDAR -->
+  <div class="cal-wrap" style="position:relative">
+    <div class="cal-head">
+      <div class="cal-nav">
+        <div class="cal-arr" onclick="prevMonth()">‹</div>
+        <div class="cal-month" id="cal-month-label">April 2026</div>
+        <div class="cal-arr" onclick="nextMonth()">›</div>
+      </div>
+      <div class="today-btn" onclick="goToday()">Today</div>
+      <div class="cal-meta">
+        <div class="legend"><div class="leg-dot" style="background:var(--sage)"></div><span>Confirmed</span></div>
+        <div class="legend"><div class="leg-dot" style="background:var(--orange)"></div><span>Pending</span></div>
+        <div class="legend"><div class="leg-dot" style="background:var(--blue)"></div><span>Completed</span></div>
+        <div class="legend"><div class="leg-dot" style="background:var(--red)"></div><span>SLA Alert</span></div>
+        <button class="btn btn-primary" style="font-size:10px;padding:6px 12px" onclick="openModal()">+ Schedule Claim</button>
+        <div class="vtab" style="padding:5px 8px;border-radius:4px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted)" onclick="toggleMap()" id="map-btn">◉ Map</div>
+      </div>
+    </div>
+
+    <!-- WEATHER ROW -->
+    <div class="weather-row" id="weather-row"></div>
+
+    <!-- DOW HEADERS -->
+    <div class="cal-dow">
+      <div class="dow">Sun</div><div class="dow">Mon</div><div class="dow">Tue</div>
+      <div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div>
+    </div>
+
+    <!-- GRID -->
+    <div class="cal-grid-wrap">
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+
+    <!-- DAY DETAIL DRAWER -->
+    <div class="day-drawer" id="day-drawer">
+      <div class="drawer-head">
+        <div class="drawer-title" id="drawer-title">Wednesday, April 2</div>
+        <div class="drawer-close" onclick="closeDrawer()">✕</div>
+      </div>
+      <div class="drawer-appts" id="drawer-appts"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: MAP PANEL -->
+  <div class="map-panel" id="map-panel">
+    <div class="map-head">
+      <div class="map-title">Route Map — April 2</div>
+      <div class="map-close" onclick="toggleMap()">✕</div>
+    </div>
+    <div class="map-box">
+      <!-- Fake map visual -->
+      <div class="fake-map" id="fake-map"></div>
+      <div class="map-placeholder">
+        <div class="map-label">Mapbox · Waco, TX Area</div>
+      </div>
+      <!-- Pins -->
+      <div class="map-pin pin-home" style="left:48%;bottom:18%" title="Home Base">
+        <div class="map-pin-inner">🏠</div>
+      </div>
+      <div class="map-pin pin-sage" style="left:52%;bottom:42%" title="Chekota Owen · 10:00 AM" onclick="showTooltip(event,'Chekota Owen','10:00 AM','4812 Whitetail Ridge Dr','Confirmed')">
+        <div class="map-pin-inner" style="color:#0A0A0A;font-size:8px">1</div>
+      </div>
+      <div class="map-pin pin-orange" style="left:38%;bottom:55%" title="Donna Castellano" onclick="showTooltip(event,'Donna Castellano','4:30 PM','3309 Franklin Ave','Pending')">
+        <div class="map-pin-inner" style="color:#0A0A0A;font-size:8px">2</div>
+      </div>
+      <div class="map-pin pin-red" style="left:62%;bottom:65%" onclick="showTooltip(event,'Carol Nguyen','Unscheduled','4490 Bosque Blvd','SLA Overdue')">
+        <div class="map-pin-inner" style="color:#fff;font-size:8px">!</div>
+      </div>
+    </div>
+    <div class="map-route-info">
+      <div class="route-title">Today's Route Estimate</div>
+      <div class="route-stat"><span class="tt-label">Total drive time</span><span class="route-val">1h 24m</span></div>
+      <div class="route-stat"><span class="tt-label">Total miles</span><span class="route-val">47.2 mi</span></div>
+      <div class="route-stat"><span class="tt-label">Inspections</span><span class="route-val">2 confirmed</span></div>
+    </div>
+    <div class="map-legend">
+      <div class="map-leg-row"><div class="map-leg-dot" style="background:var(--blue)"></div>Home base — Waco TX</div>
+      <div class="map-leg-row"><div class="map-leg-dot" style="background:var(--sage)"></div>Confirmed inspection</div>
+      <div class="map-leg-row"><div class="map-leg-dot" style="background:var(--orange)"></div>Pending confirmation</div>
+      <div class="map-leg-row"><div class="map-leg-dot" style="background:var(--red)"></div>SLA alert — needs scheduling</div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- SCHEDULE MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-title">Schedule Inspection</div>
+    <div class="modal-sub">Set appointment date, time, and confirm with insured</div>
+    <div style="margin-bottom:12px">
+      <div class="form-label" style="margin-bottom:5px">Claim</div>
+      <select class="form-input">
+        <option>Carol Nguyen — 4490 Bosque Blvd (SLA overdue)</option>
+        <option>Robert Finley — 1201 Clay Ave</option>
+        <option>Marcus Thibodaux — 2201 Bosque Blvd</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <div class="form-label">Date</div>
+        <input class="form-input" type="date" value="2026-04-05">
+      </div>
+      <div class="form-group">
+        <div class="form-label">Arrival Time</div>
+        <input class="form-input" type="time" value="09:00">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <div class="form-label">Window End Time</div>
+        <input class="form-input" type="time" value="10:00">
+      </div>
+      <div class="form-group">
+        <div class="form-label">Notify Insured Via</div>
+        <select class="form-input">
+          <option>Text Message</option>
+          <option>Email</option>
+          <option>Both</option>
+          <option>Manual — I'll contact them</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:0">
+      <div class="form-label">Message to Insured (optional)</div>
+      <textarea class="form-input" rows="2" style="resize:none">Your inspection has been scheduled. An adjuster will arrive between 9:00 and 10:00 AM.</textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal()">Confirm & Notify Insured</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLTIP -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- PROTO NOTE -->
+<div class="proto-note">
+  <strong style="color:var(--sage)">Prototype interactions:</strong><br>
+  · Click any calendar day to see appointments<br>
+  · Click ◉ Map to toggle route map<br>
+  · Drag queue items onto calendar days<br>
+  · Click map pins for claim details<br>
+  · Click + Schedule Claim for modal<br>
+  · Use ‹ › to navigate months
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────
+const QUEUE_CLAIMS = [
+  {id:1, name:'Carol Nguyen',    addr:'4490 Bosque Blvd',  type:'Wind',     carrier:'Allstate',    sla:'overdue', notes:'SLA 6hrs overdue — priority dispatch'},
+  {id:2, name:'Robert Finley',   addr:'1201 Clay Ave',     type:'Hail',     carrier:'State Farm',  sla:'warning', notes:'22 hrs remaining on SLA'},
+  {id:3, name:'Marcus Thibodaux',addr:'2201 Bosque Blvd',  type:'Wind',     carrier:'USAA',        sla:'ok',      notes:'Assigned 3 days ago'},
+  {id:4, name:'Donna Castellano',addr:'3309 Franklin Ave', type:'Wind+Hail',carrier:'Allstate',    sla:'warning', notes:'SLA expires tomorrow'},
+  {id:5, name:'James Whitfield', addr:'901 Lake Air Dr',   type:'Hail',     carrier:'Travelers',   sla:'ok',      notes:'New assignment — no contact yet'},
+];
+
+const APPOINTMENTS = {
+  2:  [{time:'10:00 AM',name:'Chekota Owen',     addr:'4812 Whitetail Ridge Dr',type:'Wind+Hail',status:'sage',   confirmed:true},
+       {time:'4:30 PM', name:'Donna Castellano', addr:'3309 Franklin Ave',       type:'Wind+Hail',status:'orange',confirmed:false}],
+  5:  [{time:'9:00 AM', name:'Marcus Thibodaux', addr:'2201 Bosque Blvd',        type:'Wind',     status:'sage',  confirmed:true}],
+  8:  [{time:'10:30 AM',name:'Buckshot GP LLC',  addr:'4137 County Road 340',    type:'Farm Ranch',status:'blue', confirmed:true}],
+  10: [{time:'8:30 AM', name:'Patricia Garza',   addr:'4812 Hillcrest Dr',       type:'Hail',     status:'sage',  confirmed:true},
+       {time:'11:00 AM',name:'Susser Bank',       addr:'3310 Franklin Ave',       type:'Fire',     status:'blue',  confirmed:true},
+       {time:'2:00 PM', name:'DP1 LLC',           addr:'200 W Main St',           type:'Vehicle',  status:'sage',  confirmed:true}],
+  15: [{time:'9:00 AM', name:'Abigail Johnson',  addr:'1423 19th St',            type:'Wind',     status:'sage',  confirmed:true},
+       {time:'11:30 AM',name:'Thomas Ray',        addr:'820 Lake Shore Dr',       type:'Hail',     status:'orange',confirmed:false}],
+  18: [{time:'8:30 AM', name:'Logan Bryant',     addr:'501 Columbus Ave',        type:'Wind+Hail',status:'sage',  confirmed:true}],
+};
+
+const WEATHER = {
+  0: {icon:'☀',temp:'81°'}, 1:{icon:'☀',temp:'78°'}, 2:{icon:'⛅',temp:'74°'},
+  3:{icon:'☁',temp:'68°'}, 4:{icon:'🌧',temp:'62°'}, 5:{icon:'⛅',temp:'71°'}, 6:{icon:'☀',temp:'76°'},
+};
+
+let mapOpen = true;
+let currentMonth = 3; // April (0-indexed)
+let currentYear = 2026;
+let dragging = null;
+
+// ── QUEUE ─────────────────────────────────────────────
+function renderQueue() {
+  const list = document.getElementById('queue-list');
+  list.innerHTML = QUEUE_CLAIMS.map(c => {
+    const slaBadge = c.sla === 'overdue'
+      ? `<span class="badge b-red">SLA Overdue</span>`
+      : c.sla === 'warning'
+      ? `<span class="badge b-orange">SLA At Risk</span>`
+      : `<span class="badge b-faint">Assigned</span>`;
+    return `
+    <div class="qitem" draggable="true" data-id="${c.id}"
+      ondragstart="startDrag(event,${c.id})"
+      ondragend="endDrag(event)">
+      <div class="qitem-top">
+        <div class="qitem-name">${c.name}</div>
+        ${slaBadge}
+      </div>
+      <div class="qitem-meta">${c.addr}<br>${c.type} · ${c.carrier}</div>
+      <div class="qitem-meta" style="margin-bottom:6px;font-style:italic">${c.notes}</div>
+      <div class="qitem-actions">
+        <div class="qbtn qbtn-sage" onclick="openModal()">Schedule</div>
+        <div class="qbtn qbtn-ghost">First Contact</div>
+        <div class="qbtn qbtn-ghost">...</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── CALENDAR ──────────────────────────────────────────
+const MONTHS = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+
+function renderCalendar() {
+  document.getElementById('cal-month-label').textContent = `${MONTHS[currentMonth]} ${currentYear}`;
+
+  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+  const daysInPrev = new Date(currentYear, currentMonth, 0).getDate();
+
+  // Weather strip
+  const wr = document.getElementById('weather-row');
+  wr.innerHTML = Array.from({length:7},(_,i) => {
+    const w = WEATHER[i] || {icon:'☀',temp:'72°'};
+    return `<div class="weather-cell"><div class="wicon">${w.icon}</div><div class="wtemp">${w.temp}</div></div>`;
+  }).join('');
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+
+  for (let i = 0; i < 35; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell';
+
+    let day, otherMonth = false;
+    if (i < firstDay) {
+      day = daysInPrev - firstDay + i + 1;
+      otherMonth = true;
+    } else if (i >= firstDay + daysInMonth) {
+      day = i - firstDay - daysInMonth + 1;
+      otherMonth = true;
+    } else {
+      day = i - firstDay + 1;
+    }
+
+    const isToday = day === 2 && !otherMonth && currentMonth === 3;
+    if (isToday) cell.classList.add('today');
+    if (otherMonth) cell.classList.add('other-month');
+
+    // Day number + weather icon for that col
+    const col = i % 7;
+    const w = WEATHER[col] || {icon:'☀',temp:''};
+    cell.innerHTML = `<div class="cell-day"><span>${day}</span>${!otherMonth?`<span class="cell-weather">${w.icon}</span>`:''}</div>`;
+
+    // Appointments
+    const appts = !otherMonth && APPOINTMENTS[day];
+    if (appts) {
+      const show = appts.slice(0,2);
+      show.forEach(a => {
+        const div = document.createElement('div');
+        div.className = `appt ${a.status}`;
+        div.textContent = `${a.time} ${a.name.split(' ')[0]}`;
+        div.onclick = (e) => { e.stopPropagation(); openDrawer(day, a); };
+        cell.appendChild(div);
+      });
+      if (appts.length > 2) {
+        const more = document.createElement('div');
+        more.className = 'more-appts';
+        more.textContent = `+${appts.length-2} more`;
+        cell.appendChild(more);
+      }
+    }
+
+    cell.onclick = () => !otherMonth && openDrawer(day);
+    cell.ondragover = e => { e.preventDefault(); cell.classList.add('drop-target'); };
+    cell.ondragleave = () => cell.classList.remove('drop-target');
+    cell.ondrop = e => { e.preventDefault(); cell.classList.remove('drop-target'); handleDrop(day); };
+
+    grid.appendChild(cell);
+  }
+}
+
+// ── DRAWER ────────────────────────────────────────────
+function openDrawer(day, focusAppt) {
+  const appts = APPOINTMENTS[day] || [];
+  const date = new Date(currentYear, currentMonth, day);
+  const label = date.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('drawer-title').textContent = label;
+
+  const container = document.getElementById('drawer-appts');
+  if (appts.length === 0) {
+    container.innerHTML = `
+      <div style="color:var(--muted);font-size:13px;padding:8px 0">
+        No inspections scheduled for this day.
+        <span style="color:var(--sage);cursor:pointer;margin-left:8px" onclick="openModal()">+ Schedule one →</span>
+      </div>`;
+  } else {
+    container.innerHTML = appts.map(a => `
+      <div class="drawer-appt">
+        <div class="da-time">${a.time}</div>
+        <div class="da-name">${a.name}</div>
+        <div class="da-meta">${a.addr} · ${a.type}</div>
+        <div class="da-meta" style="margin-top:2px">
+          ${a.confirmed
+            ? '<span style="color:var(--sage)">✓ Confirmed</span>'
+            : '<span style="color:var(--orange)">⏳ Pending confirmation</span>'}
+        </div>
+        <div class="da-actions">
+          <div class="qbtn qbtn-ghost">View Claim</div>
+          <div class="qbtn qbtn-ghost">Message Insured</div>
+          <div class="qbtn qbtn-ghost" style="color:var(--red);border-color:rgba(224,92,92,0.2)">Cancel</div>
+        </div>
+      </div>`).join('');
+  }
+
+  document.getElementById('day-drawer').classList.add('open');
+}
+
+function closeDrawer() {
+  document.getElementById('day-drawer').classList.remove('open');
+}
+
+// ── MAP ───────────────────────────────────────────────
+function toggleMap() {
+  mapOpen = !mapOpen;
+  document.getElementById('map-panel').classList.toggle('collapsed', !mapOpen);
+  document.getElementById('map-btn').style.color = mapOpen ? 'var(--sage)' : 'var(--muted)';
+}
+
+// ── DRAG & DROP ───────────────────────────────────────
+function startDrag(e, id) {
+  dragging = id;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function endDrag(e) {
+  e.target.classList.remove('dragging');
+  dragging = null;
+}
+function handleDrop(day) {
+  if (!dragging) return;
+  const claim = QUEUE_CLAIMS.find(c => c.id === dragging);
+  if (!claim) return;
+  openModalForClaim(claim, day);
+}
+
+// ── MODAL ─────────────────────────────────────────────
+function openModal() {
+  document.getElementById('modal').classList.add('open');
+}
+function openModalForClaim(claim, day) {
+  document.getElementById('modal').classList.add('open');
+  // Pre-fill would happen here
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+// ── TOOLTIP ───────────────────────────────────────────
+function showTooltip(e, name, time, addr, status) {
+  const tt = document.getElementById('tooltip');
+  tt.innerHTML = `
+    <div class="tt-name">${name}</div>
+    <div class="tt-row"><span class="tt-label">Time</span><span class="tt-val">${time}</span></div>
+    <div class="tt-row"><span class="tt-label">Address</span><span class="tt-val">${addr}</span></div>
+    <div class="tt-row"><span class="tt-label">Status</span><span class="tt-val" style="color:${
+      status==='Confirmed'?'var(--sage)':status==='Pending'?'var(--orange)':'var(--red)'
+    }">${status}</span></div>`;
+  tt.style.left = (e.clientX + 12)+'px';
+  tt.style.top  = (e.clientY - 60)+'px';
+  tt.classList.add('show');
+  setTimeout(() => tt.classList.remove('show'), 2500);
+}
+
+// ── NAV ───────────────────────────────────────────────
+function prevMonth() {
+  currentMonth--;
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  closeDrawer();
+  renderCalendar();
+}
+function nextMonth() {
+  currentMonth++;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  closeDrawer();
+  renderCalendar();
+}
+function goToday() {
+  currentMonth = 3; currentYear = 2026;
+  closeDrawer();
+  renderCalendar();
+}
+function switchView(v, el) {
+  document.querySelectorAll('.vtab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── INIT ─────────────────────────────────────────────
+renderQueue();
+renderCalendar();
+
+// Auto-open drawer for today
+setTimeout(() => openDrawer(2), 300);
+</script>
+</body>
+</html>
