@@ -29,7 +29,7 @@ export async function getAuthenticatedFirmUser(): Promise<AuthenticatedFirmUser 
   const { data: firmUser } = await supabase
     .from('firm_users')
     .select('role, firm_id, name')
-    .eq('id', user.id)
+    .eq('user_id', user.id)
     .single<FirmUserRecord>();
 
   if (!firmUser) {
