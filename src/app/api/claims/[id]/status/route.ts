@@ -7,6 +7,7 @@ import { getAuthenticatedFirmUser } from '@/lib/supabase/user';
 const allowedStatuses: ClaimStatus[] = [
   'received',
   'assigned',
+  'accepted',
   'contacted',
   'scheduled',
   'inspected',

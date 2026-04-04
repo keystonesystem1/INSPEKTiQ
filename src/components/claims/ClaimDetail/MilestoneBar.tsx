@@ -2,6 +2,7 @@ import type { Claim, MilestoneKey } from '@/lib/types';
 
 const stages: Array<{ key: MilestoneKey; label: string }> = [
   { key: 'received', label: 'Received' },
+  { key: 'assigned', label: 'Assigned' },
   { key: 'accepted', label: 'Accepted' },
   { key: 'contacted', label: 'Contacted' },
   { key: 'scheduled', label: 'Scheduled' },

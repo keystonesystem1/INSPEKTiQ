@@ -9,6 +9,7 @@ export type Role =
 export type ClaimStatus =
   | 'received'
   | 'assigned'
+  | 'accepted'
   | 'contacted'
   | 'scheduled'
   | 'inspected'
@@ -77,6 +78,7 @@ export interface Claim {
 
 export type MilestoneKey =
   | 'received'
+  | 'assigned'
   | 'accepted'
   | 'contacted'
   | 'scheduled'

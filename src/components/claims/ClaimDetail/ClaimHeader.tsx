@@ -13,6 +13,7 @@ import { AssignAdjusterModal } from '@/components/claims/ClaimDetail/AssignAdjus
 const statusOptions: ClaimStatus[] = [
   'received',
   'assigned',
+  'accepted',
   'contacted',
   'scheduled',
   'inspected',
@@ -107,6 +108,11 @@ export function ClaimHeader({
           {['firm_admin', 'dispatcher', 'super_admin'].includes(role) ? (
             <Button size="sm" variant="ghost" onClick={() => setAssignOpen(true)} disabled={isPending}>
               Assign Adjuster
+            </Button>
+          ) : null}
+          {role === 'adjuster' && status === 'assigned' ? (
+            <Button size="sm" onClick={() => updateStatus('accepted')} disabled={isPending}>
+              Accept Claim
             </Button>
           ) : null}
           {canApproveClaims(role) ? (
