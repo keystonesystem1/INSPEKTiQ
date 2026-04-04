@@ -22,11 +22,6 @@ export interface ClaimDocuments {
   photos: ClaimPhotoDocument[];
 }
 
-interface StorageObjectRow {
-  name: string;
-  created_at?: string | null;
-}
-
 interface PhotoRow {
   storage_path: string | null;
   section: string | null;
@@ -75,37 +70,33 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
 
   const photos = photoSignedResults.filter((photo) => photo.signedUrl);
 
-  const { data: reportRows, error: reportsError } = await supabase
-    .schema('storage')
-    .from('objects')
-    .select('name, created_at')
-    .eq('bucket_id', 'generated-reports')
-    .like('name', `%${claimId}%`);
+  const { data: rootFolders, error: rootFoldersError } = await supabase.storage
+    .from('generated-reports')
+    .list('', { limit: 100 });
 
-  if (reportsError) {
-    console.error('getClaimDocuments reports error:', reportsError);
-  }
+  const reports: ClaimReportDocument[] = [];
 
-  const validReportRows = ((reportRows ?? []) as StorageObjectRow[]).filter(
-    (row) => Boolean(row.name) && row.name.toLowerCase().endsWith('.pdf'),
-  );
+  for (const folder of rootFolders ?? []) {
+    const { data: claimFiles } = await supabase.storage
+      .from('generated-reports')
+      .list(`${folder.name}/${claimId}`, { limit: 50 });
 
-  const reportSignedResults = await Promise.all(
-    validReportRows.map(async (row) => {
-      const { data } = await supabase.storage
+    for (const file of claimFiles ?? []) {
+      if (!file.name.toLowerCase().endsWith('.pdf')) continue;
+      const filePath = `${folder.name}/${claimId}/${file.name}`;
+      const { data: signedData } = await supabase.storage
         .from('generated-reports')
-        .createSignedUrl(row.name, 60 * 60);
-
-      return {
-        path: row.name,
-        filename: getFilename(row.name),
-        signedUrl: data?.signedUrl ?? '',
-        createdAt: row.created_at ?? undefined,
-      };
-    }),
-  );
-
-  const reports = reportSignedResults.filter((report) => report.signedUrl);
+        .createSignedUrl(filePath, 60 * 60);
+      if (signedData?.signedUrl) {
+        reports.push({
+          path: filePath,
+          filename: file.name,
+          signedUrl: signedData.signedUrl,
+          createdAt: file.created_at ?? undefined,
+        });
+      }
+    }
+  }
 
   return { reports, photos };
 }
