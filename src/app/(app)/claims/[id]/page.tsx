@@ -1,5 +1,5 @@
-import { notFound } from 'next/navigation';
-import { demoClaims, demoNotes, demoTimeline } from '@/lib/utils/demo-data';
+import { redirect } from 'next/navigation';
+import { getClaimById } from '@/lib/supabase/claims';
 import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
 import { Card } from '@/components/ui/Card';
 import { ClaimHeader } from '@/components/claims/ClaimDetail/ClaimHeader';
@@ -12,10 +12,10 @@ export default async function ClaimDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const claim = demoClaims.find((item) => item.id === id);
-  const { role } = await requireAuthenticatedFirmUser();
+  const { role, firmId } = await requireAuthenticatedFirmUser();
+  const claim = await getClaimById(id, firmId);
 
-  if (!claim) notFound();
+  if (!claim) redirect('/claims');
 
   return (
     <div style={{ display: 'grid', gap: '18px' }}>
@@ -23,7 +23,7 @@ export default async function ClaimDetailPage({
         <ClaimHeader claim={claim} role={role} />
         <MilestoneBar claim={claim} />
       </Card>
-      <ClaimTabs claim={claim} role={role} notes={demoNotes} timeline={demoTimeline} />
+      <ClaimTabs claim={claim} role={role} notes={[]} timeline={[]} />
     </div>
   );
 }

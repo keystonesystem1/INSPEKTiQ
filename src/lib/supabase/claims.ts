@@ -5,6 +5,8 @@ interface RawClaim {
   id: string;
   claim_number: string | null;
   insured_name: string | null;
+  insured_phone?: string | null;
+  insured_email?: string | null;
   carrier: string | null;
   loss_type: string | null;
   date_of_loss: string | null;
@@ -17,6 +19,7 @@ interface RawClaim {
   assigned_user_id: string | null;
   loss_lat: number | null;
   loss_lng: number | null;
+  examiner_name?: string | null;
   created_at: string | null;
 }
 
@@ -36,6 +39,7 @@ function mapClaimRow(raw: RawClaim): Claim {
     dueDate: slaDeadline.toISOString().split('T')[0],
     status: (raw.status as ClaimStatus) ?? 'received',
     adjuster: undefined,
+    examiner: raw.examiner_name ?? undefined,
     carrier: raw.carrier ?? undefined,
     city: raw.city ?? '',
     state: raw.state ?? '',
@@ -63,4 +67,18 @@ export async function getClaims(firmId: string): Promise<Claim[]> {
     .order('created_at', { ascending: false });
   if (error) console.error('getClaims error:', error);
   return ((data ?? []) as RawClaim[]).map(mapClaimRow);
+}
+
+export async function getClaimById(id: string, firmId: string): Promise<Claim | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('claims')
+    .select(
+      'id, claim_number, insured_name, insured_phone, insured_email, carrier, loss_type, date_of_loss, status, city, state, loss_address, policy_number, loss_description, assigned_user_id, loss_lat, loss_lng, examiner_name, created_at',
+    )
+    .eq('id', id)
+    .eq('firm_id', firmId)
+    .single();
+  if (error || !data) return null;
+  return mapClaimRow(data as RawClaim);
 }
