@@ -28,21 +28,37 @@ export function DocumentsTab({ documents }: { documents: ClaimDocuments }) {
               <div style={{ fontWeight: 600 }}>{report.filename}</div>
               <div style={{ color: 'var(--muted)', fontSize: '11px' }}>{formatTimestamp(report.createdAt)}</div>
             </div>
-            <a
-              href={report.signedUrl}
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                fontFamily: 'Barlow Condensed, sans-serif',
-                fontWeight: 700,
-                fontSize: '11px',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: 'var(--sage)',
-              }}
-            >
-              Download
-            </a>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <a
+                href={report.signedUrl}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  fontFamily: 'Barlow Condensed, sans-serif',
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'var(--sage)',
+                }}
+              >
+                Preview
+              </a>
+              <a
+                href={report.signedUrl}
+                download={report.filename}
+                style={{
+                  fontFamily: 'Barlow Condensed, sans-serif',
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'var(--sage)',
+                }}
+              >
+                Download
+              </a>
+            </div>
           </div>
         ))
       )}

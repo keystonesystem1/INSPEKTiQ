@@ -15,6 +15,14 @@ function formatInspectionTimestamp(value: string) {
   });
 }
 
+function formatInspectionWindow(value: string) {
+  if (!value) {
+    return '';
+  }
+
+  return formatInspectionTimestamp(value).replace(',', ' at');
+}
+
 function readRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -203,6 +211,8 @@ export function InspectionTab({ inspection }: { inspection: ClaimInspectionData 
       <SummarySection
         title="Interview"
         rows={[
+          { label: 'Inspection Started', value: formatInspectionWindow(inspection.inspectionStarted) },
+          { label: 'Inspection Ended', value: formatInspectionWindow(inspection.inspectionEnded) },
           { label: 'Who Was Present', value: whoWasPresentRoles },
           { label: 'Spoke To', value: readString(interview.spokeTo) },
           { label: 'Inspection Date', value: readString(interview.inspectionDate) },

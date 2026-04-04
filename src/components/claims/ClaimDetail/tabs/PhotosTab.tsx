@@ -1,4 +1,8 @@
+'use client';
+
+import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
+import { Pill } from '@/components/ui/Pill';
 import type { ClaimDocuments } from '@/lib/supabase/documents';
 
 function formatSectionName(section: string) {
@@ -12,14 +16,27 @@ function formatSectionName(section: string) {
 }
 
 export function PhotosTab({ documents }: { documents: ClaimDocuments }) {
+  const [size, setSize] = useState<'small' | 'medium' | 'large'>('medium');
   const photoSections = documents.photos.reduce<Record<string, typeof documents.photos>>((accumulator, photo) => {
     accumulator[photo.section] ??= [];
     accumulator[photo.section].push(photo);
     return accumulator;
   }, {});
+  const gridColumns =
+    size === 'small'
+      ? 'repeat(6, minmax(0, 1fr))'
+      : size === 'large'
+        ? 'repeat(2, minmax(0, 1fr))'
+        : 'repeat(4, minmax(0, 1fr))';
 
   return (
     <div style={{ display: 'grid', gap: '16px' }}>
+      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        <Pill label="Small" active={size === 'small'} onClick={() => setSize('small')} />
+        <Pill label="Medium" active={size === 'medium'} onClick={() => setSize('medium')} />
+        <Pill label="Large" active={size === 'large'} onClick={() => setSize('large')} />
+      </div>
+
       {documents.photos.length === 0 ? (
         <Card>
           <div style={{ color: 'var(--muted)' }}>No photos uploaded.</div>
@@ -31,7 +48,7 @@ export function PhotosTab({ documents }: { documents: ClaimDocuments }) {
           <div style={{ marginBottom: '12px', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>
             {formatSectionName(section)}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridColumns, gap: '12px' }}>
             {photos.map((photo, index) => (
               <a
                 key={photo.path}
