@@ -42,9 +42,14 @@ export async function PATCH(
   }
 
   const supabase = createAdminClient();
+  const nextTimestamp = new Date().toISOString();
   const { data, error } = await supabase
     .from('claims')
-    .update({ status: body.status, updated_at: new Date().toISOString() })
+    .update({
+      status: body.status,
+      submitted_at: body.status === 'submitted' ? nextTimestamp : null,
+      updated_at: nextTimestamp,
+    })
     .eq('id', id)
     .eq('firm_id', firmUser.firmId)
     .select('id, status')

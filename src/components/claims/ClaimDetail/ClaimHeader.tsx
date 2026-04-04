@@ -40,6 +40,28 @@ export function ClaimHeader({
   const [assignOpen, setAssignOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  const updateStatus = (nextStatus: ClaimStatus) => {
+    const previousStatus = status;
+
+    setStatus(nextStatus);
+    startTransition(async () => {
+      const response = await fetch(`/api/claims/${claim.id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+
+      if (!response.ok) {
+        setStatus(previousStatus);
+        return;
+      }
+
+      router.refresh();
+    });
+  };
+
   return (
     <div style={{ paddingBottom: '14px' }}>
       <Link href="/claims" style={{ display: 'inline-flex', color: 'var(--muted)', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
@@ -63,27 +85,7 @@ export function ClaimHeader({
           {role !== 'carrier' ? (
             <select
               value={status}
-              onChange={(event) => {
-                const nextStatus = event.target.value as ClaimStatus;
-
-                setStatus(nextStatus);
-                startTransition(async () => {
-                  const response = await fetch(`/api/claims/${claim.id}/status`, {
-                    method: 'PATCH',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ status: nextStatus }),
-                  });
-
-                  if (!response.ok) {
-                    setStatus(claim.status);
-                    return;
-                  }
-
-                  router.refresh();
-                });
-              }}
+              onChange={(event) => updateStatus(event.target.value as ClaimStatus)}
               disabled={isPending}
               style={{
                 background: 'var(--card)',
@@ -103,13 +105,22 @@ export function ClaimHeader({
             </select>
           ) : null}
           {['firm_admin', 'dispatcher', 'super_admin'].includes(role) ? (
-            <Button size="sm" variant="ghost" onClick={() => setAssignOpen(true)}>
+            <Button size="sm" variant="ghost" onClick={() => setAssignOpen(true)} disabled={isPending}>
               Assign Adjuster
             </Button>
           ) : null}
-          {canApproveClaims(role) ? <Button size="sm">Approve Report</Button> : null}
-          <Button variant="ghost" size="sm">Request Changes</Button>
-          <Button variant="ghost" size="sm">···</Button>
+          {canApproveClaims(role) ? (
+            <Button size="sm" onClick={() => updateStatus('approved')} disabled={isPending || status === 'approved'}>
+              Approve Report
+            </Button>
+          ) : null}
+          {status === 'approved' ? (
+            <Button size="sm" variant="ghost" onClick={() => updateStatus('submitted')} disabled={isPending}>
+              Submit to Carrier
+            </Button>
+          ) : null}
+          <Button variant="ghost" size="sm" disabled={isPending}>Request Changes</Button>
+          <Button variant="ghost" size="sm" disabled={isPending}>···</Button>
         </div>
       </div>
       <AssignAdjusterModal

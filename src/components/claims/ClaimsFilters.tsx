@@ -10,7 +10,12 @@ export function ClaimsFilters({
 }: {
   filter: ClaimStatus | 'all';
   setFilter: (value: ClaimStatus | 'all') => void;
-  filters: Array<{ label: string; value: ClaimStatus | 'all' }>;
+  filters: Array<{
+    label: string;
+    value: ClaimStatus | 'all';
+    count?: number;
+    tone?: 'red' | 'orange';
+  }>;
 }) {
   return (
     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '18px' }}>
@@ -20,13 +25,7 @@ export function ClaimsFilters({
           label={item.label}
           active={filter === item.value}
           onClick={() => setFilter(item.value)}
-          dot={
-            item.value === 'received'
-              ? { tone: 'red', value: 2 }
-              : item.value === 'in_review'
-                ? { tone: 'orange', value: 3 }
-                : undefined
-          }
+          dot={item.count && item.count > 0 ? { tone: item.tone ?? 'orange', value: item.count } : undefined}
         />
       ))}
     </div>
