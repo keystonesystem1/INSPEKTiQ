@@ -34,6 +34,10 @@ function getFilename(path: string) {
   return path.split('/').filter(Boolean).pop() ?? path;
 }
 
+function getPublicClaimDocumentUrl(path: string) {
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/claim-documents/${path}`;
+}
+
 export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments> {
   const supabase = createAdminClient();
 
@@ -74,6 +78,10 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
     .from('generated-reports')
     .list('', { limit: 100 });
 
+  if (rootFoldersError) {
+    console.error('getClaimDocuments generated-reports root error:', rootFoldersError);
+  }
+
   const reports: ClaimReportDocument[] = [];
 
   for (const folder of rootFolders ?? []) {
@@ -95,6 +103,66 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
           createdAt: file.created_at ?? undefined,
         });
       }
+    }
+  }
+
+  const { data: claimDocumentRootFolders, error: claimDocumentRootError } = await supabase.storage
+    .from('claim-documents')
+    .list('', { limit: 100 });
+
+  if (claimDocumentRootError) {
+    console.error('getClaimDocuments claim-documents root error:', claimDocumentRootError);
+  }
+
+  for (const folder of claimDocumentRootFolders ?? []) {
+    if (folder.name === 'uploads') {
+      const { data: uploadFolders, error: uploadsError } = await supabase.storage
+        .from('claim-documents')
+        .list(`uploads/${claimId}`, { limit: 100 });
+
+      if (uploadsError) {
+        console.error('getClaimDocuments claim-documents uploads error:', uploadsError);
+        continue;
+      }
+
+      for (const uploadFolder of uploadFolders ?? []) {
+        const { data: uploadFiles } = await supabase.storage
+          .from('claim-documents')
+          .list(`uploads/${claimId}/${uploadFolder.name}`, { limit: 100 });
+
+        for (const file of uploadFiles ?? []) {
+          if (!file.name.toLowerCase().endsWith('.pdf')) continue;
+          const filePath = `uploads/${claimId}/${uploadFolder.name}/${file.name}`;
+          reports.push({
+            path: filePath,
+            filename: file.name,
+            signedUrl: getPublicClaimDocumentUrl(filePath),
+            createdAt: file.created_at ?? undefined,
+          });
+        }
+      }
+
+      continue;
+    }
+
+    const { data: claimFiles, error: claimFilesError } = await supabase.storage
+      .from('claim-documents')
+      .list(`${folder.name}/${claimId}`, { limit: 100 });
+
+    if (claimFilesError) {
+      console.error('getClaimDocuments claim-documents user folder error:', claimFilesError);
+      continue;
+    }
+
+    for (const file of claimFiles ?? []) {
+      if (!file.name.toLowerCase().endsWith('.pdf')) continue;
+      const filePath = `${folder.name}/${claimId}/${file.name}`;
+      reports.push({
+        path: filePath,
+        filename: file.name,
+        signedUrl: getPublicClaimDocumentUrl(filePath),
+        createdAt: file.created_at ?? undefined,
+      });
     }
   }
 
