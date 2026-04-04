@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getClaimById } from '@/lib/supabase/claims';
+import { getAdjusters } from '@/lib/supabase/adjusters';
 import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
 import { Card } from '@/components/ui/Card';
 import { ClaimHeader } from '@/components/claims/ClaimDetail/ClaimHeader';
@@ -14,13 +15,14 @@ export default async function ClaimDetailPage({
   const { id } = await params;
   const { role, firmId } = await requireAuthenticatedFirmUser();
   const claim = await getClaimById(id, firmId);
+  const adjusters = await getAdjusters(firmId);
 
   if (!claim) redirect('/claims');
 
   return (
     <div style={{ display: 'grid', gap: '18px' }}>
       <Card style={{ background: 'var(--surface)' }}>
-        <ClaimHeader claim={claim} role={role} />
+        <ClaimHeader claim={claim} role={role} adjusters={adjusters} />
         <MilestoneBar claim={claim} />
       </Card>
       <ClaimTabs claim={claim} role={role} notes={[]} timeline={[]} />

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { getUserEmailsById } from '@/lib/supabase/adjusters';
 import type { Claim, ClaimStatus } from '@/lib/types';
 
 interface RawClaim {
@@ -23,7 +24,7 @@ interface RawClaim {
   created_at: string | null;
 }
 
-function mapClaimRow(raw: RawClaim): Claim {
+function mapClaimRow(raw: RawClaim, adjusterEmail?: string): Claim {
   const createdAt = raw.created_at ? new Date(raw.created_at) : new Date();
   const slaDeadline = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000);
   const slaHoursRemaining = Math.round((slaDeadline.getTime() - Date.now()) / (1000 * 60 * 60));
@@ -38,7 +39,7 @@ function mapClaimRow(raw: RawClaim): Claim {
     dateOfLoss: raw.date_of_loss ?? '',
     dueDate: slaDeadline.toISOString().split('T')[0],
     status: (raw.status as ClaimStatus) ?? 'received',
-    adjuster: undefined,
+    adjuster: adjusterEmail ?? undefined,
     examiner: raw.examiner_name ?? undefined,
     carrier: raw.carrier ?? undefined,
     city: raw.city ?? '',
@@ -66,7 +67,13 @@ export async function getClaims(firmId: string): Promise<Claim[]> {
     .eq('firm_id', firmId)
     .order('created_at', { ascending: false });
   if (error) console.error('getClaims error:', error);
-  return ((data ?? []) as RawClaim[]).map(mapClaimRow);
+  const claims = (data ?? []) as RawClaim[];
+  const usersById = await getUserEmailsById(
+    claims
+      .map((claim) => claim.assigned_user_id)
+      .filter((value): value is string => Boolean(value)),
+  );
+  return claims.map((claim) => mapClaimRow(claim, claim.assigned_user_id ? usersById.get(claim.assigned_user_id) : undefined));
 }
 
 export async function getClaimById(id: string, firmId: string): Promise<Claim | null> {
@@ -80,5 +87,9 @@ export async function getClaimById(id: string, firmId: string): Promise<Claim | 
     .eq('firm_id', firmId)
     .single();
   if (error || !data) return null;
-  return mapClaimRow(data as RawClaim);
+  const claim = data as RawClaim;
+  const usersById = await getUserEmailsById(
+    claim.assigned_user_id ? [claim.assigned_user_id] : [],
+  );
+  return mapClaimRow(claim, claim.assigned_user_id ? usersById.get(claim.assigned_user_id) : undefined);
 }
