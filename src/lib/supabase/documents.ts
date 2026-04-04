@@ -80,20 +80,15 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
     .from('objects')
     .select('name, created_at')
     .eq('bucket_id', 'generated-reports')
-    .limit(1000);
+    .like('name', `%${claimId}%`);
 
   if (reportsError) {
     console.error('getClaimDocuments reports error:', reportsError);
   }
 
-  const validReportRows = ((reportRows ?? []) as StorageObjectRow[]).filter((row) => {
-    if (!row.name) {
-      return false;
-    }
-
-    const [, pathClaimId] = row.name.split('/');
-    return pathClaimId === claimId && row.name.toLowerCase().endsWith('.pdf');
-  });
+  const validReportRows = ((reportRows ?? []) as StorageObjectRow[]).filter(
+    (row) => Boolean(row.name) && row.name.toLowerCase().endsWith('.pdf'),
+  );
 
   const reportSignedResults = await Promise.all(
     validReportRows.map(async (row) => {
