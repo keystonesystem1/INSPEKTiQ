@@ -108,7 +108,7 @@ export async function POST(
       token,
       claim_id: claimId,
       document_paths: validPaths,
-      created_by: firmUserRow.id,
+      created_by: firmUser.id,
       recipient_email: recipientEmail,
       recipient_name: recipientName || null,
       expires_at: expiresAt,
