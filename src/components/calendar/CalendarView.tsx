@@ -95,7 +95,7 @@ export function CalendarView() {
             </div>
           ))}
         </div>
-        <DayDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} dateLabel={selectedDateLabel} />
+        <DayDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} date="2026-04-05" appointments={demoAppointments} />
       </section>
       <RouteMap open={routeMapOpen} onClose={() => setRouteMapOpen(false)} />
       <ScheduleModal open={modalOpen} onClose={() => setModalOpen(false)} claimId={scheduleClaimId} date={scheduleDate} />

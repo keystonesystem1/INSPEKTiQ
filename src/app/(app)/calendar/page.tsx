@@ -1,11 +1,8 @@
-import { PageHeader } from '@/components/layout/PageHeader';
-import { CalendarView } from '@/components/calendar/CalendarView';
+import { CalendarPage } from '@/components/calendar/CalendarPage';
+import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
 
-export default function CalendarPage() {
-  return (
-    <div>
-      <PageHeader title="Calendar" subtitle="Needs-scheduling queue, month view, and route map with smart routing context." />
-      <CalendarView />
-    </div>
-  );
+export default async function CalendarRoute() {
+  const { firmId, id } = await requireAuthenticatedFirmUser();
+
+  return <CalendarPage firmId={firmId} adjusterUserId={id} />;
 }

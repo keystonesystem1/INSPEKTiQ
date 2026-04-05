@@ -92,13 +92,41 @@ export type MilestoneKey =
 export interface Appointment {
   id: string;
   claimId: string;
-  insured: string;
-  address: string;
+  firmId: string;
+  adjusterUserId: string | null;
   date: string;
   arrivalTime: string;
   endTime: string;
   status: 'pending' | 'confirmed' | 'completed' | 'needs_attention' | 'cancelled';
-  adjuster: string;
+  notes: string | null;
+  insuredName: string;
+  lossAddress: string;
+  city: string;
+  state: string;
+  lossType: string;
+  lossLat: number | null;
+  lossLng: number | null;
+  adjusterName: string;
+  insured?: string;
+  address?: string;
+  adjuster?: string;
+}
+
+export interface SchedulingQueueItem {
+  id: string;
+  claimNumber: string;
+  insuredName: string;
+  lossAddress: string;
+  city: string;
+  state: string;
+  carrier: string;
+  lossType: string;
+  claimCategory: 'Residential' | 'Commercial' | 'Farm/Ranch' | 'Industrial';
+  status: string;
+  receivedAt: string;
+  slaDeadlineHours: number | null;
+  lossLat: number | null;
+  lossLng: number | null;
 }
 
 export interface DispatchClaim {
