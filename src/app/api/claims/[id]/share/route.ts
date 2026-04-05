@@ -27,12 +27,10 @@ export async function POST(
   const firmUser = await getAuthenticatedFirmUser();
 
   if (!firmUser) {
-    console.error('share route unauthorized: no authenticated firm user');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   if (!['firm_admin', 'examiner'].includes(firmUser.role)) {
-    console.error('share route forbidden role:', firmUser.role);
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -43,11 +41,6 @@ export async function POST(
   const recipientName = body.recipientName?.trim();
 
   if (!recipientEmail || documentPaths.length === 0) {
-    console.error('share route missing share details:', {
-      claimId,
-      recipientEmail,
-      documentPathCount: documentPaths.length,
-    });
     return NextResponse.json({ error: 'Missing share details' }, { status: 400 });
   }
 
@@ -56,11 +49,6 @@ export async function POST(
   const validPaths = documentPaths.filter((path) => allowedPaths.has(path));
 
   if (validPaths.length === 0) {
-    console.error('share route no valid document paths:', {
-      claimId,
-      submittedPaths: documentPaths,
-      allowedPaths: Array.from(allowedPaths),
-    });
     return NextResponse.json({ error: 'No valid documents selected' }, { status: 400 });
   }
 
@@ -124,11 +112,6 @@ export async function POST(
     });
     return NextResponse.json({ error: shareError.message }, { status: 500 });
   }
-
-  console.error('share route sendgrid env check:', {
-    hasApiKey: Boolean(process.env.SENDGRID_API_KEY),
-    fromEmail: process.env.SENDGRID_FROM_EMAIL ?? null,
-  });
 
   sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
