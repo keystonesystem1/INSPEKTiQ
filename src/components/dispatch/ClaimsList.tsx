@@ -1,30 +1,38 @@
 'use client';
 
-import { demoClaims } from '@/lib/utils/demo-data';
+import type { Claim } from '@/lib/types';
 import { Badge } from '@/components/ui/Badge';
 
 export function ClaimsList({
-  selectedClaimId,
-  onSelect,
+  claims,
+  selectedClaimIds,
+  onToggle,
   dimmedClaimIds,
 }: {
-  selectedClaimId?: string;
-  onSelect: (claimId: string) => void;
+  claims: Claim[];
+  selectedClaimIds: string[];
+  onToggle: (claimId: string) => void;
   dimmedClaimIds: string[];
 }) {
+  if (claims.length === 0) {
+    return (
+      <div style={{ padding: '24px 16px', color: 'var(--muted)', fontSize: '13px' }}>No unassigned claims.</div>
+    );
+  }
+
   return (
     <div style={{ flex: 1, overflowY: 'auto' }}>
-      {demoClaims.map((claim) => (
+      {claims.map((claim) => (
         <button
           key={claim.id}
-          onClick={() => onSelect(claim.id)}
+          onClick={() => onToggle(claim.id)}
           style={{
             width: '100%',
             textAlign: 'left',
             padding: '11px 14px',
             borderBottom: '1px solid var(--border)',
-            background: selectedClaimId === claim.id ? 'rgba(91,194,115,0.07)' : 'transparent',
-            borderLeft: selectedClaimId === claim.id ? '2px solid var(--sage)' : '2px solid transparent',
+            background: selectedClaimIds.includes(claim.id) ? 'rgba(91,194,115,0.07)' : 'transparent',
+            borderLeft: selectedClaimIds.includes(claim.id) ? '2px solid var(--sage)' : '2px solid transparent',
             opacity: dimmedClaimIds.includes(claim.id) ? 0.28 : 1,
             cursor: 'pointer',
           }}
