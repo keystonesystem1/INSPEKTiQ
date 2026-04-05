@@ -131,6 +131,12 @@ This link expires in 30 days.
 
 Keystone Adjusting
 Powered by Keystone Stack`,
+      trackingSettings: {
+        clickTracking: {
+          enable: false,
+          enableText: false,
+        },
+      },
     });
   } catch (error) {
     console.error('share route sendgrid send failed:', error);
