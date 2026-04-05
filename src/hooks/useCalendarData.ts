@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useEffectEvent, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { getAppointments, getClaimsNeedingScheduling } from '@/lib/supabase/calendar';
 import type { Appointment, SchedulingQueueItem } from '@/lib/types';
@@ -23,8 +23,12 @@ export function useCalendarData(
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestSequenceRef = useRef(0);
+  const activeRequestRef = useRef(0);
+  const isFetchingRef = useRef(false);
 
-  const loadCalendarData = useEffectEvent(async () => {
+  const loadCalendarData = useEffectEvent(async (options?: { preserveLoadingState?: boolean }) => {
     if (!firmId || !adjusterUserId) {
       setClaimsNeedingScheduling([]);
       setAppointments([]);
@@ -33,7 +37,14 @@ export function useCalendarData(
       return;
     }
 
-    setLoading(true);
+    const requestId = requestSequenceRef.current + 1;
+    requestSequenceRef.current = requestId;
+    activeRequestRef.current = requestId;
+    isFetchingRef.current = true;
+
+    if (!options?.preserveLoadingState) {
+      setLoading(true);
+    }
     setError(null);
 
     try {
@@ -42,13 +53,35 @@ export function useCalendarData(
         getAppointments(firmId, adjusterUserId, from, to),
       ]);
 
+      if (activeRequestRef.current !== requestId) {
+        return;
+      }
+
       setClaimsNeedingScheduling(nextQueue);
       setAppointments(nextAppointments);
     } catch (err) {
+      if (activeRequestRef.current !== requestId) {
+        return;
+      }
+
       setError(err instanceof Error ? err.message : 'Failed to load calendar data.');
     } finally {
-      setLoading(false);
+      if (activeRequestRef.current === requestId) {
+        isFetchingRef.current = false;
+        setLoading(false);
+      }
     }
+  });
+
+  const scheduleRealtimeRefresh = useEffectEvent(() => {
+    if (debounceTimerRef.current !== null) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = null;
+      void loadCalendarData({ preserveLoadingState: true });
+    }, 300);
   });
 
   useEffect(() => {
@@ -65,15 +98,19 @@ export function useCalendarData(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'appointments', filter: `adjuster_user_id=eq.${adjusterUserId}` },
         () => {
-          void loadCalendarData();
+          scheduleRealtimeRefresh();
         },
       )
       .subscribe();
 
     return () => {
+      if (debounceTimerRef.current !== null) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
       void supabase.removeChannel(channel);
     };
-  }, [adjusterUserId, firmId, from, loadCalendarData, to]);
+  }, [adjusterUserId, firmId, from, loadCalendarData, scheduleRealtimeRefresh, to]);
 
   return {
     claimsNeedingScheduling,
