@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 interface FirmUserRecord {
   role: Role;
   firm_id: string;
+  full_name: string | null;
 }
 
 interface FirmRecord {
@@ -32,7 +33,7 @@ export async function getAuthenticatedFirmUser(): Promise<AuthenticatedFirmUser 
 
   const { data: firmUser } = await supabase
     .from('firm_users')
-    .select('role, firm_id')
+    .select('role, firm_id, full_name')
     .eq('user_id', user.id)
     .single<FirmUserRecord>();
 
@@ -52,7 +53,7 @@ export async function getAuthenticatedFirmUser(): Promise<AuthenticatedFirmUser 
     role: firmUser.role,
     firmId: firmUser.firm_id,
     firmName: firm?.name ?? 'Firm',
-    name: user.email.split('@')[0] ?? 'User',
+    name: firmUser.full_name?.trim() || user.email.split('@')[0] || 'User',
   };
 }
 
