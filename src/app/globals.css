@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Orbitron:wght@900&display=swap');
 @import 'tailwindcss';
+@import 'mapbox-gl/dist/mapbox-gl.css';
+@import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 
 :root {
   --bg: #0a0a0a;
@@ -103,4 +105,16 @@ button {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.dispatch-popup .mapboxgl-popup-content {
+  background: var(--card-hi);
+  border: 1px solid var(--border-hi);
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38);
+  padding: 12px 14px;
+}
+
+.dispatch-popup .mapboxgl-popup-tip {
+  border-top-color: var(--card-hi);
 }

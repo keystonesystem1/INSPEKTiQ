@@ -20,7 +20,8 @@ export type ClaimStatus =
   | 'on_hold'
   | 'pending_te'
   | 'pending_carrier_direction'
-  | 'pending_engineer';
+  | 'pending_engineer'
+  | 'needs_attention';
 
 export type BadgeTone = 'sage' | 'blue' | 'orange' | 'red' | 'bronze' | 'faint';
 
@@ -96,8 +97,44 @@ export interface Appointment {
   date: string;
   arrivalTime: string;
   endTime: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'completed' | 'needs_attention' | 'cancelled';
   adjuster: string;
+}
+
+export interface DispatchClaim {
+  id: string;
+  claimNumber: string;
+  insuredName: string;
+  lossAddress: string;
+  city: string;
+  state: string;
+  zip: string;
+  carrier: string;
+  lossType: string;
+  claimCategory: string;
+  requiresTwia: boolean;
+  requiredCerts: string[];
+  status: string;
+  appointmentStatus: string | null;
+  receivedAt: string;
+  slaDeadlineHours: number | null;
+  lossLat: number | null;
+  lossLng: number | null;
+}
+
+export interface DispatchAdjuster {
+  id: string;
+  name: string;
+  initials: string;
+  location: string;
+  activeClaims: number;
+  maxClaims: number;
+  availability: 'available' | 'busy' | 'remote' | 'on_leave';
+  approvedCarriers: string[];
+  approvedClaimTypes: string[];
+  certifications: string[];
+  homeLat: number | null;
+  homeLng: number | null;
 }
 
 export interface AdjusterProfile {

@@ -2,54 +2,133 @@
 
 import { Button } from '@/components/ui/Button';
 
+export interface LassoFilterState {
+  lossTypes: string[];
+  claimCategories: string[];
+  requiredCertifications: string[];
+  carriers: string[];
+  maxClaims: number;
+}
+
 export function LassoFilters({
   open,
-  maxClaims,
-  setMaxClaims,
+  filters,
+  onToggleLossType,
+  onToggleClaimCategory,
+  onToggleCertification,
+  onToggleCarrier,
+  onSetMaxClaims,
   onApply,
   onCancel,
+  availableCarriers,
 }: {
   open: boolean;
-  maxClaims: number;
-  setMaxClaims: (value: number) => void;
+  filters: LassoFilterState;
+  onToggleLossType: (value: string) => void;
+  onToggleClaimCategory: (value: string) => void;
+  onToggleCertification: (value: string) => void;
+  onToggleCarrier: (value: string) => void;
+  onSetMaxClaims: (value: number) => void;
   onApply: () => void;
   onCancel: () => void;
+  availableCarriers: string[];
 }) {
   if (!open) return null;
 
-  const sections = [
-    ['Loss Type', ['Wind', 'Hail', 'Wind+Hail', 'Fire', 'Flood', 'Liability']],
-    ['Claim Category', ['Residential', 'Commercial', 'Farm/Ranch', 'Industrial']],
-    ['Certifications Required', ['TWIA', 'Flood Cert', 'Commercial Lic']],
-    ['Carrier', ['Lone Star Mutual', 'Summit Commercial', 'AgriSure']],
-  ] as const;
+  const lossTypes = ['Wind', 'Hail', 'Wind+Hail', 'Fire', 'Flood', 'Liability'];
+  const claimCategories = ['Residential', 'Commercial', 'Farm/Ranch', 'Industrial'];
+  const certifications = ['TWIA Only', 'Flood Cert', 'Commercial Lic', 'Any'];
+
+  function renderChip(
+    label: string,
+    active: boolean,
+    onClick: () => void,
+  ) {
+    return (
+      <button
+        key={label}
+        type="button"
+        onClick={onClick}
+        className={`rounded-[4px] border px-[9px] py-1 font-['Barlow_Condensed'] text-[9px] font-bold uppercase tracking-[0.07em] transition ${
+          active
+            ? 'border-[var(--sage)] bg-[var(--sage-dim)] text-[var(--sage)]'
+            : 'border-[var(--border)] text-[var(--muted)] hover:border-[var(--border-hi)] hover:text-[var(--white)]'
+        }`}
+      >
+        {label}
+      </button>
+    );
+  }
 
   return (
-    <div style={{ position: 'absolute', top: '14px', left: '160px', zIndex: 200, width: '300px', background: 'var(--card)', border: '1px solid var(--border-hi)', borderRadius: '10px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
-      <div style={{ padding: '12px 16px 10px', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Lasso Pre-Filters</div>
-        <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Apply filters before polygon selection.</div>
+    <div className="absolute left-[160px] top-3 z-[200] w-[300px] rounded-[10px] border border-[var(--border-hi)] bg-[var(--card)] shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+      <div className="border-b border-[var(--border)] px-4 py-3">
+        <div className="font-['Barlow_Condensed'] text-[12px] font-extrabold uppercase tracking-[0.1em] text-[var(--white)]">
+          Lasso Filters
+        </div>
+        <div className="text-[11px] text-[var(--muted)]">Only matching claims will be grabbable</div>
       </div>
-      {sections.map(([label, chips]) => (
-        <div key={label} style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ marginBottom: '7px', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>{label}</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-            {chips.map((chip, index) => (
-              <button key={chip} style={{ padding: '4px 9px', borderRadius: '4px', border: '1px solid var(--border)', background: index === 0 ? 'var(--sage-dim)' : 'transparent', color: index === 0 ? 'var(--sage)' : 'var(--muted)', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '9px', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{chip}</button>
-            ))}
+
+      <div className="border-b border-[var(--border)] px-4 py-3">
+        <div className="mb-2 font-['Barlow_Condensed'] text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">Loss Type</div>
+        <div className="flex flex-wrap gap-1">
+          {lossTypes.map((value) =>
+            renderChip(value, filters.lossTypes.includes(value), () => onToggleLossType(value)),
+          )}
+        </div>
+      </div>
+
+      <div className="border-b border-[var(--border)] px-4 py-3">
+        <div className="mb-2 font-['Barlow_Condensed'] text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">Claim Category</div>
+        <div className="flex flex-wrap gap-1">
+          {claimCategories.map((value) =>
+            renderChip(value, filters.claimCategories.includes(value), () => onToggleClaimCategory(value)),
+          )}
+        </div>
+      </div>
+
+      <div className="border-b border-[var(--border)] px-4 py-3">
+        <div className="mb-2 font-['Barlow_Condensed'] text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">Certifications Required</div>
+        <div className="flex flex-wrap gap-1">
+          {certifications.map((value) =>
+            renderChip(value, filters.requiredCertifications.includes(value), () => onToggleCertification(value)),
+          )}
+        </div>
+      </div>
+
+      <div className="border-b border-[var(--border)] px-4 py-3">
+        <div className="mb-2 font-['Barlow_Condensed'] text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">Carrier</div>
+        {availableCarriers.length ? (
+          <div className="flex flex-wrap gap-1">
+            {availableCarriers.map((value) =>
+              renderChip(value, filters.carriers.includes(value), () => onToggleCarrier(value)),
+            )}
+          </div>
+        ) : (
+          <div className="text-[11px] text-[var(--muted)]">No firm carriers are configured yet.</div>
+        )}
+      </div>
+
+      <div className="border-b border-[var(--border)] px-4 py-3">
+        <div className="mb-2 font-['Barlow_Condensed'] text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">Max Claims to Select</div>
+        <div className="flex items-center gap-3">
+          <input
+            type="range"
+            min={1}
+            max={30}
+            value={filters.maxClaims}
+            onChange={(event) => onSetMaxClaims(Number(event.target.value))}
+            className="flex-1 accent-[var(--sage)]"
+          />
+          <div className="min-w-7 text-right font-['Barlow_Condensed'] text-sm font-extrabold text-[var(--sage)]">
+            {filters.maxClaims}
           </div>
         </div>
-      ))}
-      <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ marginBottom: '7px', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>Max Claims</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <input type="range" min={1} max={30} value={maxClaims} onChange={(event) => setMaxClaims(Number(event.target.value))} style={{ flex: 1, accentColor: 'var(--sage)' }} />
-          <strong style={{ minWidth: '28px', color: 'var(--sage)' }}>{maxClaims}</strong>
-        </div>
       </div>
-      <div style={{ padding: '10px 16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+
+      <div className="flex justify-end gap-2 px-4 py-3">
         <Button variant="ghost" size="sm" onClick={onCancel}>Cancel</Button>
-        <Button size="sm" onClick={onApply}>Apply Filters</Button>
+        <Button size="sm" onClick={onApply}>Apply &amp; Draw →</Button>
       </div>
     </div>
   );

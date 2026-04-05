@@ -1,11 +1,8 @@
-import { PageHeader } from '@/components/layout/PageHeader';
-import { DispatchMap } from '@/components/dispatch/DispatchMap';
+import { DispatchPage } from '@/components/dispatch/DispatchPage';
+import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
 
-export default function DispatchPage() {
-  return (
-    <div>
-      <PageHeader title="Dispatch" subtitle="Three-panel dispatch surface with claims, lasso selection, map, and adjuster roster." />
-      <DispatchMap />
-    </div>
-  );
+export default async function DispatchRoute() {
+  const { firmId } = await requireAuthenticatedFirmUser();
+
+  return <DispatchPage firmId={firmId} />;
 }
