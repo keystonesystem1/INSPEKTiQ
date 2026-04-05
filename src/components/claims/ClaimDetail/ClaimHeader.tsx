@@ -8,6 +8,7 @@ import type { Claim, ClaimStatus, Role } from '@/lib/types';
 import type { AdjusterOption } from '@/lib/supabase/adjusters';
 import { canApproveClaims } from '@/lib/utils/roles';
 import { AssignAdjusterModal } from '@/components/claims/ClaimDetail/AssignAdjusterModal';
+import { ClaimFormModal, getClaimFormValues } from '@/components/claims/ClaimFormModal';
 
 const statusOptions: ClaimStatus[] = [
   'received',
@@ -38,6 +39,7 @@ export function ClaimHeader({
   const router = useRouter();
   const [status, setStatus] = useState<ClaimStatus>(claim.status);
   const [assignOpen, setAssignOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const updateStatus = (nextStatus: ClaimStatus) => {
@@ -104,6 +106,11 @@ export function ClaimHeader({
             </select>
           ) : null}
           {['firm_admin', 'dispatcher', 'super_admin'].includes(role) ? (
+            <Button size="sm" variant="ghost" onClick={() => setEditOpen(true)} disabled={isPending}>
+              Edit Claim
+            </Button>
+          ) : null}
+          {['firm_admin', 'dispatcher', 'super_admin'].includes(role) ? (
             <Button size="sm" variant="ghost" onClick={() => setAssignOpen(true)} disabled={isPending}>
               Assign Adjuster
             </Button>
@@ -133,6 +140,30 @@ export function ClaimHeader({
         claimId={claim.id}
         adjusters={adjusters ?? []}
         onAssigned={() => router.refresh()}
+      />
+      <ClaimFormModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        title="Edit Claim"
+        subtitle="Review and update intake claim data."
+        submitLabel="Save Claim"
+        initialValues={getClaimFormValues(claim)}
+        onSubmit={async (values) => {
+          const response = await fetch(`/api/claims/${claim.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(values),
+          });
+
+          if (!response.ok) {
+            const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+            throw new Error(payload?.error ?? 'Unable to update claim.');
+          }
+
+          router.refresh();
+        }}
       />
     </div>
   );

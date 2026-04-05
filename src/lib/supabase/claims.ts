@@ -8,8 +8,10 @@ interface RawClaim {
   insured_name: string | null;
   insured_phone?: string | null;
   insured_email?: string | null;
+  zip?: string | null;
   carrier: string | null;
   loss_type: string | null;
+  policy_type?: string | null;
   date_of_loss: string | null;
   status: string | null;
   city: string | null;
@@ -33,9 +35,11 @@ function mapClaimRow(raw: RawClaim, adjusterEmail?: string): Claim {
     id: raw.id,
     number: raw.claim_number ?? 'UNPARSED',
     insured: raw.insured_name ?? 'Unknown',
+    insuredPhone: raw.insured_phone ?? '',
+    insuredEmail: raw.insured_email ?? '',
     client: raw.carrier ?? 'Unknown',
     type: raw.loss_type ?? 'Unknown',
-    category: 'Residential',
+    category: raw.policy_type ?? 'Residential',
     dateOfLoss: raw.date_of_loss ?? '',
     dueDate: slaDeadline.toISOString().split('T')[0],
     status: (raw.status as ClaimStatus) ?? 'received',
@@ -44,6 +48,7 @@ function mapClaimRow(raw: RawClaim, adjusterEmail?: string): Claim {
     carrier: raw.carrier ?? undefined,
     city: raw.city ?? '',
     state: raw.state ?? '',
+    zip: raw.zip ?? '',
     address: raw.loss_address ?? '',
     slaHoursRemaining,
     policyNumber: raw.policy_number ?? '',
@@ -66,7 +71,7 @@ export async function getClaims(
   let query = supabase
     .from('claims')
     .select(
-      'id, claim_number, insured_name, carrier, loss_type, date_of_loss, status, city, state, loss_address, policy_number, loss_description, assigned_user_id, loss_lat, loss_lng, created_at',
+      'id, claim_number, insured_name, insured_phone, insured_email, zip, carrier, loss_type, policy_type, date_of_loss, status, city, state, loss_address, policy_number, loss_description, assigned_user_id, loss_lat, loss_lng, created_at',
     )
     .eq('firm_id', firmId)
     .order('created_at', { ascending: false });
@@ -99,7 +104,7 @@ export async function getClaimById(
   let query = supabase
     .from('claims')
     .select(
-      'id, claim_number, insured_name, insured_phone, insured_email, carrier, loss_type, date_of_loss, status, city, state, loss_address, policy_number, loss_description, assigned_user_id, loss_lat, loss_lng, examiner_name, created_at',
+      'id, claim_number, insured_name, insured_phone, insured_email, zip, carrier, loss_type, policy_type, date_of_loss, status, city, state, loss_address, policy_number, loss_description, assigned_user_id, loss_lat, loss_lng, examiner_name, created_at',
     )
     .eq('id', id)
     .eq('firm_id', firmId);

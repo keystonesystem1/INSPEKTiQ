@@ -54,6 +54,8 @@ export interface Claim {
   id: string;
   number: string;
   insured: string;
+  insuredPhone?: string;
+  insuredEmail?: string;
   client: string;
   type: string;
   category: string;
@@ -65,6 +67,7 @@ export interface Claim {
   carrier?: string;
   city: string;
   state: string;
+  zip?: string;
   address: string;
   slaHoursRemaining: number;
   policyNumber: string;
