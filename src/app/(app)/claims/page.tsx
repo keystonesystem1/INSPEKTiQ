@@ -5,9 +5,15 @@ import { getClaims } from '@/lib/supabase/claims';
 import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
 import { canCreateClaims } from '@/lib/utils/roles';
 
-export default async function ClaimsPage() {
+export default async function ClaimsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
+  const { view } = await searchParams;
   const { id, role, firmId } = await requireAuthenticatedFirmUser();
-  const claims = await getClaims(firmId, role, id);
+  const archivedView = view === 'archived' && ['firm_admin', 'super_admin'].includes(role);
+  const claims = await getClaims(firmId, role, id, { archived: archivedView });
 
   return (
     <div>
@@ -16,7 +22,7 @@ export default async function ClaimsPage() {
         subtitle="Status filters, SLA indicators, and role-aware claim visibility."
         actions={canCreateClaims(role) ? <NewClaimButton /> : undefined}
       />
-      <ClaimsList role={role} claims={claims} />
+      <ClaimsList role={role} claims={claims} archivedView={archivedView} />
     </div>
   );
 }

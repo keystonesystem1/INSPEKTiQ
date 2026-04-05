@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Avatar } from '@/components/ui/Avatar';
 import { NavTab } from '@/components/nav/NavTab';
+import { createClient } from '@/lib/supabase/client';
 import type { UserSession } from '@/lib/types';
 import { ROLE_TABS } from '@/lib/utils/roles';
 
@@ -21,6 +22,7 @@ const labels: Record<string, string> = {
 
 export function TopNav({ user }: { user: UserSession }) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const tabs = useMemo(() => ROLE_TABS[user.role], [user.role]);
 
   return (
@@ -100,8 +102,14 @@ export function TopNav({ user }: { user: UserSession }) {
             </span>
             <button
               onClick={() => {
-                router.push('/signout');
+                startTransition(async () => {
+                  const supabase = createClient();
+                  await supabase.auth.signOut();
+                  router.replace('/signin');
+                  router.refresh();
+                });
               }}
+              disabled={isPending}
               style={{ color: 'var(--muted)', textAlign: 'left', cursor: 'pointer' }}
             >
               Sign out

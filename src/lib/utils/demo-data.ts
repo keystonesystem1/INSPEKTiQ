@@ -15,6 +15,7 @@ export const demoClaims: Claim[] = [
   {
     id: 'clm-1',
     number: 'TX-2401987',
+    isArchived: false,
     insured: 'Miller Residence',
     client: 'Lone Star Mutual',
     type: 'Wind + Hail',
@@ -43,6 +44,7 @@ export const demoClaims: Claim[] = [
   {
     id: 'clm-2',
     number: 'TX-2401944',
+    isArchived: false,
     insured: 'Pine Harbor Dental',
     client: 'Summit Commercial',
     type: 'Wind',
@@ -76,6 +78,7 @@ export const demoClaims: Claim[] = [
   {
     id: 'clm-3',
     number: 'TX-2401931',
+    isArchived: false,
     insured: 'Rodriguez Farm',
     client: 'AgriSure',
     type: 'Flood',

@@ -5,7 +5,8 @@ export async function getDashboardStats(firmId: string) {
   const { data } = await supabase
     .from('claims')
     .select('status, created_at')
-    .eq('firm_id', firmId);
+    .eq('firm_id', firmId)
+    .eq('is_archived', false);
 
   const claims = data ?? [];
 

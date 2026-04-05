@@ -53,6 +53,7 @@ export interface StatItem {
 export interface Claim {
   id: string;
   number: string;
+  isArchived: boolean;
   insured: string;
   insuredPhone?: string;
   insuredEmail?: string;

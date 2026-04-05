@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import type { Claim, ClaimStatus, Role } from '@/lib/types';
 import type { AdjusterOption } from '@/lib/supabase/adjusters';
 import { canApproveClaims } from '@/lib/utils/roles';
@@ -40,6 +41,8 @@ export function ClaimHeader({
   const [status, setStatus] = useState<ClaimStatus>(claim.status);
   const [assignOpen, setAssignOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const updateStatus = (nextStatus: ClaimStatus) => {
@@ -131,7 +134,48 @@ export function ClaimHeader({
             </Button>
           ) : null}
           <Button variant="ghost" size="sm" disabled={isPending}>Request Changes</Button>
-          <Button variant="ghost" size="sm" disabled={isPending}>···</Button>
+          <div style={{ position: 'relative' }}>
+            <Button variant="ghost" size="sm" onClick={() => setMenuOpen((value) => !value)} disabled={isPending}>
+              ···
+            </Button>
+            {menuOpen ? (
+              <div
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: 'calc(100% + 6px)',
+                  minWidth: '180px',
+                  background: 'var(--card)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-md)',
+                  boxShadow: '0 12px 28px rgba(0,0,0,0.32)',
+                  padding: '6px',
+                  zIndex: 20,
+                }}
+              >
+                {['firm_admin', 'super_admin'].includes(role) ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setArchiveConfirmOpen(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      border: 'none',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '8px 10px',
+                      color: 'var(--orange)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Archive Claim
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
       <AssignAdjusterModal
@@ -165,6 +209,38 @@ export function ClaimHeader({
           router.refresh();
         }}
       />
+      <Modal
+        open={archiveConfirmOpen}
+        onClose={() => setArchiveConfirmOpen(false)}
+        title="Archive Claim"
+        subtitle="Archive this claim? It will be hidden from all views but can be restored later."
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setArchiveConfirmOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                startTransition(async () => {
+                  const response = await fetch(`/api/claims/${claim.id}/archive`, {
+                    method: 'PATCH',
+                  });
+
+                  if (response.ok) {
+                    router.push('/claims');
+                    router.refresh();
+                  }
+                });
+              }}
+              disabled={isPending}
+            >
+              Archive Claim
+            </Button>
+          </>
+        }
+      >
+        <div style={{ color: 'var(--muted)', fontSize: '13px' }}>
+          Archived claims are removed from normal lists and can be restored later from the archived claims view.
+        </div>
+      </Modal>
     </div>
   );
 }

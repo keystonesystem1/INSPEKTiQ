@@ -5,6 +5,7 @@ import type { Claim, ClaimStatus, Role } from '@/lib/types';
 interface RawClaim {
   id: string;
   claim_number: string | null;
+  is_archived?: boolean | null;
   insured_name: string | null;
   insured_phone?: string | null;
   insured_email?: string | null;
@@ -34,6 +35,7 @@ function mapClaimRow(raw: RawClaim, adjusterEmail?: string): Claim {
   return {
     id: raw.id,
     number: raw.claim_number ?? 'UNPARSED',
+    isArchived: raw.is_archived ?? false,
     insured: raw.insured_name ?? 'Unknown',
     insuredPhone: raw.insured_phone ?? '',
     insuredEmail: raw.insured_email ?? '',
@@ -66,14 +68,17 @@ export async function getClaims(
   firmId: string,
   role: Role,
   userId: string,
+  options?: { archived?: boolean },
 ): Promise<Claim[]> {
   const supabase = await createClient();
+  const archived = options?.archived ?? false;
   let query = supabase
     .from('claims')
     .select(
-      'id, claim_number, insured_name, insured_phone, insured_email, zip, carrier, loss_type, policy_type, date_of_loss, status, city, state, loss_address, policy_number, loss_description, assigned_user_id, loss_lat, loss_lng, created_at',
+      'id, claim_number, is_archived, insured_name, insured_phone, insured_email, zip, carrier, loss_type, policy_type, date_of_loss, status, city, state, loss_address, policy_number, loss_description, assigned_user_id, loss_lat, loss_lng, created_at',
     )
     .eq('firm_id', firmId)
+    .eq('is_archived', archived)
     .order('created_at', { ascending: false });
 
   if (role === 'adjuster') {
@@ -104,10 +109,11 @@ export async function getClaimById(
   let query = supabase
     .from('claims')
     .select(
-      'id, claim_number, insured_name, insured_phone, insured_email, zip, carrier, loss_type, policy_type, date_of_loss, status, city, state, loss_address, policy_number, loss_description, assigned_user_id, loss_lat, loss_lng, examiner_name, created_at',
+      'id, claim_number, is_archived, insured_name, insured_phone, insured_email, zip, carrier, loss_type, policy_type, date_of_loss, status, city, state, loss_address, policy_number, loss_description, assigned_user_id, loss_lat, loss_lng, examiner_name, created_at',
     )
     .eq('id', id)
-    .eq('firm_id', firmId);
+    .eq('firm_id', firmId)
+    .eq('is_archived', false);
 
   if (role === 'adjuster') {
     query = query.eq('assigned_user_id', userId);
