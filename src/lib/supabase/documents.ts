@@ -38,6 +38,32 @@ function getPublicClaimDocumentUrl(path: string) {
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/claim-documents/${path}`;
 }
 
+async function getGeneratedReportSignedUrl(path: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.storage
+    .from('generated-reports')
+    .createSignedUrl(path, 60 * 60);
+
+  if (error || !data?.signedUrl) {
+    return null;
+  }
+
+  return data.signedUrl;
+}
+
+export async function resolveDocumentUrl(path: string) {
+  if (path.startsWith('uploads/')) {
+    return getPublicClaimDocumentUrl(path);
+  }
+
+  const generatedReportUrl = await getGeneratedReportSignedUrl(path);
+  if (generatedReportUrl) {
+    return generatedReportUrl;
+  }
+
+  return getPublicClaimDocumentUrl(path);
+}
+
 export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments> {
   const supabase = createAdminClient();
 

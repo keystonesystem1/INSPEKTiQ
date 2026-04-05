@@ -75,7 +75,7 @@ export function ClaimTabs({
       <div style={{ paddingTop: '20px' }}>
         {activeTab === 'Overview' ? <OverviewTab claim={claim} /> : null}
         {activeTab === 'Notes' ? <NotesTab role={role} notes={notes} claimId={claim.id} /> : null}
-        {activeTab === 'Documents' ? <DocumentsTab documents={documents} /> : null}
+        {activeTab === 'Documents' ? <DocumentsTab claimId={claim.id} role={role} documents={documents} /> : null}
         {activeTab === 'Photos' ? <PhotosTab documents={documents} /> : null}
         {activeTab === 'Inspection' ? <InspectionTab inspection={inspection} /> : null}
         {activeTab === 'Time & Expense' ? <TimeExpenseTab role={role} /> : null}
