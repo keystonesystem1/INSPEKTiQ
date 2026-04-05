@@ -1,12 +1,14 @@
 'use client';
 
-import { demoClaims } from '@/lib/utils/demo-data';
+import type { Claim } from '@/lib/types';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 
 export function ScheduleQueue({
+  claims,
   onStartSchedule,
 }: {
+  claims: Claim[];
   onStartSchedule: (claimId: string) => void;
 }) {
   return (
@@ -21,20 +23,25 @@ export function ScheduleQueue({
         ))}
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-        {demoClaims.map((claim) => (
-          <div key={claim.id} draggable onDragStart={(event) => event.dataTransfer.setData('text/plain', claim.id)} style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', cursor: 'grab' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <strong>{claim.insured}</strong>
-              <Badge tone={claim.slaHoursRemaining < 0 ? 'red' : claim.slaHoursRemaining < 48 ? 'orange' : 'blue'}>{claim.slaHoursRemaining < 0 ? 'Overdue' : 'At Risk'}</Badge>
+        {claims.length === 0 ? (
+          <div style={{ padding: '24px 16px', color: 'var(--muted)', fontSize: '13px' }}>No claims awaiting scheduling.</div>
+        ) : (
+          claims.map((claim) => (
+            <div key={claim.id} draggable onDragStart={(event) => event.dataTransfer.setData('text/plain', claim.id)} style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', cursor: 'grab' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <strong>{claim.insured}</strong>
+                <Badge tone={claim.slaHoursRemaining < 0 ? 'red' : claim.slaHoursRemaining < 48 ? 'orange' : 'blue'}>
+                  {claim.slaHoursRemaining < 0 ? 'Overdue' : claim.slaHoursRemaining < 48 ? 'At Risk' : 'Ready'}
+                </Badge>
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '6px' }}>{claim.address}</div>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <Button size="sm" onClick={() => onStartSchedule(claim.id)}>Schedule</Button>
+                <Button size="sm" variant="ghost">First Contact</Button>
+              </div>
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '6px' }}>{claim.address}</div>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <Button size="sm" onClick={() => onStartSchedule(claim.id)}>Schedule</Button>
-              <Button size="sm" variant="ghost">First Contact</Button>
-              <Button size="sm" variant="ghost">···</Button>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
