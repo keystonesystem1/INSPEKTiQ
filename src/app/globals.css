@@ -118,3 +118,15 @@ button {
 .dispatch-popup .mapboxgl-popup-tip {
   border-top-color: var(--card-hi);
 }
+
+.route-map-popup .mapboxgl-popup-content {
+  background: var(--card-hi);
+  border: 1px solid var(--border-hi);
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38);
+  padding: 12px 14px;
+}
+
+.route-map-popup .mapboxgl-popup-tip {
+  border-top-color: var(--card-hi);
+}

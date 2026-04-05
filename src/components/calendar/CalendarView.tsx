@@ -97,7 +97,19 @@ export function CalendarView() {
         </div>
         <DayDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} date="2026-04-05" appointments={demoAppointments} />
       </section>
-      <RouteMap open={routeMapOpen} onClose={() => setRouteMapOpen(false)} />
+      <RouteMap
+        open={routeMapOpen}
+        onOpen={() => setRouteMapOpen(true)}
+        onClose={() => setRouteMapOpen(false)}
+        selectedDay="2026-04-05"
+        appointments={demoAppointments.filter((appointment) => appointment.date === '2026-04-05')}
+        unscheduledClaims={[]}
+        onOpenSchedule={(claimId, nextDate) => {
+          setScheduleClaimId(claimId);
+          setScheduleDate(nextDate);
+          setModalOpen(true);
+        }}
+      />
       <ScheduleModal open={modalOpen} onClose={() => setModalOpen(false)} claimId={scheduleClaimId} date={scheduleDate} />
     </div>
   );

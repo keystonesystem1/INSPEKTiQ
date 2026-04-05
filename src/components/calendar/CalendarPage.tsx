@@ -5,8 +5,9 @@ import { endOfMonth, format, startOfMonth } from 'date-fns';
 import { Button } from '@/components/ui/Button';
 import { DayDrawer } from '@/components/calendar/DayDrawer';
 import { MonthCalendar } from '@/components/calendar/MonthCalendar';
-import { ScheduleModal } from '@/components/calendar/ScheduleModal';
+import { RouteMap } from '@/components/calendar/RouteMap';
 import { SchedulingQueue } from '@/components/calendar/SchedulingQueue';
+import { SchedulingModal } from '@/components/calendar/SchedulingModal';
 import { useCalendarData } from '@/hooks/useCalendarData';
 
 interface CalendarPageProps {
@@ -15,7 +16,7 @@ interface CalendarPageProps {
 }
 
 export function CalendarPage({ firmId, adjusterUserId }: CalendarPageProps) {
-  const [routeMapOpen, setRouteMapOpen] = useState(true);
+  const [routeMapOpen, setRouteMapOpen] = useState(false);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [scheduleClaimId, setScheduleClaimId] = useState<string | undefined>();
   const [scheduleDate, setScheduleDate] = useState<string | undefined>();
@@ -138,59 +139,27 @@ export function CalendarPage({ firmId, adjusterUserId }: CalendarPageProps) {
           </div>
         </section>
 
-        <aside
-          className={`flex min-h-0 flex-col overflow-hidden border-l border-[var(--border)] bg-[var(--surface)] transition-all duration-200 ${
-            routeMapOpen ? 'w-[320px] min-w-[320px] opacity-100' : 'w-0 min-w-0 opacity-0'
-          }`}
-        >
-          {routeMapOpen ? (
-            <>
-              <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
-                <div className="font-['Barlow_Condensed'] text-[12px] font-extrabold uppercase tracking-[0.1em] text-[var(--white)]">
-                  Route Map
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setRouteMapOpen(false)}
-                  className="flex h-6 w-6 items-center justify-center rounded-[4px] border border-[var(--border)] bg-[var(--card)] text-[var(--muted)]"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="mx-4 mt-3 rounded-[8px] border border-[var(--border)] bg-[var(--card)] px-3 py-3">
-                <div className="mb-2 font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
-                  Route Summary
-                </div>
-                <div className="flex justify-between text-[12px]">
-                  <span className="text-[var(--muted)]">Stops</span>
-                  <strong className="text-[var(--white)]">{appointments.length}</strong>
-                </div>
-                <div className="mt-1 flex justify-between text-[12px]">
-                  <span className="text-[var(--muted)]">Needs Scheduling</span>
-                  <strong className="text-[var(--white)]">{claimsNeedingScheduling.length}</strong>
-                </div>
-              </div>
-
-              <div className="m-4 flex-1 rounded-[12px] border border-[var(--border)] bg-[var(--card)] p-4">
-                <div className="flex h-full items-center justify-center rounded-[10px] border border-dashed border-[var(--border-hi)] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))]">
-                  <div className="text-center">
-                    <div className="font-['Barlow_Condensed'] text-[12px] font-extrabold uppercase tracking-[0.1em] text-[var(--muted)]">
-                      Route Map Shell
-                    </div>
-                    <p className="mt-2 max-w-[220px] text-[12px] leading-5 text-[var(--muted)]">
-                      Appointments and scheduling queue are now live. The full route map interactions stay in later calendar steps.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : null}
-        </aside>
+        <RouteMap
+          open={routeMapOpen}
+          onOpen={() => setRouteMapOpen(true)}
+          onClose={() => setRouteMapOpen(false)}
+          selectedDay={selectedDay}
+          appointments={selectedDayAppointments}
+          unscheduledClaims={claimsNeedingScheduling}
+          onOpenSchedule={(claimId, date) => {
+            setScheduleClaimId(claimId);
+            setScheduleDate(date);
+            setScheduleModalOpen(true);
+          }}
+        />
       </div>
-      <ScheduleModal
+      <SchedulingModal
         open={scheduleModalOpen}
         onClose={() => setScheduleModalOpen(false)}
+        onScheduled={refresh}
+        claims={claimsNeedingScheduling}
+        firmId={firmId}
+        adjusterUserId={adjusterUserId}
         claimId={scheduleClaimId}
         date={scheduleDate}
       />

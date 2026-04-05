@@ -184,10 +184,8 @@ export function MonthCalendar({
           const overflowCount = Math.max(0, dayAppointments.length - visibleAppointments.length);
 
           return (
-            <button
+            <div
               key={`${dateKey}-${index}`}
-              type="button"
-              onClick={() => onOpenDay(dateKey)}
               onDragOver={(event) => {
                 event.preventDefault();
                 setDragOverDate(dateKey);
@@ -206,48 +204,67 @@ export function MonthCalendar({
               } ${index % 7 === 6 ? 'border-r-0' : ''}`}
             >
               <div className="mb-2 flex items-start justify-between gap-2">
-                <span
+                <button
+                  type="button"
+                  onClick={() => onOpenDay(dateKey)}
                   className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 font-['Barlow_Condensed'] text-[12px] font-bold ${
                     inCurrentMonth ? 'text-[var(--muted)]' : 'text-[var(--faint)]'
                   } ${isToday(day) ? 'ring-2 ring-[var(--sage)] text-[var(--sage)]' : ''}`}
                 >
                   {format(day, 'd')}
-                </span>
-                <span className="text-[10px] text-[var(--faint)]">{forecast ? getIconGlyph(forecast.iconCode) : '·'}</span>
+                </button>
+                <div className="flex items-center gap-1">
+                  {inCurrentMonth ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpenSchedule(undefined, dateKey)}
+                      className="inline-flex h-5 w-5 items-center justify-center rounded-[4px] border border-[var(--border)] text-[12px] text-[var(--sage)] hover:border-[var(--sage)] hover:bg-[rgba(91,194,115,0.08)]"
+                    >
+                      +
+                    </button>
+                  ) : null}
+                  <span className="text-[10px] text-[var(--faint)]">{forecast ? getIconGlyph(forecast.iconCode) : '·'}</span>
+                </div>
               </div>
 
-              <div className="min-h-0 flex-1 space-y-1">
-                {inCurrentMonth
-                  ? visibleAppointments.map((appointment) => (
-                      <div
-                        key={appointment.id}
-                        onMouseEnter={() => {
-                          if (appointment.lossLat !== null && appointment.lossLng !== null) {
-                            setActiveLocationKey(`${appointment.lossLat},${appointment.lossLng}`);
-                          }
-                        }}
-                        onMouseLeave={() => {
-                          setActiveLocationKey(`${DEFAULT_LOCATION.lat},${DEFAULT_LOCATION.lng}`);
-                        }}
-                        className={`truncate rounded-[4px] border-l-2 px-2 py-1 font-['Barlow_Condensed'] text-[10px] font-bold tracking-[0.04em] ${
-                          getAppointmentTone(appointment.status) === 'orange'
-                            ? 'border-[var(--orange)] bg-[rgba(224,123,63,0.2)] text-[var(--orange)]'
-                            : getAppointmentTone(appointment.status) === 'sage'
-                              ? 'border-[var(--sage)] bg-[rgba(91,194,115,0.2)] text-[var(--sage)]'
-                              : getAppointmentTone(appointment.status) === 'blue'
-                                ? 'border-[var(--blue)] bg-[rgba(66,152,204,0.2)] text-[var(--blue)]'
-                                : 'border-[var(--red)] bg-[rgba(224,92,92,0.15)] text-[var(--red)]'
-                        }`}
-                      >
-                        {appointment.arrivalTime} · {appointment.insuredName}
-                      </div>
-                    ))
-                  : null}
-                {inCurrentMonth && overflowCount > 0 ? (
-                  <Badge tone="faint">+{overflowCount} more</Badge>
-                ) : null}
-              </div>
-            </button>
+              <button
+                type="button"
+                onClick={() => onOpenDay(dateKey)}
+                className="flex min-h-0 flex-1 flex-col text-left"
+              >
+                <div className="min-h-0 flex-1 space-y-1">
+                  {inCurrentMonth
+                    ? visibleAppointments.map((appointment) => (
+                        <div
+                          key={appointment.id}
+                          onMouseEnter={() => {
+                            if (appointment.lossLat !== null && appointment.lossLng !== null) {
+                              setActiveLocationKey(`${appointment.lossLat},${appointment.lossLng}`);
+                            }
+                          }}
+                          onMouseLeave={() => {
+                            setActiveLocationKey(`${DEFAULT_LOCATION.lat},${DEFAULT_LOCATION.lng}`);
+                          }}
+                          className={`truncate rounded-[4px] border-l-2 px-2 py-1 font-['Barlow_Condensed'] text-[10px] font-bold tracking-[0.04em] ${
+                            getAppointmentTone(appointment.status) === 'orange'
+                              ? 'border-[var(--orange)] bg-[rgba(224,123,63,0.2)] text-[var(--orange)]'
+                              : getAppointmentTone(appointment.status) === 'sage'
+                                ? 'border-[var(--sage)] bg-[rgba(91,194,115,0.2)] text-[var(--sage)]'
+                                : getAppointmentTone(appointment.status) === 'blue'
+                                  ? 'border-[var(--blue)] bg-[rgba(66,152,204,0.2)] text-[var(--blue)]'
+                                  : 'border-[var(--red)] bg-[rgba(224,92,92,0.15)] text-[var(--red)]'
+                          }`}
+                        >
+                          {appointment.arrivalTime} · {appointment.insuredName}
+                        </div>
+                      ))
+                    : null}
+                  {inCurrentMonth && overflowCount > 0 ? (
+                    <Badge tone="faint">+{overflowCount} more</Badge>
+                  ) : null}
+                </div>
+              </button>
+            </div>
           );
         })}
       </div>
