@@ -12,6 +12,7 @@ interface UseDispatchDataResult {
   carrierOptions: string[];
   loading: boolean;
   error: string | null;
+  claimsError: string | null;
   refresh: () => Promise<void>;
 }
 
@@ -22,6 +23,7 @@ export function useDispatchData(firmId: string): UseDispatchDataResult {
   const [carrierOptions, setCarrierOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [claimsError, setClaimsError] = useState<string | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestSequenceRef = useRef(0);
   const activeRequestRef = useRef(0);
@@ -33,6 +35,7 @@ export function useDispatchData(firmId: string): UseDispatchDataResult {
       setAdjusters([]);
       setCarrierOptions([]);
       setError(null);
+      setClaimsError(null);
       setLoading(false);
       return;
     }
@@ -43,12 +46,26 @@ export function useDispatchData(firmId: string): UseDispatchDataResult {
 
     if (!options?.preserveLoadingState) {
       setLoading(true);
+      setClaimsError(null);
     }
     setError(null);
 
     try {
-      const [nextUnassignedClaims, nextAssignedActiveClaims, nextAdjusters, nextCarrierOptions] = await Promise.all([
-        getUnassignedClaims(firmId),
+      try {
+        const nextUnassignedClaims = await getUnassignedClaims(firmId);
+        if (activeRequestRef.current !== requestId) {
+          return;
+        }
+        setClaimsError(null);
+        setUnassignedClaims(nextUnassignedClaims);
+      } catch (claimsErr) {
+        if (activeRequestRef.current !== requestId) {
+          return;
+        }
+        setClaimsError(claimsErr instanceof Error ? claimsErr.message : 'Unable to load unassigned claims.');
+      }
+
+      const [nextAssignedActiveClaims, nextAdjusters, nextCarrierOptions] = await Promise.all([
         getAssignedActiveClaims(firmId),
         getAdjustersForDispatch(firmId),
         getFirmCarrierNames(firmId),
@@ -58,7 +75,6 @@ export function useDispatchData(firmId: string): UseDispatchDataResult {
         return;
       }
 
-      setUnassignedClaims(nextUnassignedClaims);
       setAssignedActiveClaims(nextAssignedActiveClaims);
       setAdjusters(nextAdjusters);
       setCarrierOptions(nextCarrierOptions);
@@ -129,6 +145,7 @@ export function useDispatchData(firmId: string): UseDispatchDataResult {
     carrierOptions,
     loading,
     error,
+    claimsError,
     refresh: loadDispatchData,
   };
 }

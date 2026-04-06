@@ -61,7 +61,7 @@ interface HomeBase {
   lng: number | null;
 }
 
-const UNASSIGNED_STATUSES = ['received', 'needs_attention'] as const;
+const UNASSIGNED_STATUSES = ['received'] as const;
 const ASSIGNED_BASE_STATUSES = ['assigned', 'accepted', 'contacted', 'scheduled'] as const;
 const ACTIVE_APPOINTMENT_STATUSES = ['pending', 'confirmed'] as const;
 const BUSINESS_NAME_PATTERN =
@@ -272,8 +272,12 @@ export async function getUnassignedClaims(firmId: string): Promise<DispatchClaim
     .order('received_at', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false });
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throw new Error(error.message || 'Unable to load unassigned claims.');
+  }
+
+  if (!data) {
+    throw new Error('Unable to load unassigned claims.');
   }
 
   return (data as RawClaimRow[]).map((claim) => mapDispatchClaim(claim, null));
@@ -314,7 +318,7 @@ export async function getAssignedActiveClaims(firmId: string): Promise<DispatchC
 
 export async function getAdjustersForDispatch(firmId: string): Promise<DispatchAdjuster[]> {
   const supabase = createClient();
-  const [{ data: firmUsers, error: firmUsersError }, { data: profileRows, error: profilesError }, { data: claimRows, error: claimsError }, carrierNamesById] = await Promise.all([
+  const [{ data: firmUsers, error: firmUsersError }, { data: profileRows, error: profilesError }, carrierNamesById] = await Promise.all([
     supabase
       .from('firm_users')
       .select('id, user_id, full_name')
@@ -325,15 +329,10 @@ export async function getAdjustersForDispatch(firmId: string): Promise<DispatchA
       .from('adjuster_profiles')
       .select('user_id, max_active_claims, approved_claim_types, approved_carriers, certifications, home_bases')
       .eq('firm_id', firmId),
-    supabase
-      .from('claims')
-      .select('assigned_user_id, status')
-      .eq('firm_id', firmId)
-      .in('status', ['assigned', 'accepted', 'contacted', 'scheduled', 'needs_attention']),
     getCarrierNamesById(firmId),
   ]);
 
-  if (firmUsersError || profilesError || claimsError || !firmUsers) {
+  if (firmUsersError || profilesError || !firmUsers) {
     return [];
   }
 
@@ -341,9 +340,17 @@ export async function getAdjustersForDispatch(firmId: string): Promise<DispatchA
   const typedProfiles = (profileRows ?? []) as RawAdjusterProfileRow[];
   const claimsByAdjuster = new Map<string, number>();
 
-  for (const row of (claimRows ?? []) as Array<{ assigned_user_id: string | null }>) {
-    if (!row.assigned_user_id) continue;
-    claimsByAdjuster.set(row.assigned_user_id, (claimsByAdjuster.get(row.assigned_user_id) ?? 0) + 1);
+  const { data: claimRows, error: claimsError } = await supabase
+    .from('claims')
+    .select('assigned_user_id, status')
+    .eq('firm_id', firmId)
+    .in('status', ['assigned', 'accepted', 'contacted', 'scheduled', 'needs_attention']);
+
+  if (!claimsError && claimRows) {
+    for (const row of claimRows as Array<{ assigned_user_id: string | null }>) {
+      if (!row.assigned_user_id) continue;
+      claimsByAdjuster.set(row.assigned_user_id, (claimsByAdjuster.get(row.assigned_user_id) ?? 0) + 1);
+    }
   }
 
   const publicProfilesById = await getProfilesById(
@@ -360,7 +367,7 @@ export async function getAdjustersForDispatch(firmId: string): Promise<DispatchA
   return typedFirmUsers
     .filter((user): user is RawFirmUserRow & { user_id: string } => Boolean(user.user_id))
     .map((user) => {
-      const adjusterProfile = adjusterProfilesByFirmUserId.get(user.id);
+      const adjusterProfile = adjusterProfilesByFirmUserId.get(user.user_id);
       const publicProfile = publicProfilesById.get(user.user_id);
       const name =
         normalizeString(user.full_name) ||

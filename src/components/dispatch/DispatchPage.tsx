@@ -61,7 +61,8 @@ function filterAdjuster(adjuster: DispatchAdjuster, filter: AdjusterFilter) {
 }
 
 export function DispatchPage({ firmId }: DispatchPageProps) {
-  const { unassignedClaims, assignedActiveClaims, adjusters, carrierOptions, loading, error, refresh } = useDispatchData(firmId);
+  const { unassignedClaims, assignedActiveClaims, adjusters, carrierOptions, loading, error, claimsError, refresh } =
+    useDispatchData(firmId);
   const [selectedClaimIds, setSelectedClaimIds] = useState<string[]>([]);
   const [claimFilter, setClaimFilter] = useState<ClaimFilter>('all');
   const [adjusterFilter, setAdjusterFilter] = useState<AdjusterFilter>('all');
@@ -246,40 +247,59 @@ export function DispatchPage({ firmId }: DispatchPageProps) {
           <div className="min-h-0 flex-1 overflow-y-auto">
             {loading ? (
               <div className="px-4 py-5 text-[12px] text-[var(--muted)]">Loading dispatch claims...</div>
-            ) : error ? (
-              <div className="px-4 py-5 text-[12px] text-[var(--red)]">{error}</div>
-            ) : filteredClaims.length ? (
-              filteredClaims.map((claim) => {
-                const selected = selectedClaimIds.includes(claim.id);
-                return (
-                  <button
-                    key={claim.id}
-                    type="button"
-                    onClick={() => handleSelectClaim(claim.id)}
-                    className={`w-full border-b border-[var(--border)] px-4 py-3 text-left transition hover:bg-[var(--card)] ${
-                      selected
-                        ? 'border-l-2 border-l-[var(--sage)] bg-[rgba(91,194,115,0.07)]'
-                        : 'border-l-2 border-l-transparent'
-                    }`}
-                  >
-                    <div className="mb-1 flex items-start justify-between gap-3">
-                      <div className="text-[13px] font-medium text-[var(--white)]">{claim.insuredName}</div>
-                      <Badge tone={getClaimBadgeTone(claim)}>{getClaimBadgeLabel(claim)}</Badge>
-                    </div>
-                    <div className="text-[11px] leading-5 text-[var(--muted)]">
-                      {claim.lossAddress || 'Address unavailable'}
-                      <br />
-                      {claim.carrier} · {claim.lossType}
-                    </div>
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      <Badge tone="faint">{claim.claimCategory}</Badge>
-                      {claim.requiresTwia ? <Badge tone="bronze">TWIA</Badge> : null}
-                    </div>
-                  </button>
-                );
-              })
             ) : (
-              <div className="px-4 py-5 text-[12px] text-[var(--muted)]">No unassigned claims match the current filters.</div>
+              <>
+                {claimsError ? (
+                  <div className="border-b border-[var(--border)] px-4 py-4">
+                    <div className="text-[12px] font-medium text-[var(--red)]">Unable to load unassigned claims</div>
+                    <p className="mt-1 text-[11px] text-[var(--muted)]">{claimsError}</p>
+                    <button
+                      type="button"
+                      onClick={() => void refresh()}
+                      className="mt-3 rounded-md border border-[var(--border)] px-3 py-1.5 font-['Barlow_Condensed'] text-[10px] font-extrabold uppercase tracking-[0.1em] text-[var(--white)] hover:border-[var(--border-hi)]"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                ) : null}
+                {filteredClaims.length > 0 ? (
+                  filteredClaims.map((claim) => {
+                    const selected = selectedClaimIds.includes(claim.id);
+                    return (
+                      <button
+                        key={claim.id}
+                        type="button"
+                        onClick={() => handleSelectClaim(claim.id)}
+                        className={`w-full border-b border-[var(--border)] px-4 py-3 text-left transition hover:bg-[var(--card)] ${
+                          selected
+                            ? 'border-l-2 border-l-[var(--sage)] bg-[rgba(91,194,115,0.07)]'
+                            : 'border-l-2 border-l-transparent'
+                        }`}
+                      >
+                        <div className="mb-1 flex items-start justify-between gap-3">
+                          <div className="text-[13px] font-medium text-[var(--white)]">{claim.insuredName}</div>
+                          <Badge tone={getClaimBadgeTone(claim)}>{getClaimBadgeLabel(claim)}</Badge>
+                        </div>
+                        <div className="text-[11px] leading-5 text-[var(--muted)]">
+                          {claim.lossAddress || 'Address unavailable'}
+                          <br />
+                          {claim.carrier} · {claim.lossType}
+                        </div>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          <Badge tone="faint">{claim.claimCategory}</Badge>
+                          {claim.requiresTwia ? <Badge tone="bronze">TWIA</Badge> : null}
+                        </div>
+                      </button>
+                    );
+                  })
+                ) : !claimsError ? (
+                  <div className="px-4 py-5 text-[12px] text-[var(--muted)]">No unassigned claims match the current filters.</div>
+                ) : visibleUnassignedClaims.length === 0 ? (
+                  <div className="px-4 py-3 text-[12px] text-[var(--muted)]">No claims were loaded yet.</div>
+                ) : (
+                  <div className="px-4 py-5 text-[12px] text-[var(--muted)]">No unassigned claims match the current filters.</div>
+                )}
+              </>
             )}
           </div>
         </aside>
@@ -361,76 +381,97 @@ export function DispatchPage({ firmId }: DispatchPageProps) {
           <div className="min-h-0 flex-1 overflow-y-auto">
             {loading ? (
               <div className="px-4 py-5 text-[12px] text-[var(--muted)]">Loading adjusters...</div>
-            ) : filteredAdjusters.length ? (
-              filteredAdjusters.map((adjuster) => (
-                <div
-                  key={adjuster.id}
-                  className="border-b border-[var(--border)] px-4 py-4"
-                  style={{
-                    borderLeftWidth: '2px',
-                    borderLeftStyle: 'solid',
-                    borderLeftColor:
-                      adjuster.availability === 'available'
-                        ? 'var(--sage)'
-                        : adjuster.availability === 'busy'
-                          ? 'var(--orange)'
-                          : 'var(--faint)',
-                  }}
-                >
-                  <div className="mb-2 flex items-start gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-[var(--blue)] bg-[var(--blue-dim)] font-['Barlow_Condensed'] text-xs font-extrabold text-[var(--blue)]">
-                      {adjuster.initials}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[13px] font-medium text-[var(--white)]">{adjuster.name}</div>
-                      <div className="mt-0.5 text-[11px] text-[var(--muted)]">
-                        {adjuster.location} · {getAvailabilityLabel(adjuster)}
+            ) : (
+              <>
+                {error ? (
+                  <div className="border-b border-[var(--border)] px-4 py-4">
+                    <div className="text-[12px] font-medium text-[var(--red)]">Unable to load adjusters or map data</div>
+                    <p className="mt-1 text-[11px] text-[var(--muted)]">{error}</p>
+                    <button
+                      type="button"
+                      onClick={() => void refresh()}
+                      className="mt-3 rounded-md border border-[var(--border)] px-3 py-1.5 font-['Barlow_Condensed'] text-[10px] font-extrabold uppercase tracking-[0.1em] text-[var(--white)] hover:border-[var(--border-hi)]"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                ) : null}
+                {filteredAdjusters.length > 0 ? (
+                  filteredAdjusters.map((adjuster) => (
+                    <div
+                      key={adjuster.id}
+                      className="border-b border-[var(--border)] px-4 py-4"
+                      style={{
+                        borderLeftWidth: '2px',
+                        borderLeftStyle: 'solid',
+                        borderLeftColor:
+                          adjuster.availability === 'available'
+                            ? 'var(--sage)'
+                            : adjuster.availability === 'busy'
+                              ? 'var(--orange)'
+                              : 'var(--faint)',
+                      }}
+                    >
+                      <div className="mb-2 flex items-start gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-[var(--blue)] bg-[var(--blue-dim)] font-['Barlow_Condensed'] text-xs font-extrabold text-[var(--blue)]">
+                          {adjuster.initials}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[13px] font-medium text-[var(--white)]">{adjuster.name}</div>
+                          <div className="mt-0.5 text-[11px] text-[var(--muted)]">
+                            {adjuster.location} · {getAvailabilityLabel(adjuster)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mb-1 h-[3px] overflow-hidden rounded-full bg-[var(--border)]">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: getCapacityWidth(adjuster),
+                            background:
+                              adjuster.availability === 'available' ? 'var(--sage)' : 'var(--orange)',
+                          }}
+                        />
+                      </div>
+                      <div className="mb-2 font-['Barlow_Condensed'] text-[10px] tracking-[0.06em] text-[var(--faint)]">
+                        {adjuster.activeClaims}/{adjuster.maxClaims} active claims
+                      </div>
+
+                      <div className="mb-3 flex flex-wrap gap-1">
+                        {adjuster.certifications.length ? (
+                          adjuster.certifications.map((certification) => (
+                            <Badge key={certification} tone="blue">{certification}</Badge>
+                          ))
+                        ) : (
+                          <Badge tone="faint">No certs listed</Badge>
+                        )}
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="rounded-md bg-[var(--sage)] px-3 py-1.5 font-['Barlow_Condensed'] text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#06120C] shadow-[0_2px_8px_rgba(91,194,115,0.25)]"
+                        >
+                          Assign
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-md border border-[var(--border)] px-3 py-1.5 font-['Barlow_Condensed'] text-[10px] font-extrabold uppercase tracking-[0.1em] text-[var(--muted)]"
+                        >
+                          Profile
+                        </button>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="mb-1 h-[3px] overflow-hidden rounded-full bg-[var(--border)]">
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: getCapacityWidth(adjuster),
-                        background:
-                          adjuster.availability === 'available' ? 'var(--sage)' : 'var(--orange)',
-                      }}
-                    />
-                  </div>
-                  <div className="mb-2 font-['Barlow_Condensed'] text-[10px] tracking-[0.06em] text-[var(--faint)]">
-                    {adjuster.activeClaims}/{adjuster.maxClaims} active claims
-                  </div>
-
-                  <div className="mb-3 flex flex-wrap gap-1">
-                    {adjuster.certifications.length ? (
-                      adjuster.certifications.map((certification) => (
-                        <Badge key={certification} tone="blue">{certification}</Badge>
-                      ))
-                    ) : (
-                      <Badge tone="faint">No certs listed</Badge>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      className="rounded-md bg-[var(--sage)] px-3 py-1.5 font-['Barlow_Condensed'] text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#06120C] shadow-[0_2px_8px_rgba(91,194,115,0.25)]"
-                    >
-                      Assign
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded-md border border-[var(--border)] px-3 py-1.5 font-['Barlow_Condensed'] text-[10px] font-extrabold uppercase tracking-[0.1em] text-[var(--muted)]"
-                    >
-                      Profile
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="px-4 py-5 text-[12px] text-[var(--muted)]">No adjusters match the current filter.</div>
+                  ))
+                ) : !error ? (
+                  <div className="px-4 py-5 text-[12px] text-[var(--muted)]">No adjusters match the current filter.</div>
+                ) : adjusters.length === 0 ? (
+                  <div className="px-4 py-3 text-[12px] text-[var(--muted)]">No adjuster data was loaded yet.</div>
+                ) : (
+                  <div className="px-4 py-5 text-[12px] text-[var(--muted)]">No adjusters match the current filter.</div>
+                )}
+              </>
             )}
           </div>
         </aside>
