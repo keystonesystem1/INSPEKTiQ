@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useEffectEvent, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { getAdjustersForDispatch, getAssignedActiveClaims, getFirmCarrierNames, getUnassignedClaims } from '@/lib/supabase/dispatch';
 import type { DispatchAdjuster, DispatchClaim } from '@/lib/types';
@@ -22,8 +22,11 @@ export function useDispatchData(firmId: string): UseDispatchDataResult {
   const [carrierOptions, setCarrierOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestSequenceRef = useRef(0);
+  const activeRequestRef = useRef(0);
 
-  const loadDispatchData = useEffectEvent(async () => {
+  const loadDispatchData = useEffectEvent(async (options?: { preserveLoadingState?: boolean }) => {
     if (!firmId) {
       setUnassignedClaims([]);
       setAssignedActiveClaims([]);
@@ -34,7 +37,13 @@ export function useDispatchData(firmId: string): UseDispatchDataResult {
       return;
     }
 
-    setLoading(true);
+    const requestId = requestSequenceRef.current + 1;
+    requestSequenceRef.current = requestId;
+    activeRequestRef.current = requestId;
+
+    if (!options?.preserveLoadingState) {
+      setLoading(true);
+    }
     setError(null);
 
     try {
@@ -45,16 +54,37 @@ export function useDispatchData(firmId: string): UseDispatchDataResult {
         getFirmCarrierNames(firmId),
       ]);
 
+      if (activeRequestRef.current !== requestId) {
+        return;
+      }
+
       setUnassignedClaims(nextUnassignedClaims);
       setAssignedActiveClaims(nextAssignedActiveClaims);
       setAdjusters(nextAdjusters);
       setCarrierOptions(nextCarrierOptions);
     } catch (err) {
+      if (activeRequestRef.current !== requestId) {
+        return;
+      }
+
       const message = err instanceof Error ? err.message : 'Failed to load dispatch data.';
       setError(message);
     } finally {
-      setLoading(false);
+      if (activeRequestRef.current === requestId) {
+        setLoading(false);
+      }
     }
+  });
+
+  const scheduleRealtimeRefresh = useEffectEvent(() => {
+    if (debounceTimerRef.current !== null) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = null;
+      void loadDispatchData({ preserveLoadingState: true });
+    }, 300);
   });
 
   useEffect(() => {
@@ -71,22 +101,26 @@ export function useDispatchData(firmId: string): UseDispatchDataResult {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'claims', filter: `firm_id=eq.${firmId}` },
         () => {
-          void loadDispatchData();
+          scheduleRealtimeRefresh();
         },
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'appointments', filter: `firm_id=eq.${firmId}` },
         () => {
-          void loadDispatchData();
+          scheduleRealtimeRefresh();
         },
       )
       .subscribe();
 
     return () => {
+      if (debounceTimerRef.current !== null) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
       void supabase.removeChannel(channel);
     };
-  }, [firmId, loadDispatchData]);
+  }, [firmId, loadDispatchData, scheduleRealtimeRefresh]);
 
   return {
     unassignedClaims,
