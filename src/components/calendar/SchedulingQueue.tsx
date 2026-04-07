@@ -37,6 +37,7 @@ export function SchedulingQueue({
   onFirstContact,
 }: SchedulingQueueProps) {
   const [filter, setFilter] = useState<QueueFilter>('all');
+  const showInitialLoadingState = loading && claims.length === 0;
 
   const filteredClaims = useMemo(
     () =>
@@ -104,7 +105,7 @@ export function SchedulingQueue({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {loading ? (
+        {showInitialLoadingState ? (
           <div className="px-4 py-5 text-[12px] text-[var(--muted)]">Loading scheduling queue...</div>
         ) : error ? (
           <div className="px-4 py-5 text-[12px] text-[var(--red)]">{error}</div>

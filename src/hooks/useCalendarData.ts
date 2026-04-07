@@ -117,6 +117,6 @@ export function useCalendarData(
     appointments,
     loading,
     error,
-    refresh: loadCalendarData,
+    refresh: () => loadCalendarData({ preserveLoadingState: true }),
   };
 }
