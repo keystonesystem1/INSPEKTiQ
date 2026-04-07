@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { AssignModal } from '@/components/dispatch/AssignModal';
 import { Badge } from '@/components/ui/Badge';
 import { DispatchMap } from '@/components/dispatch/DispatchMap';
@@ -10,6 +10,7 @@ import type { DispatchAdjuster, DispatchClaim } from '@/lib/types';
 
 interface DispatchPageProps {
   firmId: string;
+  initialAdjusters: DispatchAdjuster[];
 }
 
 type ClaimFilter = 'all' | 'residential' | 'commercial' | 'sla' | 'twia' | 'wind' | 'hail';
@@ -60,9 +61,20 @@ function filterAdjuster(adjuster: DispatchAdjuster, filter: AdjusterFilter) {
   return adjuster.availability === filter;
 }
 
-export function DispatchPage({ firmId }: DispatchPageProps) {
-  const { unassignedClaims, assignedActiveClaims, adjusters, carrierOptions, loading, error, claimsError, refresh } =
-    useDispatchData(firmId);
+export function DispatchPage({ firmId, initialAdjusters }: DispatchPageProps) {
+  const {
+    unassignedClaims,
+    assignedActiveClaims,
+    adjusters,
+    carrierOptions,
+    claimsLoading,
+    adjustersLoading,
+    loading,
+    error,
+    claimsError,
+    refresh,
+  } =
+    useDispatchData(firmId, initialAdjusters);
   const [selectedClaimIds, setSelectedClaimIds] = useState<string[]>([]);
   const [claimFilter, setClaimFilter] = useState<ClaimFilter>('all');
   const [adjusterFilter, setAdjusterFilter] = useState<AdjusterFilter>('all');
@@ -70,6 +82,7 @@ export function DispatchPage({ firmId }: DispatchPageProps) {
   const [lassoActive, setLassoActive] = useState(false);
   const [lassoStartToken, setLassoStartToken] = useState(0);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [preferredAdjusterId, setPreferredAdjusterId] = useState<string | null>(null);
   const [optimisticRemovedClaimIds, setOptimisticRemovedClaimIds] = useState<string[]>([]);
   const [optimisticAssignedClaims, setOptimisticAssignedClaims] = useState<DispatchClaim[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -119,9 +132,13 @@ export function DispatchPage({ firmId }: DispatchPageProps) {
       : [...list, value];
   }
 
-  function handleSelectClaim(claimId: string) {
+  const handleSelectClaim = useCallback((claimId: string) => {
     setSelectedClaimIds([claimId]);
-  }
+  }, []);
+
+  const handleOpenLassoFilters = useCallback(() => {
+    setLassoFiltersOpen(true);
+  }, []);
 
   function handleApplyLasso() {
     setLassoFiltersOpen(false);
@@ -129,10 +146,24 @@ export function DispatchPage({ firmId }: DispatchPageProps) {
     setLassoStartToken((value) => value + 1);
   }
 
-  function handleClearSelection() {
+  const handleFinishLasso = useCallback(() => {
+    setLassoActive(false);
+  }, []);
+
+  const handleOpenAssignModal = useCallback(() => {
+    setPreferredAdjusterId(null);
+    setAssignModalOpen(true);
+  }, []);
+
+  const handleOpenAssignModalForAdjuster = useCallback((adjusterId: string) => {
+    setPreferredAdjusterId(adjusterId);
+    setAssignModalOpen(true);
+  }, []);
+
+  const handleClearSelection = useCallback(() => {
     setSelectedClaimIds([]);
     setLassoActive(false);
-  }
+  }, []);
 
   async function handleAssignClaims(adjusterId: string, overrideReason?: string) {
     if (!selectedClaims.length) {
@@ -245,7 +276,7 @@ export function DispatchPage({ firmId }: DispatchPageProps) {
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
-            {loading ? (
+            {claimsLoading && filteredClaims.length === 0 ? (
               <div className="px-4 py-5 text-[12px] text-[var(--muted)]">Loading dispatch claims...</div>
             ) : (
               <>
@@ -304,7 +335,7 @@ export function DispatchPage({ firmId }: DispatchPageProps) {
           </div>
         </aside>
 
-        <div className="relative min-h-0">
+        <div className="relative h-full min-h-0">
           <DispatchMap
             claims={mapClaims}
             activityClaims={activityClaims}
@@ -313,12 +344,12 @@ export function DispatchPage({ firmId }: DispatchPageProps) {
             lassoActive={lassoActive}
             lassoFilters={lassoFilters}
             lassoStartToken={lassoStartToken}
-            onOpenLassoFilters={() => setLassoFiltersOpen(true)}
+            onOpenLassoFilters={handleOpenLassoFilters}
             onSelectClaim={handleSelectClaim}
             onSelectionChange={setSelectedClaimIds}
             onClearSelection={handleClearSelection}
-            onFinishLasso={() => setLassoActive(false)}
-            onOpenAssignModal={() => setAssignModalOpen(true)}
+            onFinishLasso={handleFinishLasso}
+            onOpenAssignModal={handleOpenAssignModal}
           />
           <LassoFilters
             open={lassoFiltersOpen}
@@ -379,7 +410,7 @@ export function DispatchPage({ firmId }: DispatchPageProps) {
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
-            {loading ? (
+            {adjustersLoading && filteredAdjusters.length === 0 ? (
               <div className="px-4 py-5 text-[12px] text-[var(--muted)]">Loading adjusters...</div>
             ) : (
               <>
@@ -451,12 +482,17 @@ export function DispatchPage({ firmId }: DispatchPageProps) {
                       <div className="flex gap-2">
                         <button
                           type="button"
+                          onClick={() => handleOpenAssignModalForAdjuster(adjuster.id)}
+                          disabled={selectedClaims.length === 0}
                           className="rounded-md bg-[var(--sage)] px-3 py-1.5 font-['Barlow_Condensed'] text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#06120C] shadow-[0_2px_8px_rgba(91,194,115,0.25)]"
                         >
                           Assign
                         </button>
                         <button
                           type="button"
+                          onClick={() => {
+                            window.location.href = `/adjusters/${adjuster.id}`;
+                          }}
                           className="rounded-md border border-[var(--border)] px-3 py-1.5 font-['Barlow_Condensed'] text-[10px] font-extrabold uppercase tracking-[0.1em] text-[var(--muted)]"
                         >
                           Profile
@@ -480,7 +516,11 @@ export function DispatchPage({ firmId }: DispatchPageProps) {
         open={assignModalOpen}
         selectedClaims={selectedClaims}
         adjusters={adjusters}
-        onClose={() => setAssignModalOpen(false)}
+        initialAdjusterId={preferredAdjusterId}
+        onClose={() => {
+          setAssignModalOpen(false);
+          setPreferredAdjusterId(null);
+        }}
         onConfirm={handleAssignClaims}
       />
       {toastMessage ? (

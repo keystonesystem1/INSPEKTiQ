@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import mapboxgl from 'mapbox-gl';
 import type { Feature, Polygon } from 'geojson';
 import type { LassoFilterState } from '@/components/dispatch/LassoFilters';
+import { Button } from '@/components/ui/Button';
 import type { DispatchAdjuster, DispatchClaim } from '@/lib/types';
 
 interface DispatchMapProps {
@@ -26,7 +27,13 @@ interface DispatchMapProps {
 const DEFAULT_CENTER: [number, number] = [-97.1467, 31.5493];
 const DEFAULT_ZOOM = 9.2;
 const DRAW_MODE_FREEHAND = 'draw_freehand_polygon';
-const FREEHAND_DISTANCE_THRESHOLD = 0.0012;
+const FREEHAND_DISTANCE_THRESHOLD = 0.00005;
+const MAP_STYLES = {
+  dark: 'mapbox://styles/mapbox/dark-v11',
+  satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
+} as const;
+
+type MapStyleKey = keyof typeof MAP_STYLES;
 
 function pointInPolygon(point: [number, number], polygon: number[][]) {
   let inside = false;
@@ -82,6 +89,7 @@ type FreehandModeState = {
   filters: LassoFilterState;
   maxClaims: number;
   onPreviewChange?: (count: number) => void;
+  onComplete?: (claimIds: string[]) => void;
 };
 
 type DrawContext = {
@@ -96,6 +104,69 @@ type DrawContext = {
   getFeature: (id: string) => FreehandModeState['polygon'] | undefined;
   fire: (name: string, data: { features: Array<Feature<Polygon>> }) => void;
 };
+
+function updateFreehandPolygon(state: FreehandModeState, lng: number, lat: number) {
+  if (!state.drawing) {
+    return;
+  }
+
+  const nextCoordinate: [number, number] = [lng, lat];
+  const shouldCommit =
+    !state.lastCoordinate || getCoordinateDistance(state.lastCoordinate, nextCoordinate) >= FREEHAND_DISTANCE_THRESHOLD;
+
+  if (!shouldCommit) {
+    state.polygon.updateCoordinate(`0.${state.currentVertexPosition}`, nextCoordinate[0], nextCoordinate[1]);
+  } else {
+    state.polygon.updateCoordinate(`0.${state.currentVertexPosition}`, nextCoordinate[0], nextCoordinate[1]);
+    state.currentVertexPosition += 1;
+    state.polygon.updateCoordinate(`0.${state.currentVertexPosition}`, nextCoordinate[0], nextCoordinate[1]);
+    state.lastCoordinate = nextCoordinate;
+  }
+
+  const selectedCount = getEligibleLassoClaims(
+    state.claims,
+    state.polygon.coordinates[0] as number[][],
+    state.filters,
+  ).slice(0, state.maxClaims).length;
+  state.onPreviewChange?.(selectedCount);
+}
+
+function buildCompletedRing(coordinates: number[][]) {
+  const distinctPoints: number[][] = [];
+
+  for (const point of coordinates) {
+    if (!Array.isArray(point) || point.length < 2) {
+      continue;
+    }
+
+    const lng = point[0];
+    const lat = point[1];
+    if (typeof lng !== 'number' || typeof lat !== 'number') {
+      continue;
+    }
+
+    const previousPoint = distinctPoints[distinctPoints.length - 1];
+    if (previousPoint && previousPoint[0] === lng && previousPoint[1] === lat) {
+      continue;
+    }
+
+    distinctPoints.push([lng, lat]);
+  }
+
+  const uniquePointKeys = new Set(distinctPoints.map(([lng, lat]) => `${lng}:${lat}`));
+  if (uniquePointKeys.size < 3) {
+    return null;
+  }
+
+  const [firstLng, firstLat] = distinctPoints[0];
+  const [lastLng, lastLat] = distinctPoints[distinctPoints.length - 1];
+
+  if (firstLng !== lastLng || firstLat !== lastLat) {
+    distinctPoints.push([firstLng, firstLat]);
+  }
+
+  return distinctPoints;
+}
 
 function createFreehandDrawMode() {
   return {
@@ -132,6 +203,7 @@ function createFreehandDrawMode() {
         },
         maxClaims: options?.maxClaims ?? 15,
         onPreviewChange: options?.onPreviewChange,
+        onComplete: options?.onComplete,
       } satisfies FreehandModeState;
     },
 
@@ -144,29 +216,7 @@ function createFreehandDrawMode() {
     },
 
     onDrag(this: DrawContext, state: FreehandModeState, event: mapboxgl.MapMouseEvent) {
-      if (!state.drawing) {
-        return;
-      }
-
-      const nextCoordinate: [number, number] = [event.lngLat.lng, event.lngLat.lat];
-      const shouldCommit =
-        !state.lastCoordinate || getCoordinateDistance(state.lastCoordinate, nextCoordinate) >= FREEHAND_DISTANCE_THRESHOLD;
-
-      if (!shouldCommit) {
-        state.polygon.updateCoordinate(`0.${state.currentVertexPosition}`, nextCoordinate[0], nextCoordinate[1]);
-      } else {
-        state.polygon.updateCoordinate(`0.${state.currentVertexPosition}`, nextCoordinate[0], nextCoordinate[1]);
-        state.currentVertexPosition += 1;
-        state.polygon.updateCoordinate(`0.${state.currentVertexPosition}`, nextCoordinate[0], nextCoordinate[1]);
-        state.lastCoordinate = nextCoordinate;
-      }
-
-      const selectedCount = getEligibleLassoClaims(
-        state.claims,
-        state.polygon.coordinates[0] as number[][],
-        state.filters,
-      ).slice(0, state.maxClaims).length;
-      state.onPreviewChange?.(selectedCount);
+      updateFreehandPolygon(state, event.lngLat.lng, event.lngLat.lat);
     },
 
     onMouseUp(this: DrawContext, state: FreehandModeState) {
@@ -175,15 +225,25 @@ function createFreehandDrawMode() {
       }
 
       state.drawing = false;
-      this.changeMode('simple_select', { featureIds: [state.polygon.id] });
+      const completedRing = buildCompletedRing(state.polygon.coordinates[0] as number[][]);
+      const selected = completedRing
+        ? getEligibleLassoClaims(state.claims, completedRing, state.filters)
+            .slice(0, state.maxClaims)
+            .map((claim) => claim.id)
+        : [];
+
+      state.onPreviewChange?.(selected.length);
+      state.onComplete?.(selected);
+      this.deleteFeature([state.polygon.id], { silent: true });
+      this.changeMode('simple_select', {}, { silent: true });
     },
 
     onMouseMove(this: DrawContext, state: FreehandModeState, event: mapboxgl.MapMouseEvent) {
-      if (!state.drawing) {
-        return;
-      }
+      updateFreehandPolygon(state, event.lngLat.lng, event.lngLat.lat);
+    },
 
-      state.polygon.updateCoordinate(`0.${state.currentVertexPosition}`, event.lngLat.lng, event.lngLat.lat);
+    onTouchMove(this: DrawContext, state: FreehandModeState, event: mapboxgl.MapTouchEvent) {
+      updateFreehandPolygon(state, event.lngLat.lng, event.lngLat.lat);
     },
 
     onKeyUp(this: DrawContext, state: FreehandModeState, event: KeyboardEvent) {
@@ -222,11 +282,15 @@ function createFreehandDrawMode() {
     },
 
     toDisplayFeatures(
-      _this: DrawContext,
-      state: FreehandModeState,
+      state: FreehandModeState | undefined,
       geojson: Feature<Polygon>,
       display: (feature: Feature<Polygon>) => void,
     ) {
+      if (!state?.polygon) {
+        display(geojson);
+        return;
+      }
+
       const isActivePolygon = geojson.properties?.id === state.polygon.id;
       geojson.properties = {
         ...(geojson.properties ?? {}),
@@ -238,11 +302,27 @@ function createFreehandDrawMode() {
         return;
       }
 
-      if (geojson.geometry.coordinates[0]?.length < 3) {
+      const coordinateCount = geojson.geometry.coordinates[0]?.length ?? 0;
+      if (coordinateCount < 3) {
         return;
       }
 
       geojson.properties.meta = 'feature';
+      if (coordinateCount <= 4) {
+        display({
+          type: 'Feature',
+          properties: geojson.properties,
+          geometry: {
+            type: 'LineString',
+            coordinates: geojson.geometry.coordinates[0].slice(0, 2),
+          },
+        } as unknown as Feature<Polygon>);
+
+        if (coordinateCount === 3) {
+          return;
+        }
+      }
+
       display(geojson);
     },
   };
@@ -383,8 +463,6 @@ function createClaimPinElement(claim: DispatchClaim, selected: boolean) {
   wrapper.style.border = '0';
   wrapper.style.background = 'transparent';
   wrapper.style.cursor = 'pointer';
-  wrapper.style.transform = selected ? 'scale(1.15)' : 'scale(1)';
-  wrapper.style.transition = 'transform 0.15s ease';
 
   const pin = document.createElement('div');
   pin.style.width = '26px';
@@ -397,6 +475,7 @@ function createClaimPinElement(claim: DispatchClaim, selected: boolean) {
   pin.style.border = selected ? '2px solid var(--sage)' : '2px solid rgba(255,255,255,0.2)';
   pin.style.background = getClaimPinBackground(claim);
   pin.style.boxShadow = selected ? '0 0 0 4px rgba(91,194,115,0.22)' : 'none';
+  pin.style.willChange = 'transform';
 
   const inner = document.createElement('span');
   inner.textContent = 'C';
@@ -527,11 +606,81 @@ export function DispatchMap({
   const drawRef = useRef<MapboxDraw | null>(null);
   const markerRefs = useRef<mapboxgl.Marker[]>([]);
   const hoverPopupRef = useRef<mapboxgl.Popup | null>(null);
+  const claimsRef = useRef(claims);
+  const lassoFiltersRef = useRef(lassoFilters);
+  const onSelectionChangeRef = useRef(onSelectionChange);
+  const onFinishLassoRef = useRef(onFinishLasso);
+  const viewportSignatureRef = useRef<string | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [showClaims, setShowClaims] = useState(true);
   const [showAdjusters, setShowAdjusters] = useState(true);
   const [showAdjusterActivity, setShowAdjusterActivity] = useState(false);
   const [lassoPreviewCount, setLassoPreviewCount] = useState(0);
+  const [mapStyle, setMapStyle] = useState<MapStyleKey>('dark');
+
+  const recenterMap = useCallback(() => {
+    if (!mapRef.current) {
+      return;
+    }
+
+    const bounds = new mapboxgl.LngLatBounds();
+    let hasBounds = false;
+
+    if (showClaims) {
+      for (const claim of claims) {
+        if (typeof claim.lossLng !== 'number' || typeof claim.lossLat !== 'number') {
+          continue;
+        }
+        bounds.extend([claim.lossLng, claim.lossLat]);
+        hasBounds = true;
+      }
+    }
+
+    if (showAdjusterActivity) {
+      for (const claim of activityClaims) {
+        if (typeof claim.lossLng !== 'number' || typeof claim.lossLat !== 'number') {
+          continue;
+        }
+        bounds.extend([claim.lossLng, claim.lossLat]);
+        hasBounds = true;
+      }
+    }
+
+    if (showAdjusters) {
+      for (const adjuster of adjusters) {
+        if (typeof adjuster.homeLng !== 'number' || typeof adjuster.homeLat !== 'number') {
+          continue;
+        }
+        bounds.extend([adjuster.homeLng, adjuster.homeLat]);
+        hasBounds = true;
+      }
+    }
+
+    if (hasBounds) {
+      mapRef.current.fitBounds(bounds, {
+        padding: { top: 80, right: 80, bottom: 80, left: 80 },
+        maxZoom: 11.5,
+      });
+    } else {
+      mapRef.current.easeTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
+    }
+  }, [activityClaims, adjusters, claims, showAdjusterActivity, showAdjusters, showClaims]);
+
+  useEffect(() => {
+    claimsRef.current = claims;
+  }, [claims]);
+
+  useEffect(() => {
+    lassoFiltersRef.current = lassoFilters;
+  }, [lassoFilters]);
+
+  useEffect(() => {
+    onSelectionChangeRef.current = onSelectionChange;
+  }, [onSelectionChange]);
+
+  useEffect(() => {
+    onFinishLassoRef.current = onFinishLasso;
+  }, [onFinishLasso]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) {
@@ -541,7 +690,7 @@ export function DispatchMap({
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? '';
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: MAP_STYLES.dark,
       center: DEFAULT_CENTER,
       zoom: DEFAULT_ZOOM,
       attributionControl: false,
@@ -559,32 +708,11 @@ export function DispatchMap({
     drawRef.current = draw;
     map.addControl(draw);
 
-    const handleDrawCreate = (event: { features: Array<Feature> }) => {
-      const feature = event.features[0] as Feature<Polygon> | undefined;
-      const polygon = feature?.geometry.coordinates[0];
-      if (!polygon) {
-        onSelectionChange([]);
-        onFinishLasso();
-        return;
-      }
-
-      const selected = getEligibleLassoClaims(claims, polygon as number[][], lassoFilters)
-        .slice(0, lassoFilters.maxClaims)
-        .map((claim) => claim.id);
-
-      onSelectionChange(selected);
-      setLassoPreviewCount(selected.length);
-      draw.deleteAll();
-      draw.changeMode('simple_select');
-      onFinishLasso();
-    };
-
     const handleDrawDelete = () => {
       setLassoPreviewCount(0);
-      onFinishLasso();
+      onFinishLassoRef.current();
     };
 
-    map.on('draw.create', handleDrawCreate);
     map.on('draw.delete', handleDrawDelete);
 
     map.on('load', () => {
@@ -604,7 +732,6 @@ export function DispatchMap({
       hoverPopupRef.current = null;
       markerRefs.current.forEach((marker) => marker.remove());
       markerRefs.current = [];
-      map.off('draw.create', handleDrawCreate);
       map.off('draw.delete', handleDrawDelete);
       map.removeControl(draw);
       drawRef.current = null;
@@ -612,7 +739,7 @@ export function DispatchMap({
       mapRef.current = null;
       setMapReady(false);
     };
-  }, [claims, lassoFilters, lassoFilters.maxClaims, onFinishLasso, onSelectionChange]);
+  }, []);
 
   useEffect(() => {
     if (!mapRef.current || !drawRef.current || !mapReady) {
@@ -630,8 +757,41 @@ export function DispatchMap({
       filters: lassoFilters,
       maxClaims: lassoFilters.maxClaims,
       onPreviewChange: setLassoPreviewCount,
+      onComplete: (claimIds: string[]) => {
+        onSelectionChangeRef.current(claimIds);
+        setLassoPreviewCount(claimIds.length);
+        onFinishLassoRef.current();
+      },
     });
   }, [claims, lassoFilters, lassoStartToken, mapReady]);
+
+  useEffect(() => {
+    if (!mapRef.current) {
+      return;
+    }
+
+    mapRef.current.setStyle(MAP_STYLES[mapStyle]);
+  }, [mapStyle]);
+
+  useEffect(() => {
+    if (!mapRef.current || !mapReady) {
+      return;
+    }
+
+    const map = mapRef.current;
+
+    if (lassoActive) {
+      map.dragPan.disable();
+    } else {
+      map.dragPan.enable();
+    }
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.dragPan.enable();
+      }
+    };
+  }, [lassoActive, mapReady]);
 
   useEffect(() => {
     if (!mapRef.current || !mapReady) {
@@ -644,6 +804,7 @@ export function DispatchMap({
 
     const bounds = new mapboxgl.LngLatBounds();
     let hasBounds = false;
+    const viewportPoints: string[] = [];
 
     if (showClaims) {
       for (const claim of claims) {
@@ -675,6 +836,7 @@ export function DispatchMap({
         markerRefs.current.push(marker);
         bounds.extend([claim.lossLng, claim.lossLat]);
         hasBounds = true;
+        viewportPoints.push(`claim:${claim.id}:${claim.lossLng}:${claim.lossLat}`);
       }
     }
 
@@ -692,6 +854,7 @@ export function DispatchMap({
         markerRefs.current.push(marker);
         bounds.extend([claim.lossLng, claim.lossLat]);
         hasBounds = true;
+        viewportPoints.push(`activity:${claim.id}:${claim.lossLng}:${claim.lossLat}`);
       }
     }
 
@@ -725,16 +888,25 @@ export function DispatchMap({
         markerRefs.current.push(marker);
         bounds.extend([adjuster.homeLng, adjuster.homeLat]);
         hasBounds = true;
+        viewportPoints.push(`adjuster:${adjuster.id}:${adjuster.homeLng}:${adjuster.homeLat}`);
       }
     }
 
-    if (hasBounds) {
-      map.fitBounds(bounds, {
-        padding: { top: 80, right: 80, bottom: 80, left: 80 },
-        maxZoom: 11.5,
-      });
-    } else {
-      map.easeTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
+    const nextViewportSignature = hasBounds
+      ? viewportPoints.sort().join('|')
+      : `empty:${showClaims}:${showAdjusters}:${showAdjusterActivity}`;
+
+    if (viewportSignatureRef.current !== nextViewportSignature) {
+      viewportSignatureRef.current = nextViewportSignature;
+
+      if (hasBounds) {
+        map.fitBounds(bounds, {
+          padding: { top: 80, right: 80, bottom: 80, left: 80 },
+          maxZoom: 11.5,
+        });
+      } else {
+        map.easeTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
+      }
     }
   }, [activityClaims, adjusters, claims, mapReady, onSelectClaim, selectedClaimIds, showAdjusterActivity, showAdjusters, showClaims]);
 
@@ -759,8 +931,8 @@ export function DispatchMap({
   const lassoIndicatorCount = lassoActive ? lassoPreviewCount : selectedCount;
 
   return (
-    <section className="relative min-h-0 overflow-hidden bg-[#080f18]">
-      <div ref={containerRef} className="absolute inset-0" />
+    <section className="relative h-full min-h-0 overflow-hidden bg-[#080f18]">
+      <div ref={containerRef} className="absolute inset-0 h-full w-full" />
 
       <div className="absolute left-3 top-3 z-20 grid gap-1">
         <div className="overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)]">
@@ -799,6 +971,28 @@ export function DispatchMap({
         </div>
 
         <div className="overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)]">
+          {[
+            ['dark', 'Dark'],
+            ['satellite', 'Satellite'],
+          ].map(([value, label]) => {
+            const active = mapStyle === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setMapStyle(value as MapStyleKey)}
+                className={`flex w-full items-center gap-2 border-b border-[var(--border)] px-3 py-2 text-left font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] last:border-b-0 ${
+                  active ? 'bg-[var(--sage-dim)] text-[var(--sage)]' : 'text-[var(--muted)]'
+                }`}
+              >
+                <span>{value === 'dark' ? '◐' : '▦'}</span>
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)]">
           <button
             type="button"
             onClick={() => mapRef.current?.zoomIn()}
@@ -810,10 +1004,18 @@ export function DispatchMap({
           <button
             type="button"
             onClick={() => mapRef.current?.zoomOut()}
-            className="flex w-full items-center gap-2 px-3 py-2 text-left font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)]"
+            className="flex w-full items-center gap-2 border-b border-[var(--border)] px-3 py-2 text-left font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)]"
           >
             <span>⊖</span>
             <span>Zoom Out</span>
+          </button>
+          <button
+            type="button"
+            onClick={recenterMap}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)]"
+          >
+            <span>◎</span>
+            <span>Recenter</span>
           </button>
         </div>
         {selectedCount ? (
@@ -875,13 +1077,17 @@ export function DispatchMap({
 
       {selectedCount ? (
         <div className="absolute bottom-3 right-3 z-20">
-          <button
-            type="button"
+          <Button
             onClick={onOpenAssignModal}
-            className="rounded-lg bg-[var(--sage)] px-5 py-3 font-['Barlow_Condensed'] text-xs font-extrabold uppercase tracking-[0.1em] text-[#06120C] shadow-[0_0_26px_rgba(91,194,115,0.45)]"
+            style={{
+              background: '#5bc273',
+              color: '#06120C',
+              border: '1px solid #8be0a0',
+              boxShadow: '0 0 26px rgba(91,194,115,0.45)',
+            }}
           >
             ✓ Assign {selectedCount} Claim{selectedCount > 1 ? 's' : ''} →
-          </button>
+          </Button>
         </div>
       ) : null}
 

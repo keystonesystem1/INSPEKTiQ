@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { OverrideModal } from '@/components/dispatch/OverrideModal';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -10,6 +10,7 @@ interface AssignModalProps {
   open: boolean;
   selectedClaims: DispatchClaim[];
   adjusters: DispatchAdjuster[];
+  initialAdjusterId?: string | null;
   onClose: () => void;
   onConfirm?: (adjusterId: string, overrideReason?: string) => void | Promise<void>;
 }
@@ -65,12 +66,23 @@ export function AssignModal({
   open,
   selectedClaims,
   adjusters,
+  initialAdjusterId,
   onClose,
   onConfirm,
 }: AssignModalProps) {
   const [selectedAdjusterId, setSelectedAdjusterId] = useState<string | null>(null);
   const [overrideOpen, setOverrideOpen] = useState(false);
   const [overrideIssues, setOverrideIssues] = useState<AssignMismatchIssue[]>([]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setSelectedAdjusterId(initialAdjusterId ?? null);
+    setOverrideOpen(false);
+    setOverrideIssues([]);
+  }, [initialAdjusterId, open]);
 
   const adjusterCards = useMemo(
     () => adjusters.map((adjuster) => ({ adjuster, issues: getMismatchIssues(adjuster, selectedClaims) })),

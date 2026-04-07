@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+import { geocodeAddress } from '@/lib/mapbox/geocoding';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getAuthenticatedFirmUser } from '@/lib/supabase/user';
 
@@ -44,6 +45,12 @@ export async function POST(request: Request) {
   }
 
   const now = new Date().toISOString();
+  const geocodedPoint = await geocodeAddress({
+    lossAddress: body.lossAddress,
+    city: body.city,
+    state: body.state,
+    zip: body.zip,
+  });
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('claims')
@@ -63,6 +70,8 @@ export async function POST(request: Request) {
       date_of_loss: body.dateOfLoss,
       policy_number: body.policyNumber ?? null,
       loss_description: body.lossDescription ?? null,
+      loss_lat: geocodedPoint?.lat ?? null,
+      loss_lng: geocodedPoint?.lng ?? null,
       status: 'received',
       firm_id: firmUser.firmId,
       user_id: firmUser.id,
@@ -79,5 +88,7 @@ export async function POST(request: Request) {
   }
 
   revalidatePath('/claims');
+  revalidatePath('/dispatch');
+  revalidatePath('/calendar');
   return NextResponse.json({ success: true, claim: data }, { status: 201 });
 }

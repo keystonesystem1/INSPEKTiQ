@@ -2,7 +2,7 @@
 
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { getAdjustersForDispatch, getAssignedActiveClaims, getFirmCarrierNames, getUnassignedClaims } from '@/lib/supabase/dispatch';
+import { getAssignedActiveClaims, getFirmCarrierNames, getUnassignedClaims } from '@/lib/supabase/dispatch';
 import type { DispatchAdjuster, DispatchClaim } from '@/lib/types';
 
 interface UseDispatchDataResult {
@@ -10,17 +10,21 @@ interface UseDispatchDataResult {
   assignedActiveClaims: DispatchClaim[];
   adjusters: DispatchAdjuster[];
   carrierOptions: string[];
+  claimsLoading: boolean;
+  adjustersLoading: boolean;
   loading: boolean;
   error: string | null;
   claimsError: string | null;
   refresh: () => Promise<void>;
 }
 
-export function useDispatchData(firmId: string): UseDispatchDataResult {
+export function useDispatchData(firmId: string, initialAdjusters: DispatchAdjuster[] = []): UseDispatchDataResult {
   const [unassignedClaims, setUnassignedClaims] = useState<DispatchClaim[]>([]);
   const [assignedActiveClaims, setAssignedActiveClaims] = useState<DispatchClaim[]>([]);
-  const [adjusters, setAdjusters] = useState<DispatchAdjuster[]>([]);
+  const [adjusters, setAdjusters] = useState<DispatchAdjuster[]>(initialAdjusters);
   const [carrierOptions, setCarrierOptions] = useState<string[]>([]);
+  const [claimsLoading, setClaimsLoading] = useState(true);
+  const [adjustersLoading, setAdjustersLoading] = useState(initialAdjusters.length === 0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [claimsError, setClaimsError] = useState<string | null>(null);
@@ -36,6 +40,8 @@ export function useDispatchData(firmId: string): UseDispatchDataResult {
       setCarrierOptions([]);
       setError(null);
       setClaimsError(null);
+      setClaimsLoading(false);
+      setAdjustersLoading(false);
       setLoading(false);
       return;
     }
@@ -45,6 +51,7 @@ export function useDispatchData(firmId: string): UseDispatchDataResult {
     activeRequestRef.current = requestId;
 
     if (!options?.preserveLoadingState) {
+      setClaimsLoading(true);
       setLoading(true);
       setClaimsError(null);
     }
@@ -58,16 +65,17 @@ export function useDispatchData(firmId: string): UseDispatchDataResult {
         }
         setClaimsError(null);
         setUnassignedClaims(nextUnassignedClaims);
+        setClaimsLoading(false);
       } catch (claimsErr) {
         if (activeRequestRef.current !== requestId) {
           return;
         }
         setClaimsError(claimsErr instanceof Error ? claimsErr.message : 'Unable to load unassigned claims.');
+        setClaimsLoading(false);
       }
 
-      const [nextAssignedActiveClaims, nextAdjusters, nextCarrierOptions] = await Promise.all([
+      const [nextAssignedActiveClaims, nextCarrierOptions] = await Promise.all([
         getAssignedActiveClaims(firmId),
-        getAdjustersForDispatch(firmId),
         getFirmCarrierNames(firmId),
       ]);
 
@@ -76,7 +84,6 @@ export function useDispatchData(firmId: string): UseDispatchDataResult {
       }
 
       setAssignedActiveClaims(nextAssignedActiveClaims);
-      setAdjusters(nextAdjusters);
       setCarrierOptions(nextCarrierOptions);
     } catch (err) {
       if (activeRequestRef.current !== requestId) {
@@ -143,6 +150,8 @@ export function useDispatchData(firmId: string): UseDispatchDataResult {
     assignedActiveClaims,
     adjusters,
     carrierOptions,
+    claimsLoading,
+    adjustersLoading,
     loading,
     error,
     claimsError,
