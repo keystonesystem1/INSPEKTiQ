@@ -48,10 +48,27 @@ Add an entry any time a known gap, workaround, or deferred feature is introduced
 - **Deferred to:** Phase 5
 
 ### Adjuster home base — configurable
-- **Discovered:** Phase 4
-- **Files affected:** `src/lib/weather.ts`, `src/components/calendar/RouteMap.tsx`
-- **Issue:** Adjuster home base is hardcoded to Waco TX (lat 31.5493, lng -97.1467). Weather defaults and route map home pin use this value.
-- **Resolution:** Add home base lat/lng to adjuster profile in `firm_users` or a separate `adjuster_profiles` table. Pull from there at runtime.
+- **Status:** RESOLVED in commit 8093f02. Home bases now use Mapbox address autocomplete and persist to `adjuster_profiles.home_bases` jsonb.
+
+### Clients page — real data not yet built
+- **Discovered:** Phase 4 cleanup
+- **Files affected:** `src/app/(app)/clients/page.tsx`, `src/app/(app)/clients/[id]/page.tsx`
+- **Issue:** Clients pages show empty state only. No clients table query or client management UI is built yet.
+- **Resolution:** Build clients data model, list page, and detail page in Phase 5.
+- **Deferred to:** Phase 5
+
+### Billing page — real data not yet built
+- **Discovered:** Phase 4 cleanup
+- **Files affected:** `src/components/billing/BillingTable.tsx`
+- **Issue:** Billing table shows empty state only. No billing data model or real queries built yet.
+- **Resolution:** Build billing data model and UI in Phase 5.
+- **Deferred to:** Phase 5
+
+### Role dashboards — partial empty states
+- **Discovered:** Phase 4 cleanup
+- **Files affected:** Examiner, Dispatcher, Adjuster, Carrier dashboard components
+- **Issue:** All four role dashboards replaced demo KPIs with empty states. Real data queries need to be wired per role.
+- **Resolution:** Wire real Supabase queries for each role dashboard in Phase 5.
 - **Deferred to:** Phase 5
 
 ### Routing API — Calendar route map
