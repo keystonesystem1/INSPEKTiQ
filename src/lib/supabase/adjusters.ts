@@ -119,6 +119,8 @@ function parseHomeBases(homeBases: unknown): AdjusterHomeBase[] {
     .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object')
     .map((entry, index) => ({
       name: typeof entry.name === 'string' ? entry.name : typeof entry.label === 'string' ? entry.label : `Home Base ${index + 1}`,
+      address: typeof entry.address === 'string' ? entry.address : '',
+      formattedAddress: typeof entry.formattedAddress === 'string' ? entry.formattedAddress : '',
       city: typeof entry.city === 'string' ? entry.city : '',
       state: typeof entry.state === 'string' ? entry.state : '',
       zip: typeof entry.zip === 'string' ? entry.zip : '',
@@ -194,7 +196,11 @@ async function getCarrierMapByFirmId(firmId: string) {
     .eq('firm_id', firmId)
     .order('name', { ascending: true });
 
-  if (error || !data) {
+  if (error) {
+    throw new Error(error.message || 'Unable to load firm carriers.');
+  }
+
+  if (!data) {
     return new Map<string, string>();
   }
 

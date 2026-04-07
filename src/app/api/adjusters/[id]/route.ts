@@ -36,6 +36,7 @@ export async function PATCH(
   const geocodedHomeBases = await Promise.all(
     (body.homeBases ?? []).map(async (homeBase, index) => {
       const geocodedPoint = await geocodeAddress({
+        lossAddress: homeBase.address,
         city: homeBase.city,
         state: homeBase.state,
         zip: homeBase.zip,
@@ -43,11 +44,13 @@ export async function PATCH(
 
       return {
         name: homeBase.name?.trim() || `Home Base ${index + 1}`,
+        address: homeBase.address?.trim() || '',
+        formattedAddress: homeBase.formattedAddress?.trim() || homeBase.address?.trim() || '',
         city: homeBase.city?.trim() || '',
         state: homeBase.state?.trim() || '',
         zip: homeBase.zip?.trim() || '',
-        lat: geocodedPoint?.lat ?? null,
-        lng: geocodedPoint?.lng ?? null,
+        lat: geocodedPoint?.lat ?? homeBase.lat ?? null,
+        lng: geocodedPoint?.lng ?? homeBase.lng ?? null,
         isPrimary: Boolean(homeBase.isPrimary),
       } satisfies AdjusterHomeBase;
     }),

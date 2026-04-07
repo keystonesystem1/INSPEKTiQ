@@ -171,6 +171,8 @@ export interface DispatchAdjuster {
 
 export interface AdjusterHomeBase {
   name: string;
+  address?: string;
+  formattedAddress?: string;
   city: string;
   state: string;
   zip: string;
