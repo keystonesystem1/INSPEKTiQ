@@ -32,6 +32,8 @@ interface RawFirmUserRow {
   id: string;
   user_id: string | null;
   full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
 }
 
 interface RawAdjusterProfileRow {
@@ -41,6 +43,7 @@ interface RawAdjusterProfileRow {
   approved_carriers: string[] | null;
   certifications: string[] | null;
   home_bases: unknown;
+  availability: DispatchAdjuster['availability'] | null;
 }
 
 interface RawCarrierRow {
@@ -166,8 +169,38 @@ function getLatestAppointmentsByClaim(appointments: RawAppointmentRow[]) {
   return latestByClaim;
 }
 
-function getInitials(name: string) {
-  const parts = name
+function composeFullName(firstName: string | null, lastName: string | null) {
+  const parts = [normalizeString(firstName), normalizeString(lastName)]
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  return parts.length ? parts.join(' ') : null;
+}
+
+function getDisplayName(user: RawFirmUserRow, email: string | null | undefined) {
+  return (
+    composeFullName(user.first_name, user.last_name) ||
+    normalizeString(user.full_name) ||
+    normalizeString(email) ||
+    'Adjuster'
+  );
+}
+
+function getInitials(
+  firstName: string | null,
+  lastName: string | null,
+  fullName: string | null,
+  email: string | null | undefined,
+) {
+  const normalizedFirst = normalizeString(firstName);
+  const normalizedLast = normalizeString(lastName);
+
+  if (normalizedFirst && normalizedLast) {
+    return `${normalizedFirst[0] ?? ''}${normalizedLast[0] ?? ''}`.toUpperCase();
+  }
+
+  const fallbackName = normalizeString(fullName) || normalizeString(email) || 'Adjuster';
+  const parts = fallbackName
     .split(/\s+/)
     .map((part) => part.trim())
     .filter(Boolean);
@@ -182,7 +215,16 @@ function parseHomeBase(homeBases: unknown): HomeBase {
     return { city: null, state: null, lat: null, lng: null };
   }
 
-  const first = homeBases[0];
+  const primary =
+    homeBases.find(
+      (entry) =>
+        Boolean(entry) &&
+        typeof entry === 'object' &&
+        'isPrimary' in (entry as Record<string, unknown>) &&
+        (entry as Record<string, unknown>).isPrimary === true,
+    ) ?? homeBases[0];
+
+  const first = primary;
   if (!first || typeof first !== 'object') {
     return { city: null, state: null, lat: null, lng: null };
   }
@@ -201,12 +243,6 @@ function getLocationLabel(homeBase: HomeBase) {
   if (homeBase.city) return homeBase.city;
   if (homeBase.state) return homeBase.state;
   return 'Remote';
-}
-
-function getAvailability(activeClaims: number, maxClaims: number, homeBase: HomeBase): DispatchAdjuster['availability'] {
-  if (activeClaims >= maxClaims) return 'busy';
-  if (!homeBase.lat || !homeBase.lng) return 'remote';
-  return 'available';
 }
 
 async function getCarrierNamesById(firmId: string) {
@@ -321,13 +357,13 @@ export async function getAdjustersForDispatch(firmId: string): Promise<DispatchA
   const [{ data: firmUsers, error: firmUsersError }, { data: profileRows, error: profilesError }, carrierNamesById] = await Promise.all([
     supabase
       .from('firm_users')
-      .select('id, user_id, full_name')
+      .select('id, user_id, full_name, first_name, last_name')
       .eq('firm_id', firmId)
       .eq('role', 'adjuster')
       .eq('is_active', true),
     supabase
       .from('adjuster_profiles')
-      .select('user_id, max_active_claims, approved_claim_types, approved_carriers, certifications, home_bases')
+      .select('user_id, max_active_claims, approved_claim_types, approved_carriers, certifications, home_bases, availability')
       .eq('firm_id', firmId),
     getCarrierNamesById(firmId),
   ]);
@@ -369,11 +405,7 @@ export async function getAdjustersForDispatch(firmId: string): Promise<DispatchA
     .map((user) => {
       const adjusterProfile = adjusterProfilesByFirmUserId.get(user.user_id);
       const publicProfile = publicProfilesById.get(user.user_id);
-      const name =
-        normalizeString(user.full_name) ||
-        normalizeString(publicProfile?.full_name) ||
-        normalizeString(publicProfile?.email) ||
-        'Adjuster';
+      const name = getDisplayName(user, publicProfile?.email);
       const homeBase = parseHomeBase(adjusterProfile?.home_bases);
       const maxClaims = adjusterProfile?.max_active_claims ?? 10;
       const activeClaims = claimsByAdjuster.get(user.user_id) ?? 0;
@@ -381,11 +413,11 @@ export async function getAdjustersForDispatch(firmId: string): Promise<DispatchA
       return {
         id: user.user_id,
         name,
-        initials: getInitials(name),
+        initials: getInitials(user.first_name, user.last_name, user.full_name, publicProfile?.email),
         location: getLocationLabel(homeBase),
         activeClaims,
         maxClaims,
-        availability: getAvailability(activeClaims, maxClaims, homeBase),
+        availability: adjusterProfile?.availability ?? 'remote',
         approvedCarriers: (adjusterProfile?.approved_carriers ?? []).map((carrierId) => carrierNamesById.get(carrierId) ?? carrierId),
         approvedClaimTypes: adjusterProfile?.approved_claim_types ?? [],
         certifications: adjusterProfile?.certifications ?? [],

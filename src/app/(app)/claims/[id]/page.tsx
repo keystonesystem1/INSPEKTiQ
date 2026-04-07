@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getClaimById } from '@/lib/supabase/claims';
-import { getAdjusters } from '@/lib/supabase/adjusters';
+import { getAdjusterOptions } from '@/lib/supabase/adjusters';
 import { getClaimDocuments } from '@/lib/supabase/documents';
 import { getInspectionData } from '@/lib/supabase/inspections';
 import { getClaimNotes } from '@/lib/supabase/notes';
@@ -27,7 +27,7 @@ export default async function ClaimDetailPage({
   const { id } = await params;
   const { id: userId, role, firmId } = await requireAuthenticatedFirmUser();
   const claim = await getClaimById(id, firmId, role, userId);
-  const adjusters = await getAdjusters(firmId);
+  const adjusters = await getAdjusterOptions(firmId);
   const documents = await getClaimDocuments(id);
   const inspection = await getInspectionData(id);
   const notes = await getClaimNotes(id);

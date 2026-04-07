@@ -169,6 +169,54 @@ export interface DispatchAdjuster {
   homeLng: number | null;
 }
 
+export interface AdjusterHomeBase {
+  name: string;
+  city: string;
+  state: string;
+  zip: string;
+  lat: number | null;
+  lng: number | null;
+  isPrimary: boolean;
+}
+
+export interface AdjusterRow {
+  userId: string;
+  firmUserId: string;
+  firstName: string | null;
+  lastName: string | null;
+  fullName: string | null;
+  displayName: string;
+  initials: string;
+  email: string;
+  isActive: boolean;
+  role: string;
+  invitedAt: string | null;
+  joinedAt: string | null;
+  maxActiveClaims: number;
+  certifications: string[];
+  approvedClaimTypes: string[];
+  approvedCarriers: string[];
+  homeBases: AdjusterHomeBase[];
+  availability: 'available' | 'busy' | 'remote' | 'on_leave';
+  activeClaims: number;
+  profileComplete: boolean;
+}
+
+export interface AdjusterProfileUpdate {
+  maxActiveClaims: number;
+  certifications: string[];
+  approvedClaimTypes: string[];
+  approvedCarriers: string[];
+  homeBases: AdjusterHomeBase[];
+  availability: 'available' | 'busy' | 'remote' | 'on_leave';
+}
+
+export interface AdjusterUserUpdate {
+  firstName: string;
+  lastName: string;
+  isActive: boolean;
+}
+
 export interface AdjusterProfile {
   id: string;
   name: string;
