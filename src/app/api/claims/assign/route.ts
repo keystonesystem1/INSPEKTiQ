@@ -45,14 +45,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Adjuster not found' }, { status: 400 });
   }
 
-  if (body.overrideReason?.trim()) {
-    console.log('Claim assignment override reason:', {
-      adjusterId: body.adjusterId,
-      claimIds,
-      overrideReason: body.overrideReason.trim(),
-    });
-  }
-
   const nextTimestamp = new Date().toISOString();
   const { error } = await supabase
     .from('claims')

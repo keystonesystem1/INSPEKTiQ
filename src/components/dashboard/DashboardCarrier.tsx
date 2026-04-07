@@ -1,31 +1,21 @@
 import { Card } from '@/components/ui/Card';
 import { StatCard } from '@/components/ui/StatCard';
-import { Badge } from '@/components/ui/Badge';
-import { buildDashboardData, demoClaims } from '@/lib/utils/demo-data';
 
 export function DashboardCarrier() {
-  const data = buildDashboardData('carrier');
-
   return (
     <div style={{ display: 'grid', gap: '24px' }}>
       <div>
-        <h1 style={{ margin: 0, fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '26px' }}>{data.greeting}</h1>
-        <p style={{ margin: '6px 0 0', color: 'var(--muted)' }}>{data.subtitle}</p>
+        <h1 style={{ margin: 0, fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '26px' }}>Carrier Dashboard</h1>
+        <p style={{ margin: '6px 0 0', color: 'var(--muted)' }}>Your daily brief.</p>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '12px' }}>
-        {data.stats.map((stat) => <StatCard key={stat.id} label={stat.label} value={stat.value} accent={stat.accent} />)}
+        <StatCard label="Open Claims" value="0" accent="var(--blue)" />
+        <StatCard label="Reports Ready" value="0" accent="var(--sage)" />
+        <StatCard label="Pending Inspection" value="0" accent="var(--border-hi)" />
       </div>
       <Card>
         <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '14px' }}>Claim Status</div>
-        {demoClaims.map((claim) => (
-          <div key={claim.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
-            <div>
-              <div>{claim.insured}</div>
-              <div style={{ color: 'var(--muted)', fontSize: '11px' }}>{claim.number} · {claim.address}</div>
-            </div>
-            <Badge tone="blue">{claim.status.replace('_', ' ')}</Badge>
-          </div>
-        ))}
+        <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--muted)' }}>No claims yet.</div>
       </Card>
     </div>
   );

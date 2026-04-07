@@ -73,7 +73,7 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
     .eq('claim_id', claimId);
 
   if (photosError) {
-    console.error('getClaimDocuments photos error:', photosError);
+    throw new Error(`getClaimDocuments photos error: ${photosError.message}`);
   }
 
   const validPhotoRows = ((photoRows ?? []) as PhotoRow[]).filter(
@@ -105,7 +105,7 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
     .list('', { limit: 100 });
 
   if (rootFoldersError) {
-    console.error('getClaimDocuments generated-reports root error:', rootFoldersError);
+    throw new Error(`getClaimDocuments generated-reports list error: ${rootFoldersError.message}`);
   }
 
   const reports: ClaimReportDocument[] = [];
@@ -137,7 +137,7 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
     .list('', { limit: 100 });
 
   if (claimDocumentRootError) {
-    console.error('getClaimDocuments claim-documents root error:', claimDocumentRootError);
+    throw new Error(`getClaimDocuments claim-documents list error: ${claimDocumentRootError.message}`);
   }
 
   for (const folder of claimDocumentRootFolders ?? []) {
@@ -147,8 +147,7 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
         .list(`uploads/${claimId}`, { limit: 100 });
 
       if (uploadsError) {
-        console.error('getClaimDocuments claim-documents uploads error:', uploadsError);
-        continue;
+        throw new Error(`getClaimDocuments uploads list error: ${uploadsError.message}`);
       }
 
       for (const uploadFolder of uploadFolders ?? []) {
@@ -176,8 +175,7 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
       .list(`${folder.name}/${claimId}`, { limit: 100 });
 
     if (claimFilesError) {
-      console.error('getClaimDocuments claim-documents user folder error:', claimFilesError);
-      continue;
+      throw new Error(`getClaimDocuments user folder list error: ${claimFilesError.message}`);
     }
 
     for (const file of claimFiles ?? []) {

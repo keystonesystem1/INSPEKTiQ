@@ -34,8 +34,7 @@ export async function getClaimNotes(claimId: string): Promise<NoteItem[]> {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('getClaimNotes error:', error);
-    return [];
+    throw new Error(`getClaimNotes error: ${error.message}`);
   }
 
   const notes = (data ?? []) as ClaimNoteRow[];
@@ -49,7 +48,7 @@ export async function getClaimNotes(claimId: string): Promise<NoteItem[]> {
     .in('id', authorIds);
 
   if (firmUsersError) {
-    console.error('getClaimNotes firmUsers error:', firmUsersError);
+    throw new Error(`getClaimNotes firmUsers error: ${firmUsersError.message}`);
   }
 
   const firmUsersById = new Map(

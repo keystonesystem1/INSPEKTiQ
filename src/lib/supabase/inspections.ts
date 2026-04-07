@@ -32,7 +32,7 @@ export async function getInspectionData(claimId: string): Promise<ClaimInspectio
     .maybeSingle<InspectionRow>();
 
   if (inspectionError) {
-    console.error('getInspectionData inspection error:', inspectionError);
+    throw new Error(`getInspectionData inspection error: ${inspectionError.message}`);
   }
 
   const { data: photoRows, error: photoError } = await supabase
@@ -42,7 +42,7 @@ export async function getInspectionData(claimId: string): Promise<ClaimInspectio
     .order('taken_at', { ascending: true });
 
   if (photoError) {
-    console.error('getInspectionData photos error:', photoError);
+    throw new Error(`getInspectionData photos error: ${photoError.message}`);
   }
 
   const photoTimestamps = ((photoRows ?? []) as PhotoTimestampRow[])

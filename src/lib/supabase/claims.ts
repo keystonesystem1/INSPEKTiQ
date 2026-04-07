@@ -86,7 +86,7 @@ export async function getClaims(
   }
 
   const { data, error } = await query;
-  if (error) console.error('getClaims error:', error);
+  if (error) throw new Error(`getClaims error: ${error.message}`);
   const claims = (data ?? []) as RawClaim[];
   const usersById = await getUserEmailsById(
     claims

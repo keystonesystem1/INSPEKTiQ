@@ -61,12 +61,6 @@ export async function POST(
     .maybeSingle<FirmUserRow>();
 
   if (firmUserError || !firmUserRow) {
-    console.error('share route firm user lookup failed:', {
-      firmUserError,
-      authUserId: firmUser.id,
-      firmId: firmUser.firmId,
-      firmUserRow,
-    });
     return NextResponse.json({ error: 'Unable to resolve sharing user' }, { status: 500 });
   }
 
@@ -78,12 +72,6 @@ export async function POST(
     .maybeSingle<ClaimRow>();
 
   if (claimError || !claim) {
-    console.error('share route claim lookup failed:', {
-      claimError,
-      claimId,
-      firmId: firmUser.firmId,
-      claim,
-    });
     return NextResponse.json({ error: 'Claim not found' }, { status: 404 });
   }
 
@@ -103,13 +91,6 @@ export async function POST(
     });
 
   if (shareError) {
-    console.error('share route claim_shares insert failed:', {
-      shareError,
-      claimId,
-      createdBy: firmUserRow.id,
-      recipientEmail,
-      validPaths,
-    });
     return NextResponse.json({ error: shareError.message }, { status: 500 });
   }
 
@@ -138,8 +119,7 @@ Powered by Keystone Stack`,
         },
       },
     });
-  } catch (error) {
-    console.error('share route sendgrid send failed:', error);
+  } catch {
     return NextResponse.json({ error: 'Unable to send share email' }, { status: 500 });
   }
 
