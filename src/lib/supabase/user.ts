@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 
 interface FirmUserRecord {
+  id: string;
   role: Role;
   firm_id: string;
   full_name: string | null;
@@ -34,7 +35,7 @@ export async function getAuthenticatedFirmUser(): Promise<AuthenticatedFirmUser 
 
   const { data: firmUser } = await supabase
     .from('firm_users')
-    .select('role, firm_id, full_name')
+    .select('id, role, firm_id, full_name')
     .eq('user_id', user.id)
     .single<FirmUserRecord>();
 
@@ -49,22 +50,23 @@ export async function getAuthenticatedFirmUser(): Promise<AuthenticatedFirmUser 
     .single<FirmRecord>();
 
   // Lazily create adjuster_profiles row on first login. We cannot create
-  // it at invite time because the invited user does not exist in auth.users
-  // until they accept the invite, and adjuster_profiles.user_id has an FK
-  // to auth.users.
+  // it at invite time because the firm_users row is not created until the
+  // invited user accepts the invite (firm_users.id is the FK target).
+  // adjuster_profiles.user_id references firm_users.id (NOT auth.users.id),
+  // so we use firmUser.id here, not user.id.
   if (firmUser.role === 'adjuster') {
     const admin = createAdminClient();
     const { data: existing } = await admin
       .from('adjuster_profiles')
       .select('id')
       .eq('firm_id', firmUser.firm_id)
-      .eq('user_id', user.id)
+      .eq('user_id', firmUser.id)
       .maybeSingle<{ id: string }>();
     if (!existing) {
       const nowIso = new Date().toISOString();
       await admin.from('adjuster_profiles').insert({
         firm_id: firmUser.firm_id,
-        user_id: user.id,
+        user_id: firmUser.id,
         max_active_claims: 10,
         certifications: [],
         approved_claim_types: [],

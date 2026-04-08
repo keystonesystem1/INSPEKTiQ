@@ -404,7 +404,9 @@ export async function getAdjustersForDispatch(firmId: string): Promise<DispatchA
   return typedFirmUsers
     .filter((user): user is RawFirmUserRow & { user_id: string } => Boolean(user.user_id))
     .map((user) => {
-      const adjusterProfile = adjusterProfilesByFirmUserId.get(user.user_id);
+      // adjuster_profiles.user_id has an FK to firm_users.id (NOT auth.users.id),
+      // so we look up profiles by the firm_users.id, not the auth user id.
+      const adjusterProfile = adjusterProfilesByFirmUserId.get(user.id);
       const publicProfile = publicProfilesById.get(user.user_id);
       const name = getDisplayName(user, publicProfile?.email);
       const homeBase = parseHomeBase(adjusterProfile?.home_bases);

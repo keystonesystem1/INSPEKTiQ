@@ -314,7 +314,9 @@ export async function getAdjusters(firmId: string): Promise<AdjusterRow[]> {
     .map((user) =>
       mapAdjusterRow(
         user,
-        profileByUserId.get(user.user_id),
+        // adjuster_profiles.user_id has an FK to firm_users.id (NOT auth.users.id),
+        // so we look up profiles by the firm_users.id, not the auth user id.
+        profileByUserId.get(user.id),
         emailsByUserId.get(user.user_id) ?? '',
         activeClaimsByUserId.get(user.user_id) ?? 0,
       ),
@@ -332,11 +334,31 @@ export async function updateAdjusterProfile(
   updates: Partial<AdjusterProfileUpdate>,
 ): Promise<void> {
   const supabase = createAdminClient();
+
+  // adjuster_profiles.user_id has an FK to firm_users.id (NOT auth.users.id).
+  // The `userId` parameter is the auth user id, so we must first resolve the
+  // firm_users.id for this auth user within the firm, and use THAT as the
+  // value for adjuster_profiles.user_id.
+  const { data: firmUserRow, error: firmUserError } = await supabase
+    .from('firm_users')
+    .select('id')
+    .eq('firm_id', firmId)
+    .eq('user_id', userId)
+    .maybeSingle<{ id: string }>();
+
+  if (firmUserError) {
+    throw new Error(firmUserError.message);
+  }
+  if (!firmUserRow?.id) {
+    throw new Error('Adjuster not found in firm');
+  }
+  const firmUserId = firmUserRow.id;
+
   const { data: existingProfile, error: existingProfileError } = await supabase
     .from('adjuster_profiles')
     .select('id, max_active_claims, certifications, approved_claim_types, approved_carriers, home_bases, availability')
     .eq('firm_id', firmId)
-    .eq('user_id', userId)
+    .eq('user_id', firmUserId)
     .maybeSingle<RawAdjusterProfileRow & { id: string }>();
 
   if (existingProfileError) {
@@ -346,7 +368,7 @@ export async function updateAdjusterProfile(
   const nowIso = new Date().toISOString();
   const nextProfile = {
     firm_id: firmId,
-    user_id: userId,
+    user_id: firmUserId,
     max_active_claims: updates.maxActiveClaims ?? existingProfile?.max_active_claims ?? 10,
     certifications: updates.certifications ?? existingProfile?.certifications ?? [],
     approved_claim_types: updates.approvedClaimTypes ?? existingProfile?.approved_claim_types ?? [],
