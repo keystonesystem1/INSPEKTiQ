@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { createClient } from '@/lib/supabase/client';
 
-type Status = 'loading' | 'ready' | 'expired' | 'submitting' | 'done' | 'error';
+type Status = 'loading' | 'ready' | 'submitting' | 'done';
 
 export default function AcceptInvitePage() {
   const [status, setStatus] = useState<Status>('loading');
@@ -19,46 +19,34 @@ export default function AcceptInvitePage() {
 
   useEffect(() => {
     const supabase = createClient();
-    let resolved = false;
 
-    // The Supabase JS client auto-detects the access_token in the URL hash
-    // and exchanges it for a session. Listen for the resulting auth event.
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (resolved) return;
-      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'PASSWORD_RECOVERY') {
-        if (session?.user?.email) {
-          resolved = true;
-          setEmail(session.user.email);
-          setStatus('ready');
-        }
+    // Supabase auto-exchanges the hash token on load. Listen for the resulting
+    // session event, and also poll getSession() once in case it already fired.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'PASSWORD_RECOVERY') && session?.user?.email) {
+        setEmail(session.user.email);
+        setStatus('ready');
       }
     });
 
-    // Fallback: also try to read the session directly in case the event already fired.
     void supabase.auth.getSession().then(({ data }) => {
-      if (resolved) return;
       if (data.session?.user?.email) {
-        resolved = true;
         setEmail(data.session.user.email);
         setStatus('ready');
       }
     });
 
-    // If neither path yields a session within a few seconds, treat as expired/invalid.
-    const timeoutId = window.setTimeout(() => {
-      if (!resolved) {
-        setStatus('expired');
-      }
-    }, 4000);
-
-    return () => {
-      listener.subscription.unsubscribe();
-      window.clearTimeout(timeoutId);
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   async function handleSubmit() {
     setError(null);
+    if (status !== 'ready') {
+      setError('This invite link has expired. Please ask your firm admin to resend your invitation.');
+      return;
+    }
     if (password.length < 8) {
       setError('Password must be at least 8 characters.');
       return;
@@ -143,16 +131,10 @@ export default function AcceptInvitePage() {
         </div>
 
         {status === 'loading' ? (
-          <p style={{ margin: 0, color: 'var(--muted)' }}>Verifying your invitation...</p>
+          <p style={{ margin: 0, color: 'var(--muted)' }}>Setting up your account...</p>
         ) : null}
 
-        {status === 'expired' ? (
-          <p style={{ margin: 0, color: 'var(--red)', fontSize: '13px' }}>
-            This invite link has expired. Please ask your firm admin to resend your invitation.
-          </p>
-        ) : null}
-
-        {status === 'ready' || status === 'submitting' || status === 'error' ? (
+        {status === 'ready' || status === 'submitting' ? (
           <>
             <div style={{ display: 'grid', gap: '14px' }}>
               <label style={{ display: 'grid', gap: '5px' }}>
