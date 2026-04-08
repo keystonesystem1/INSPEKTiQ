@@ -35,6 +35,7 @@ export async function POST(request: Request) {
   const supabase = createAdminClient();
 
   const { data: invited, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`,
     data: { role: 'adjuster', firm_id: firmUser.firmId },
   });
 

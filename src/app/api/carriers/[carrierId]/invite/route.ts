@@ -56,6 +56,7 @@ export async function POST(
   }
 
   const { data: invited, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(targetEmail, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`,
     data: { role: targetRole, firm_id: firmUser.firmId, carrier_id: carrier.id },
   });
 

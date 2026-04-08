@@ -64,7 +64,10 @@ export async function POST(request: Request) {
       const supabase = createAdminClient();
       const { data: invited, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
         body.contactEmail.trim(),
-        { data: { role: 'carrier_admin', firm_id: firmUser.firmId, carrier_id: carrier.id } },
+        {
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`,
+          data: { role: 'carrier_admin', firm_id: firmUser.firmId, carrier_id: carrier.id },
+        },
       );
       if (inviteError) {
         return NextResponse.json(
