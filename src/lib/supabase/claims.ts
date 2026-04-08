@@ -64,6 +64,23 @@ function mapClaimRow(raw: RawClaim, adjusterEmail?: string): Claim {
   };
 }
 
+async function getCarrierNameForUser(firmId: string, userId: string): Promise<string | null> {
+  const supabase = await createClient();
+  const { data: firmUser } = await supabase
+    .from('firm_users')
+    .select('carrier_id')
+    .eq('firm_id', firmId)
+    .eq('user_id', userId)
+    .maybeSingle<{ carrier_id: string | null }>();
+  if (!firmUser?.carrier_id) return null;
+  const { data: carrier } = await supabase
+    .from('carriers')
+    .select('name')
+    .eq('id', firmUser.carrier_id)
+    .maybeSingle<{ name: string }>();
+  return carrier?.name ?? null;
+}
+
 export async function getClaims(
   firmId: string,
   role: Role,
@@ -81,8 +98,13 @@ export async function getClaims(
     .eq('is_archived', archived)
     .order('created_at', { ascending: false });
 
-  if (role === 'adjuster') {
+  if (role === 'adjuster' || role === 'carrier_desk_adjuster') {
     query = query.eq('assigned_user_id', userId);
+  } else if (role === 'carrier_admin') {
+    const carrierName = await getCarrierNameForUser(firmId, userId);
+    if (!carrierName) return [];
+    // TODO: claims.carrier is a text column — fragile name match. Phase 5: add claims.carrier_id FK.
+    query = query.eq('carrier', carrierName);
   }
 
   const { data, error } = await query;
@@ -115,8 +137,12 @@ export async function getClaimById(
     .eq('firm_id', firmId)
     .eq('is_archived', false);
 
-  if (role === 'adjuster') {
+  if (role === 'adjuster' || role === 'carrier_desk_adjuster') {
     query = query.eq('assigned_user_id', userId);
+  } else if (role === 'carrier_admin') {
+    const carrierName = await getCarrierNameForUser(firmId, userId);
+    if (!carrierName) return null;
+    query = query.eq('carrier', carrierName);
   }
 
   const { data, error } = await query.single();

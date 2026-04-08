@@ -13,6 +13,14 @@ Add an entry any time a known gap, workaround, or deferred feature is introduced
 - **Resolution:** Add `is_active` boolean column to `carriers` table. Filter on `is_active = true` in `getCarriersForFirm()`.
 - **Deferred to:** Phase 5
 
+### claims.carrier — text match instead of FK
+- **Discovered:** Phase 4, Clients/Carriers build
+- **Files affected:** `src/lib/supabase/claims.ts`, `src/lib/supabase/carriers.ts`
+- **Issue:** `claims.carrier` is a free-text column. `carrier_admin` portal filtering and per-carrier claim counts on the Clients roster match by `claims.carrier === carriers.name`. If a carrier is renamed, historical claims become orphaned from their carrier record.
+- **Resolution:** Add `claims.carrier_id uuid` FK to `carriers.id` in a Phase 5 schema migration. Backfill from the existing text column. Update queries to filter on `carrier_id`.
+- **Deferred to:** Phase 5
+- **Code marker:** `// TODO: claims.carrier is a text column — fragile name match. Phase 5: add claims.carrier_id FK.`
+
 ### claim_category — not in live schema
 - **Discovered:** Phase 4, Step 2
 - **Files affected:** `src/lib/supabase/dispatch.ts`, `src/lib/types/index.ts`
@@ -62,6 +70,34 @@ Add an entry any time a known gap, workaround, or deferred feature is introduced
 - **Files affected:** `src/components/billing/BillingTable.tsx`
 - **Issue:** Billing table shows empty state only. No billing data model or real queries built yet.
 - **Resolution:** Build billing data model and UI in Phase 5.
+- **Deferred to:** Phase 5
+
+### Carrier portal invite_status — no auto-flip on signup
+- **Discovered:** Phase 4, Clients/Carriers build
+- **Files affected:** `src/app/api/carriers/[carrierId]/invite/route.ts`, `src/lib/supabase/carriers.ts`
+- **Issue:** When a `carrier_admin` or `carrier_desk_adjuster` accepts the Supabase auth invite and completes signup, `carriers.invite_status` and `firm_users.joined_at` are not automatically updated. Portal users will continue to display as "Pending" indefinitely until manually flipped.
+- **Resolution:** Add a Supabase auth webhook (or database trigger on `auth.users` confirm) that, on signup completion, looks up the matching `firm_users` row by `user_id`, sets `joined_at`, and updates the linked `carriers.invite_status` to `'accepted'`.
+- **Deferred to:** Phase 5
+
+### AddressField component — duplicated location
+- **Discovered:** Phase 4, Clients/Carriers build
+- **Files affected:** `src/components/clients/NewClientModal.tsx` (defines and exports), `src/components/clients/ClientProfile.tsx` (consumes), `src/components/adjusters/AdjusterProfile.tsx` (separate inline copy)
+- **Issue:** `AddressField` is currently exported from `NewClientModal.tsx` and reused by `ClientProfile.tsx`. The adjuster home base form has its own near-identical inline version (`HomeBaseAddressField`). Three Mapbox autocomplete implementations exist with the same parser/debouncer/UI.
+- **Resolution:** Extract a single `src/components/ui/AddressField.tsx` component used by all consumers. Move `parseSuggestionContext` to a shared util.
+- **Deferred to:** Phase 5
+
+### `?carrier=` query param on /claims — not honored
+- **Discovered:** Phase 4, Clients/Carriers build
+- **Files affected:** `src/app/(app)/claims/page.tsx`, `src/components/claims/ClaimsList.tsx`
+- **Issue:** The "View all claims →" link from the Client Profile page links to `/claims?carrier=<encoded carrier name>`, but the claims page does not read or apply that param. Click-through currently shows all claims, not just the selected carrier's.
+- **Resolution:** Read `searchParams.carrier` in `claims/page.tsx`, filter the fetched list (or pass to `ClaimsList` for client-side filter). Show an "Filtered by carrier: X · Clear" pill at the top of the list.
+- **Deferred to:** Phase 5
+
+### inviteUserByEmail — no fallback when user already exists
+- **Discovered:** Phase 4, Clients/Carriers build
+- **Files affected:** `src/app/api/carriers/route.ts`, `src/app/api/carriers/[carrierId]/invite/route.ts`
+- **Issue:** `supabase.auth.admin.inviteUserByEmail()` errors if a user with the target email already exists in `auth.users`. The current resend flow assumes a fresh invite path and will fail for users mid-flow.
+- **Resolution:** On `inviteUserByEmail` error matching "already registered", fall back to `supabase.auth.admin.generateLink({ type: 'magiclink', email })` and email the link manually (or via SendGrid using the existing share-route pattern).
 - **Deferred to:** Phase 5
 
 ### Role dashboards — partial empty states

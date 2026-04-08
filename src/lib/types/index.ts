@@ -4,7 +4,70 @@ export type Role =
   | 'examiner'
   | 'dispatcher'
   | 'adjuster'
-  | 'carrier';
+  | 'carrier'
+  | 'carrier_admin'
+  | 'carrier_desk_adjuster';
+
+export interface CarrierPortalUser {
+  userId: string;
+  firmUserId: string;
+  name: string | null;
+  email: string;
+  role: 'carrier_admin' | 'carrier_desk_adjuster';
+  inviteStatus: 'pending' | 'accepted';
+}
+
+export interface CarrierRow {
+  id: string;
+  firmId: string;
+  name: string;
+  contactName: string | null;
+  contactEmail: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  billingPreference: 'desk_adjuster' | 'billing_contact';
+  billingContactName: string | null;
+  billingContactEmail: string | null;
+  billingAddress: string | null;
+  billingCity: string | null;
+  billingState: string | null;
+  billingZip: string | null;
+  portalEnabled: boolean;
+  inviteStatus: 'not_invited' | 'pending' | 'accepted';
+  logoUrl: string | null;
+  notes: string | null;
+  guidelinesUrl: string | null;
+  guidelinesNotes: string | null;
+  isActive: boolean;
+  createdAt: string;
+  activeClaims: number;
+  totalClaims: number;
+  portalUsers: CarrierPortalUser[];
+}
+
+export interface CarrierCreate {
+  name: string;
+  contactName: string;
+  contactEmail: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  billingPreference: 'desk_adjuster' | 'billing_contact';
+  billingContactName?: string;
+  billingContactEmail?: string;
+  billingAddress?: string;
+  billingCity?: string;
+  billingState?: string;
+  billingZip?: string;
+  notes?: string;
+  guidelinesUrl?: string;
+  guidelinesNotes?: string;
+}
 
 export type ClaimStatus =
   | 'received'

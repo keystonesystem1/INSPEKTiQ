@@ -9,6 +9,8 @@ export const ROLE_TABS: Record<Role, string[]> = {
   dispatcher: ['dashboard', 'claims', 'dispatch', 'calendar'],
   adjuster: ['dashboard', 'claims', 'calendar'],
   carrier: ['dashboard', 'claims'],
+  carrier_admin: ['dashboard', 'claims'],
+  carrier_desk_adjuster: ['dashboard', 'claims'],
 };
 
 export const canCreateClaims = (role: Role) => ['firm_admin', 'dispatcher', 'super_admin'].includes(role);

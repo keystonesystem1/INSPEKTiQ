@@ -24,7 +24,8 @@ export function NotesTab({ notes, role, claimId }: { notes: NoteItem[]; role: Ro
   const [isPending, startTransition] = useTransition();
 
   const visibleNotes = useMemo(() => {
-    const roleFiltered = notes.filter((note) => (role === 'carrier' ? note.type === 'shared' : true));
+    const isCarrierRole = role === 'carrier' || role === 'carrier_admin' || role === 'carrier_desk_adjuster';
+    const roleFiltered = notes.filter((note) => (isCarrierRole ? note.type === 'shared' : true));
 
     if (filter === 'all') {
       return roleFiltered;
@@ -67,7 +68,7 @@ export function NotesTab({ notes, role, claimId }: { notes: NoteItem[]; role: Ro
           <div style={{ color: 'var(--muted)' }}>{note.content}</div>
         </div>
       ))}
-      {role !== 'carrier' ? (
+      {role !== 'carrier' && role !== 'carrier_admin' && role !== 'carrier_desk_adjuster' ? (
         <div style={{ marginTop: '14px', padding: '12px 14px', borderRadius: '8px', background: 'var(--surface)', border: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', gap: '4px', marginBottom: '10px' }}>
             <button
