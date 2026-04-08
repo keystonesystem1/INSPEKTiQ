@@ -21,7 +21,12 @@ export async function POST(request: Request) {
   const firstName = body.firstName?.trim();
   const lastName = body.lastName?.trim();
   const email = body.email?.trim();
-  const maxActiveClaims = Number.isFinite(body.maxActiveClaims) && (body.maxActiveClaims ?? 0) > 0 ? body.maxActiveClaims! : 10;
+  // Note: body.maxActiveClaims is intentionally ignored. We cannot create
+  // an adjuster_profiles row at invite time because the invited user does
+  // not yet exist in auth.users (Supabase only creates the auth user on
+  // signup completion), and adjuster_profiles.user_id has an FK to auth.users.
+  // The adjuster_profiles row is created lazily on first login in
+  // requireAuthenticatedFirmUser() with default max_active_claims = 10.
 
   if (!firstName || !lastName || !email) {
     return NextResponse.json({ error: 'First name, last name, and email are required.' }, { status: 400 });
@@ -58,23 +63,6 @@ export async function POST(request: Request) {
 
   if (firmUserError) {
     return NextResponse.json({ error: `Invite sent, but firm_users insert failed: ${firmUserError.message}` }, { status: 500 });
-  }
-
-  const { error: profileError } = await supabase.from('adjuster_profiles').insert({
-    firm_id: firmUser.firmId,
-    user_id: invitedUserId,
-    max_active_claims: maxActiveClaims,
-    certifications: [],
-    approved_claim_types: [],
-    approved_carriers: [],
-    home_bases: [],
-    availability: 'available',
-    created_at: nowIso,
-    updated_at: nowIso,
-  });
-
-  if (profileError) {
-    return NextResponse.json({ error: `Invite sent, firm_user created, but adjuster_profiles insert failed: ${profileError.message}` }, { status: 500 });
   }
 
   revalidatePath('/adjusters');
