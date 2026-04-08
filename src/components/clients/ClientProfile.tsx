@@ -104,6 +104,9 @@ export function ClientProfile({ carrier }: { carrier: CarrierRow }) {
   }, [toast]);
 
   async function handleSave() {
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setSaving(true);
     setError(null);
     try {

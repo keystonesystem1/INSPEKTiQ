@@ -57,8 +57,16 @@ export function AddressField({
   const [suggestions, setSuggestions] = useState<MapboxSuggestion[]>([]);
   const [open, setOpen] = useState(false);
   const requestSequenceRef = useRef(0);
+  const justSelectedRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (justSelectedRef.current) {
+      justSelectedRef.current = false;
+      setSuggestions([]);
+      setOpen(false);
+      return;
+    }
     const query = value.trim();
     const accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
     if (!accessToken || query.length < 3) {
@@ -109,6 +117,7 @@ export function AddressField({
     <label style={{ display: 'grid', gap: '5px', position: 'relative' }}>
       <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>{label}</span>
       <input
+        ref={inputRef}
         value={value}
         onChange={(event) => {
           onChange(event.target.value);
@@ -127,13 +136,16 @@ export function AddressField({
               type="button"
               onMouseDown={(event) => {
                 event.preventDefault();
+                justSelectedRef.current = true;
                 onSelect({
                   address: suggestion.formattedAddress,
                   city: suggestion.city,
                   state: suggestion.state,
                   zip: suggestion.zip,
                 });
+                setSuggestions([]);
                 setOpen(false);
+                inputRef.current?.blur();
               }}
               style={{ width: '100%', textAlign: 'left', padding: '10px 12px', border: 'none', borderTop: '1px solid var(--border)', background: 'transparent', color: 'var(--white)', cursor: 'pointer' }}
             >
@@ -263,6 +275,9 @@ export function NewClientModal({
     if (!name.trim() || !contactName.trim() || !contactEmail.trim()) {
       setError('Company name, contact name, and contact email are required.');
       return;
+    }
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
     }
     setSaving(true);
     setError(null);

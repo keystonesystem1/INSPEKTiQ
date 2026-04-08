@@ -125,9 +125,19 @@ function HomeBaseAddressField({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const requestSequenceRef = useRef(0);
+  const justSelectedRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (disabled) {
+      setSuggestions([]);
+      setOpen(false);
+      return;
+    }
+
+    if (justSelectedRef.current) {
+      // Skip refetch when value change came from selecting a suggestion.
+      justSelectedRef.current = false;
       setSuggestions([]);
       setOpen(false);
       return;
@@ -227,6 +237,7 @@ function HomeBaseAddressField({
         Address
       </span>
       <input
+        ref={inputRef}
         value={value}
         onChange={(event) => {
           onChange(event.target.value);
@@ -277,8 +288,11 @@ function HomeBaseAddressField({
               type="button"
               onMouseDown={(event) => {
                 event.preventDefault();
+                justSelectedRef.current = true;
                 onSelect(suggestion);
+                setSuggestions([]);
                 setOpen(false);
+                inputRef.current?.blur();
               }}
               style={{
                 width: '100%',
@@ -353,6 +367,11 @@ export function AdjusterProfile({
   async function handleSave() {
     if (!canEdit) {
       return;
+    }
+
+    // Blur any focused address input so its autocomplete dropdown collapses.
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
     }
 
     setSaving(true);

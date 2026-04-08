@@ -343,6 +343,7 @@ export async function updateAdjusterProfile(
     throw new Error(existingProfileError.message);
   }
 
+  const nowIso = new Date().toISOString();
   const nextProfile = {
     firm_id: firmId,
     user_id: userId,
@@ -352,17 +353,15 @@ export async function updateAdjusterProfile(
     approved_carriers: updates.approvedCarriers ?? existingProfile?.approved_carriers ?? [],
     home_bases: updates.homeBases ?? parseHomeBases(existingProfile?.home_bases),
     availability: updates.availability ?? existingProfile?.availability ?? 'remote',
-    updated_at: new Date().toISOString(),
+    created_at: nowIso,
+    updated_at: nowIso,
   };
 
-  const operation = existingProfile?.id
-    ? supabase.from('adjuster_profiles').update(nextProfile).eq('id', existingProfile.id)
-    : supabase.from('adjuster_profiles').insert({
-        ...nextProfile,
-        created_at: new Date().toISOString(),
-      });
-
-  const { error } = await operation;
+  // Upsert handles both the lazily-created (existing row) case and the
+  // legacy invited-pre-fix case where no profile row exists yet.
+  const { error } = await supabase
+    .from('adjuster_profiles')
+    .upsert(nextProfile, { onConflict: 'user_id,firm_id' });
   if (error) {
     throw new Error(error.message);
   }
