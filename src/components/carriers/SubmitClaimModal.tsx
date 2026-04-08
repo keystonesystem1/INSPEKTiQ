@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { AddressField } from '@/components/clients/NewClientModal';
 
 const LOSS_TYPES = ['Wind', 'Hail', 'Wind/Hail', 'Fire', 'Flood', 'Liability', 'Other'] as const;
+const CLAIM_TYPES = ['Residential', 'Commercial'] as const;
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
 function Field({
@@ -54,9 +55,12 @@ export function SubmitClaimModal({
   const [state, setState] = useState('');
   const [zip, setZip] = useState('');
   const [description, setDescription] = useState('');
+  const [claimType, setClaimType] = useState<(typeof CLAIM_TYPES)[number]>('Residential');
   const [files, setFiles] = useState<File[]>([]);
+  const [dragOver, setDragOver] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function reset() {
     setInsuredName('');
@@ -68,6 +72,7 @@ export function SubmitClaimModal({
     setState('');
     setZip('');
     setDescription('');
+    setClaimType('Residential');
     setFiles([]);
     setError(null);
   }
@@ -77,16 +82,27 @@ export function SubmitClaimModal({
     onClose();
   }
 
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const selected = Array.from(event.target.files ?? []);
-    const oversized = selected.find((file) => file.size > MAX_FILE_SIZE);
+  function addFiles(incoming: File[]) {
+    const oversized = incoming.find((file) => file.size > MAX_FILE_SIZE);
     if (oversized) {
       setError(`File "${oversized.name}" exceeds the 50MB limit.`);
       return;
     }
     setError(null);
-    setFiles((current) => [...current, ...selected]);
+    setFiles((current) => [...current, ...incoming]);
+  }
+
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    addFiles(Array.from(event.target.files ?? []));
     event.target.value = '';
+  }
+
+  function handleDrop(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setDragOver(false);
+    if (event.dataTransfer?.files?.length) {
+      addFiles(Array.from(event.dataTransfer.files));
+    }
   }
 
   function removeFile(index: number) {
@@ -111,6 +127,7 @@ export function SubmitClaimModal({
       formData.append('state', state.trim());
       formData.append('zip', zip.trim());
       formData.append('description', description.trim());
+      formData.append('claimType', claimType);
       files.forEach((file) => formData.append('files', file, file.name));
 
       const response = await fetch('/api/carriers/submit-claim', {
@@ -164,6 +181,37 @@ export function SubmitClaimModal({
             ))}
           </select>
         </label>
+        <div style={{ display: 'grid', gap: '5px' }}>
+          <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>Claim Type *</span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {CLAIM_TYPES.map((type) => {
+              const active = claimType === type;
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setClaimType(type)}
+                  style={{
+                    flex: 1,
+                    padding: '9px 12px',
+                    borderRadius: 'var(--radius-md)',
+                    border: active ? '1px solid rgba(91,194,115,0.25)' : '1px solid var(--border)',
+                    background: active ? 'var(--sage-dim)' : 'transparent',
+                    color: active ? 'var(--sage)' : 'var(--muted)',
+                    fontFamily: 'Barlow Condensed, sans-serif',
+                    fontWeight: 700,
+                    fontSize: '11px',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {type}
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <AddressField
           label="Loss Address"
           value={lossAddress}
@@ -184,15 +232,43 @@ export function SubmitClaimModal({
             style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '9px 12px', color: 'var(--white)', width: '100%', fontFamily: 'inherit', resize: 'vertical' }}
           />
         </label>
-        <label style={{ display: 'grid', gap: '5px' }}>
+        <div style={{ display: 'grid', gap: '5px' }}>
           <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>File Attachments (max 50MB each)</span>
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setDragOver(true);
+            }}
+            onDragOver={(event) => event.preventDefault()}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={handleDrop}
+            style={{
+              border: `2px dashed ${dragOver ? 'var(--sage)' : 'var(--border)'}`,
+              borderRadius: 'var(--radius-md)',
+              padding: '24px',
+              textAlign: 'center',
+              background: dragOver ? 'rgba(91,194,115,0.06)' : 'var(--card)',
+              cursor: 'pointer',
+              transition: 'all 120ms ease',
+            }}
+          >
+            <div style={{ fontSize: '22px', marginBottom: '6px' }}>☁︎</div>
+            <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '12px', color: 'var(--white)', letterSpacing: '0.04em' }}>
+              Drag files here or click to browse
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>
+              Any file type · 50MB per file
+            </div>
+          </div>
           <input
+            ref={fileInputRef}
             type="file"
             multiple
             onChange={handleFileChange}
-            style={{ color: 'var(--muted)', fontSize: '12px' }}
+            style={{ display: 'none' }}
           />
-        </label>
+        </div>
         {files.length > 0 ? (
           <div style={{ display: 'grid', gap: '6px' }}>
             {files.map((file, index) => (

@@ -32,6 +32,7 @@ export async function POST(request: Request) {
   const state = String(formData.get('state') ?? '').trim();
   const zip = String(formData.get('zip') ?? '').trim();
   const description = String(formData.get('description') ?? '').trim();
+  const claimType = String(formData.get('claimType') ?? '').trim();
 
   if (!insuredName || !policyNumber || !dateOfLoss) {
     return NextResponse.json({ error: 'Insured name, policy number, and date of loss are required.' }, { status: 400 });
@@ -53,10 +54,15 @@ export async function POST(request: Request) {
       firm_id: carrier.firmId,
       carrier_id: carrier.id,
       carrier: carrier.name,
+      // claims.user_id is NOT NULL — attribute the submission to the
+      // authenticated carrier portal user.
+      user_id: firmUser.id,
       insured_name: insuredName,
       policy_number: policyNumber,
       date_of_loss: dateOfLoss,
       loss_type: lossType || null,
+      // TODO: claim_category not in schema — using policy_type as holding column. See TECH_DEBT.md
+      policy_type: claimType || null,
       loss_address: lossAddress || null,
       city: city || null,
       state: state || null,
