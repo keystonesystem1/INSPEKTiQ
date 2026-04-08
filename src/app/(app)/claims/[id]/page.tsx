@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getClaimById } from '@/lib/supabase/claims';
+import { getClaimById, getClaimContactsData } from '@/lib/supabase/claims';
 import { getAdjusterOptions } from '@/lib/supabase/adjusters';
 import { getClaimDocuments } from '@/lib/supabase/documents';
 import { getInspectionData } from '@/lib/supabase/inspections';
@@ -31,6 +31,7 @@ export default async function ClaimDetailPage({
   const documents = await getClaimDocuments(id);
   const inspection = await getInspectionData(id);
   const notes = await getClaimNotes(id);
+  const contacts = await getClaimContactsData(id, firmId);
 
   if (!claim) redirect('/claims');
   const needsReview = isIntakeReviewRequired(claim);
@@ -60,7 +61,7 @@ export default async function ClaimDetailPage({
         <ClaimHeader claim={claim} role={role} adjusters={adjusters} />
         <MilestoneBar claim={claim} />
       </Card>
-      <ClaimTabs claim={claim} role={role} notes={notes} documents={documents} inspection={inspection} timeline={[]} />
+      <ClaimTabs claim={claim} role={role} notes={notes} documents={documents} inspection={inspection} timeline={[]} contacts={contacts} />
     </div>
   );
 }

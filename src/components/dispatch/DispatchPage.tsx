@@ -3,6 +3,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { AssignModal } from '@/components/dispatch/AssignModal';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import { DispatchMap } from '@/components/dispatch/DispatchMap';
 import { LassoFilters, type LassoFilterState } from '@/components/dispatch/LassoFilters';
 import { useDispatchData } from '@/hooks/useDispatchData';
@@ -94,6 +96,11 @@ export function DispatchPage({ firmId, initialAdjusters }: DispatchPageProps) {
     maxClaims: 15,
   });
 
+  const [pendingSectionOpen, setPendingSectionOpen] = useState(true);
+  const [declineModal, setDeclineModal] = useState<{ claimId: string; insured: string } | null>(null);
+  const [acceptingClaimId, setAcceptingClaimId] = useState<string | null>(null);
+  const [decliningClaim, setDecliningClaim] = useState(false);
+
   const visibleUnassignedClaims = useMemo(
     () => unassignedClaims.filter((claim) => !optimisticRemovedClaimIds.includes(claim.id)),
     [optimisticRemovedClaimIds, unassignedClaims],
@@ -102,6 +109,66 @@ export function DispatchPage({ firmId, initialAdjusters }: DispatchPageProps) {
     () => visibleUnassignedClaims.filter((claim) => filterClaim(claim, claimFilter)),
     [claimFilter, visibleUnassignedClaims],
   );
+  const pendingAcceptanceClaims = useMemo(
+    () => filteredClaims.filter((claim) => claim.status === 'pending_acceptance'),
+    [filteredClaims],
+  );
+  const unassignedOnlyClaims = useMemo(
+    () => filteredClaims.filter((claim) => claim.status !== 'pending_acceptance'),
+    [filteredClaims],
+  );
+
+  function flashToast(message: string) {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage((current) => (current === message ? null : current));
+    }, 3000);
+  }
+
+  async function handleAcceptClaim(claimId: string) {
+    setAcceptingClaimId(claimId);
+    try {
+      const response = await fetch(`/api/claims/${claimId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'received' }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.error ?? 'Unable to accept claim.');
+      }
+      flashToast('Claim accepted — ready for dispatch');
+      await refresh();
+    } catch (error) {
+      flashToast(error instanceof Error ? error.message : 'Unable to accept claim.');
+    } finally {
+      setAcceptingClaimId(null);
+    }
+  }
+
+  async function handleConfirmDecline() {
+    if (!declineModal) return;
+    setDecliningClaim(true);
+    try {
+      const response = await fetch(`/api/claims/${declineModal.claimId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'closed', declineNote: 'Claim declined by firm.' }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.error ?? 'Unable to decline claim.');
+      }
+      setOptimisticRemovedClaimIds((current) => [...new Set([...current, declineModal.claimId])]);
+      setDeclineModal(null);
+      flashToast('Claim declined. Carrier has been notified.');
+      void refresh();
+    } catch (error) {
+      flashToast(error instanceof Error ? error.message : 'Unable to decline claim.');
+    } finally {
+      setDecliningClaim(false);
+    }
+  }
   const mapClaims = useMemo(
     () => {
       const claimsById = new Map<string, DispatchClaim>();
@@ -235,11 +302,61 @@ export function DispatchPage({ firmId, initialAdjusters }: DispatchPageProps) {
     <div className="-mx-8 -my-7 h-[calc(100vh-var(--nav-h))] overflow-hidden">
       <div className="grid h-full grid-cols-[290px_minmax(0,1fr)_300px] border-y border-[var(--border)] bg-[var(--bg)]">
         <aside className="flex min-h-0 flex-col border-r border-[var(--border)] bg-[var(--surface)]">
+          {pendingAcceptanceClaims.length > 0 ? (
+            <div className="border-b border-[var(--border)] bg-[var(--card)]">
+              <button
+                type="button"
+                onClick={() => setPendingSectionOpen((value) => !value)}
+                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+              >
+                <div className="flex items-center gap-2 font-['Barlow_Condensed'] text-[13px] font-extrabold uppercase tracking-[0.1em] text-[var(--white)]">
+                  <span>{pendingSectionOpen ? '▾' : '▸'}</span>
+                  <span>Pending Acceptance</span>
+                </div>
+                <span className="rounded-sm border border-[rgba(193,132,55,0.3)] bg-[rgba(193,132,55,0.15)] px-2 py-0.5 text-[10px] text-[var(--bronze)]">
+                  {pendingAcceptanceClaims.length}
+                </span>
+              </button>
+              {pendingSectionOpen ? (
+                <div className="border-t border-[var(--border)]">
+                  {pendingAcceptanceClaims.map((claim) => (
+                    <div key={claim.id} className="border-b border-[var(--border)] px-4 py-3">
+                      <div className="mb-1 text-[13px] font-medium text-[var(--white)]">{claim.insuredName}</div>
+                      <div className="text-[11px] leading-5 text-[var(--muted)]">
+                        {claim.carrier} · {claim.lossType}
+                        <br />
+                        {claim.lossAddress || 'Address unavailable'}
+                        <br />
+                        Received {new Date(claim.receivedAt).toLocaleDateString()}
+                      </div>
+                      <div className="mt-2 flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => void handleAcceptClaim(claim.id)}
+                          disabled={acceptingClaimId === claim.id}
+                        >
+                          {acceptingClaimId === claim.id ? 'Accepting...' : 'Accept'}
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() => setDeclineModal({ claimId: claim.id, insured: claim.insuredName })}
+                          className="rounded-md border border-[var(--red)] px-3 py-1.5 font-['Barlow_Condensed'] text-[10px] font-extrabold uppercase tracking-[0.1em] text-[var(--red)] hover:bg-[rgba(224,63,63,0.08)]"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           <div className="border-b border-[var(--border)] px-4 py-3">
             <div className="flex items-center justify-between gap-3 font-['Barlow_Condensed'] text-[13px] font-extrabold uppercase tracking-[0.1em] text-[var(--white)]">
               <span>Unassigned</span>
               <span className="rounded-sm border border-[rgba(224,123,63,0.2)] bg-[var(--orange-dim)] px-2 py-0.5 text-[10px] text-[var(--orange)]">
-                {filteredClaims.length}
+                {unassignedOnlyClaims.length}
               </span>
             </div>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -276,7 +393,7 @@ export function DispatchPage({ firmId, initialAdjusters }: DispatchPageProps) {
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
-            {claimsLoading && filteredClaims.length === 0 ? (
+            {claimsLoading && unassignedOnlyClaims.length === 0 ? (
               <div className="px-4 py-5 text-[12px] text-[var(--muted)]">Loading dispatch claims...</div>
             ) : (
               <>
@@ -293,8 +410,8 @@ export function DispatchPage({ firmId, initialAdjusters }: DispatchPageProps) {
                     </button>
                   </div>
                 ) : null}
-                {filteredClaims.length > 0 ? (
-                  filteredClaims.map((claim) => {
+                {unassignedOnlyClaims.length > 0 ? (
+                  unassignedOnlyClaims.map((claim) => {
                     const selected = selectedClaimIds.includes(claim.id);
                     return (
                       <button
@@ -325,8 +442,6 @@ export function DispatchPage({ firmId, initialAdjusters }: DispatchPageProps) {
                   })
                 ) : !claimsError ? (
                   <div className="px-4 py-5 text-[12px] text-[var(--muted)]">No unassigned claims match the current filters.</div>
-                ) : visibleUnassignedClaims.length === 0 ? (
-                  <div className="px-4 py-3 text-[12px] text-[var(--muted)]">No claims were loaded yet.</div>
                 ) : (
                   <div className="px-4 py-5 text-[12px] text-[var(--muted)]">No unassigned claims match the current filters.</div>
                 )}
@@ -512,6 +627,33 @@ export function DispatchPage({ firmId, initialAdjusters }: DispatchPageProps) {
           </div>
         </aside>
       </div>
+      <Modal
+        open={Boolean(declineModal)}
+        title="Decline this claim?"
+        subtitle="This will notify the carrier that you are unable to accept this claim."
+        onClose={() => (decliningClaim ? undefined : setDeclineModal(null))}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setDeclineModal(null)} disabled={decliningClaim}>
+              Never Mind
+            </Button>
+            <button
+              type="button"
+              onClick={() => void handleConfirmDecline()}
+              disabled={decliningClaim}
+              className="rounded-md border border-[var(--red)] bg-[rgba(224,63,63,0.12)] px-4 py-2 font-['Barlow_Condensed'] text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--red)] disabled:opacity-50"
+            >
+              {decliningClaim ? 'Declining...' : 'Decline Claim'}
+            </button>
+          </>
+        }
+      >
+        {declineModal ? (
+          <p style={{ margin: 0, color: 'var(--muted)', fontSize: '13px' }}>
+            Decline the claim for <strong style={{ color: 'var(--white)' }}>{declineModal.insured}</strong>? This action cannot be undone from within INSPEKTiQ.
+          </p>
+        ) : null}
+      </Modal>
       <AssignModal
         open={assignModalOpen}
         selectedClaims={selectedClaims}

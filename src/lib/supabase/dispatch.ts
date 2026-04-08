@@ -65,6 +65,7 @@ interface HomeBase {
 }
 
 const UNASSIGNED_STATUSES = ['received'] as const;
+const DISPATCH_QUEUE_STATUSES = ['received', 'pending_acceptance'] as const;
 const ASSIGNED_BASE_STATUSES = ['assigned', 'accepted', 'contacted', 'scheduled'] as const;
 const ACTIVE_APPOINTMENT_STATUSES = ['pending', 'confirmed'] as const;
 const BUSINESS_NAME_PATTERN =
@@ -304,7 +305,7 @@ export async function getUnassignedClaims(firmId: string): Promise<DispatchClaim
     .from('claims')
     .select('id, claim_number, insured_name, loss_address, city, state, zip, carrier, loss_type, policy_type, status, received_at, created_at, loss_lat, loss_lng')
     .eq('firm_id', firmId)
-    .in('status', [...UNASSIGNED_STATUSES])
+    .in('status', [...DISPATCH_QUEUE_STATUSES])
     .order('received_at', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false });
 

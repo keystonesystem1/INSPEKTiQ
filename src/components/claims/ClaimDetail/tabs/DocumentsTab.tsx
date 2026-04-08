@@ -1,11 +1,21 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FormInput } from '@/components/ui/FormInput';
+import { SendUploadLinkModal } from '@/components/claims/ClaimDetail/SendUploadLinkModal';
 import type { ClaimDocuments } from '@/lib/supabase/documents';
 import type { Role } from '@/lib/types';
+
+const UPLOAD_LINK_ROLES = new Set<Role>([
+  'firm_admin',
+  'super_admin',
+  'dispatcher',
+  'adjuster',
+  'carrier_admin',
+  'carrier_desk_adjuster',
+]);
 
 function formatTimestamp(value?: string) {
   if (!value) {
@@ -37,7 +47,17 @@ export function DocumentsTab({
   const [recipientName, setRecipientName] = useState('');
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState('');
+  const [uploadLinkOpen, setUploadLinkOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = window.setTimeout(() => setToast(null), 4000);
+    return () => window.clearTimeout(id);
+  }, [toast]);
+
   const shareEnabled = canShareDocuments(role);
+  const uploadLinkEnabled = UPLOAD_LINK_ROLES.has(role);
   const hasSelection = selectedPaths.length > 0;
 
   const selectedSet = useMemo(() => new Set(selectedPaths), [selectedPaths]);
@@ -49,11 +69,18 @@ export function DocumentsTab({
           <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>
             Documents
           </div>
-          {shareEnabled ? (
-            <Button size="sm" disabled={!hasSelection || sending}>
-              Share Documents
-            </Button>
-          ) : null}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {uploadLinkEnabled ? (
+              <Button size="sm" variant="ghost" onClick={() => setUploadLinkOpen(true)}>
+                Send Upload Link
+              </Button>
+            ) : null}
+            {shareEnabled ? (
+              <Button size="sm" disabled={!hasSelection || sending}>
+                Share Documents
+              </Button>
+            ) : null}
+          </div>
         </div>
 
         {shareEnabled && hasSelection ? (
@@ -163,6 +190,31 @@ export function DocumentsTab({
           </div>
         ))
       )}
+      <SendUploadLinkModal
+        open={uploadLinkOpen}
+        onClose={() => setUploadLinkOpen(false)}
+        claimId={claimId}
+        onSent={(m) => setToast(m)}
+      />
+      {toast ? (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            padding: '12px 16px',
+            background: 'var(--sage-dim)',
+            color: 'var(--sage)',
+            border: '1px solid rgba(91,194,115,0.25)',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '13px',
+            zIndex: 300,
+            boxShadow: '0 12px 28px rgba(0,0,0,0.28)',
+          }}
+        >
+          {toast}
+        </div>
+      ) : null}
     </Card>
   );
 }

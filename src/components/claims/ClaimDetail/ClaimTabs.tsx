@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import type { ClaimDocuments } from '@/lib/supabase/documents';
 import type { ClaimInspectionData } from '@/lib/supabase/inspections';
-import type { Claim, NoteItem, Role, TimelineItem } from '@/lib/types';
+import type { Claim, ClaimContactsData, NoteItem, Role, TimelineItem } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { OverviewTab } from '@/components/claims/ClaimDetail/tabs/OverviewTab';
+import { ContactsTab } from '@/components/claims/ClaimDetail/tabs/ContactsTab';
 import { NotesTab } from '@/components/claims/ClaimDetail/tabs/NotesTab';
 import { DocumentsTab } from '@/components/claims/ClaimDetail/tabs/DocumentsTab';
 import { PhotosTab } from '@/components/claims/ClaimDetail/tabs/PhotosTab';
@@ -22,7 +23,7 @@ import { LinksTab } from '@/components/claims/ClaimDetail/tabs/LinksTab';
 import { TimelineTab } from '@/components/claims/ClaimDetail/tabs/TimelineTab';
 import { OverviewCustomizer } from '@/components/claims/ClaimDetail/OverviewCustomizer';
 
-const tabs = ['Overview', 'Notes', 'Documents', 'Photos', 'Inspection', 'Time & Expense', 'Tasks', 'Reserves', 'Claimants', 'Coverages', 'Loss Locations', 'Carrier Forms', 'Firm Forms', 'Links', 'Timeline'] as const;
+const tabs = ['Overview', 'Contacts', 'Notes', 'Documents', 'Photos', 'Inspection', 'Time & Expense', 'Tasks', 'Reserves', 'Claimants', 'Coverages', 'Loss Locations', 'Carrier Forms', 'Firm Forms', 'Links', 'Timeline'] as const;
 
 export function ClaimTabs({
   claim,
@@ -31,6 +32,7 @@ export function ClaimTabs({
   documents,
   inspection,
   timeline,
+  contacts,
 }: {
   claim: Claim;
   role: Role;
@@ -38,6 +40,7 @@ export function ClaimTabs({
   documents: ClaimDocuments;
   inspection: ClaimInspectionData;
   timeline: TimelineItem[];
+  contacts: ClaimContactsData;
 }) {
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('Overview');
   const [customizerOpen, setCustomizerOpen] = useState(false);
@@ -74,6 +77,7 @@ export function ClaimTabs({
 
       <div style={{ paddingTop: '20px' }}>
         {activeTab === 'Overview' ? <OverviewTab claim={claim} documentCount={documents.reports.length} /> : null}
+        {activeTab === 'Contacts' ? <ContactsTab claimId={claim.id} contacts={contacts} /> : null}
         {activeTab === 'Notes' ? <NotesTab role={role} notes={notes} claimId={claim.id} /> : null}
         {activeTab === 'Documents' ? <DocumentsTab claimId={claim.id} role={role} documents={documents} /> : null}
         {activeTab === 'Photos' ? <PhotosTab documents={documents} /> : null}

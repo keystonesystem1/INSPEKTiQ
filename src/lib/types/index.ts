@@ -8,6 +8,26 @@ export type Role =
   | 'carrier_admin'
   | 'carrier_desk_adjuster';
 
+export type ClaimContactKind = 'contractor' | 'public_adjuster' | 'other';
+
+export interface ClaimContactEntry {
+  id: string;
+  kind: ClaimContactKind;
+  label?: string;
+  name: string;
+  company?: string;
+  phone?: string;
+  email?: string;
+}
+
+export interface ClaimContactsData {
+  adjuster: { name: string; email: string; phone: string | null } | null;
+  examiner: { name: string; email: string | null } | null;
+  carrierDeskAdjusters: Array<{ firmUserId: string; name: string; email: string }>;
+  insured: { name: string; phone: string; email: string };
+  editableContacts: ClaimContactEntry[];
+}
+
 export interface CarrierPortalUser {
   userId: string;
   firmUserId: string;
@@ -70,6 +90,7 @@ export interface CarrierCreate {
 }
 
 export type ClaimStatus =
+  | 'pending_acceptance'
   | 'received'
   | 'assigned'
   | 'accepted'

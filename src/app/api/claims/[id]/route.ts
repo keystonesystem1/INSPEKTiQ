@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { geocodeAddress } from '@/lib/mapbox/geocoding';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getAuthenticatedFirmUser } from '@/lib/supabase/user';
+import type { ClaimContactEntry } from '@/lib/types';
 
 interface UpdateClaimBody {
   insuredName?: string;
@@ -18,6 +19,30 @@ interface UpdateClaimBody {
   dateOfLoss?: string;
   policyNumber?: string;
   lossDescription?: string;
+  claimContacts?: ClaimContactEntry[];
+}
+
+const VALID_CONTACT_KINDS = new Set(['contractor', 'public_adjuster', 'other']);
+
+function sanitizeContacts(input: unknown): ClaimContactEntry[] {
+  if (!Array.isArray(input)) return [];
+  return input
+    .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object')
+    .map((entry) => {
+      const kind =
+        typeof entry.kind === 'string' && VALID_CONTACT_KINDS.has(entry.kind)
+          ? (entry.kind as ClaimContactEntry['kind'])
+          : 'other';
+      return {
+        id: typeof entry.id === 'string' && entry.id ? entry.id : crypto.randomUUID(),
+        kind,
+        label: typeof entry.label === 'string' ? entry.label : undefined,
+        name: typeof entry.name === 'string' ? entry.name : '',
+        company: typeof entry.company === 'string' ? entry.company : undefined,
+        phone: typeof entry.phone === 'string' ? entry.phone : undefined,
+        email: typeof entry.email === 'string' ? entry.email : undefined,
+      } satisfies ClaimContactEntry;
+    });
 }
 
 export async function PATCH(
@@ -30,12 +55,20 @@ export async function PATCH(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!['firm_admin', 'dispatcher', 'super_admin'].includes(firmUser.role)) {
+  const body = (await request.json()) as UpdateClaimBody;
+  const { id } = await params;
+
+  // claim_contacts updates are allowed for any authenticated firm user with
+  // access to the claim (auto-populated contacts are read-only; only the
+  // editable external contacts jsonb is touched here).
+  const isContactsOnlyUpdate =
+    body.claimContacts !== undefined &&
+    Object.keys(body).every((key) => key === 'claimContacts');
+
+  if (!isContactsOnlyUpdate && !['firm_admin', 'dispatcher', 'super_admin'].includes(firmUser.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const body = (await request.json()) as UpdateClaimBody;
-  const { id } = await params;
   const supabase = createAdminClient();
   const shouldRefreshCoordinates = ['lossAddress', 'city', 'state', 'zip'].some((field) =>
     Object.prototype.hasOwnProperty.call(body, field),
@@ -68,7 +101,7 @@ export async function PATCH(
     };
   }
 
-  const update = {
+  const update: Record<string, unknown> = {
     insured_name: body.insuredName,
     insured_phone: body.phone,
     insured_email: body.email,
@@ -86,6 +119,10 @@ export async function PATCH(
     ...coordinateUpdate,
     updated_at: new Date().toISOString(),
   };
+
+  if (body.claimContacts !== undefined) {
+    update.claim_contacts = sanitizeContacts(body.claimContacts);
+  }
 
   const { data, error } = await supabase
     .from('claims')

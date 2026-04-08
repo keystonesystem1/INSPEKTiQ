@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getAuthenticatedFirmUser } from '@/lib/supabase/user';
 
 const allowedStatuses: ClaimStatus[] = [
+  'pending_acceptance',
   'received',
   'assigned',
   'accepted',
@@ -31,12 +32,12 @@ export async function PATCH(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (firmUser.role === 'carrier') {
+  if (firmUser.role === 'carrier' || firmUser.role === 'carrier_admin' || firmUser.role === 'carrier_desk_adjuster') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const { id } = await params;
-  const body = (await request.json()) as { status?: ClaimStatus };
+  const body = (await request.json()) as { status?: ClaimStatus; declineNote?: string };
 
   if (!body.status || !allowedStatuses.includes(body.status)) {
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
@@ -60,8 +61,29 @@ export async function PATCH(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Optional decline note: insert a shared note attributed to the firm user
+  // performing the status change. Used by the dispatch decline flow.
+  const declineNote = body.declineNote?.trim();
+  if (declineNote) {
+    const { data: authorRow } = await supabase
+      .from('firm_users')
+      .select('id')
+      .eq('firm_id', firmUser.firmId)
+      .eq('user_id', firmUser.id)
+      .maybeSingle<{ id: string }>();
+    if (authorRow?.id) {
+      await supabase.from('claim_notes').insert({
+        claim_id: id,
+        author_id: authorRow.id,
+        note_type: 'shared',
+        content: declineNote,
+      });
+    }
+  }
+
   revalidatePath('/claims');
   revalidatePath(`/claims/${id}`);
+  revalidatePath('/dispatch');
 
   return NextResponse.json({ success: true, claim: data });
 }

@@ -5,6 +5,7 @@ import { DashboardAdjuster } from '@/components/dashboard/DashboardAdjuster';
 import { DashboardCarrier } from '@/components/dashboard/DashboardCarrier';
 import { DashboardCarrierAdmin } from '@/components/dashboard/DashboardCarrierAdmin';
 import { DashboardCarrierDeskAdjuster } from '@/components/dashboard/DashboardCarrierDeskAdjuster';
+import { getCarrierForFirmUser } from '@/lib/supabase/carriers';
 import { getClaims } from '@/lib/supabase/claims';
 import { getDashboardStats } from '@/lib/supabase/dashboard';
 import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
@@ -18,9 +19,18 @@ export default async function DashboardPage() {
   if (role === 'carrier') return <DashboardCarrier />;
 
   if (role === 'carrier_admin') {
-    const claims = await getClaims(firmId, role, id);
-    const carrierName = claims[0]?.carrier ?? firmName;
-    return <DashboardCarrierAdmin claims={claims} carrierName={carrierName} />;
+    const [claims, carrier] = await Promise.all([
+      getClaims(firmId, role, id),
+      getCarrierForFirmUser(id),
+    ]);
+    const carrierName = carrier?.name ?? claims[0]?.carrier ?? firmName;
+    return (
+      <DashboardCarrierAdmin
+        claims={claims}
+        carrierName={carrierName}
+        intakeEmail={carrier?.intakeEmail ?? null}
+      />
+    );
   }
 
   if (role === 'carrier_desk_adjuster') {

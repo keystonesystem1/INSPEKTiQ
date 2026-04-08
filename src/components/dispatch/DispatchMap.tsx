@@ -359,6 +359,7 @@ function claimMatchesLassoFilters(claim: DispatchClaim, filters: LassoFilterStat
 }
 
 function getClaimPinBackground(claim: DispatchClaim) {
+  if (claim.status === 'pending_acceptance') return 'var(--bronze)';
   if (claim.status === 'assigned') return 'var(--bronze)';
   if (claim.status === 'needs_attention') return 'var(--red)';
   if (claim.slaDeadlineHours === null) return 'var(--sage)';
@@ -368,6 +369,7 @@ function getClaimPinBackground(claim: DispatchClaim) {
 }
 
 function getClaimSlaLabel(claim: DispatchClaim) {
+  if (claim.status === 'pending_acceptance') return 'Pending Acceptance';
   if (claim.status === 'assigned') return 'Assigned';
   if (claim.status === 'needs_attention') return 'Needs attention';
   if (claim.slaDeadlineHours === null) return 'No SLA issue';

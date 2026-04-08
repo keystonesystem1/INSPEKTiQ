@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getUserEmailsById } from '@/lib/supabase/adjusters';
-import type { Claim, ClaimStatus, Role } from '@/lib/types';
+import type { Claim, ClaimContactEntry, ClaimContactsData, ClaimStatus, Role } from '@/lib/types';
 
 interface RawClaim {
   id: string;
@@ -152,4 +153,85 @@ export async function getClaimById(
     claim.assigned_user_id ? [claim.assigned_user_id] : [],
   );
   return mapClaimRow(claim, claim.assigned_user_id ? usersById.get(claim.assigned_user_id) : undefined);
+}
+
+export async function getClaimContactsData(claimId: string, firmId: string): Promise<ClaimContactsData> {
+  const admin = createAdminClient();
+  const { data: claimRow } = await admin
+    .from('claims')
+    .select('assigned_user_id, carrier_id, insured_name, insured_phone, insured_email, examiner_name, claim_contacts')
+    .eq('id', claimId)
+    .eq('firm_id', firmId)
+    .maybeSingle<{
+      assigned_user_id: string | null;
+      carrier_id: string | null;
+      insured_name: string | null;
+      insured_phone: string | null;
+      insured_email: string | null;
+      examiner_name: string | null;
+      claim_contacts: ClaimContactEntry[] | null;
+    }>();
+
+  const insured = {
+    name: claimRow?.insured_name ?? '',
+    phone: claimRow?.insured_phone ?? '',
+    email: claimRow?.insured_email ?? '',
+  };
+
+  const editableContacts = Array.isArray(claimRow?.claim_contacts) ? claimRow!.claim_contacts : [];
+
+  let adjuster: ClaimContactsData['adjuster'] = null;
+  if (claimRow?.assigned_user_id) {
+    const { data: firmUser } = await admin
+      .from('firm_users')
+      .select('full_name, first_name, last_name')
+      .eq('firm_id', firmId)
+      .eq('user_id', claimRow.assigned_user_id)
+      .maybeSingle<{ full_name: string | null; first_name: string | null; last_name: string | null }>();
+    const emails = await getUserEmailsById([claimRow.assigned_user_id]);
+    const name =
+      [firmUser?.first_name, firmUser?.last_name].filter(Boolean).join(' ').trim() ||
+      firmUser?.full_name?.trim() ||
+      emails.get(claimRow.assigned_user_id) ||
+      'Adjuster';
+    adjuster = {
+      name,
+      email: emails.get(claimRow.assigned_user_id) ?? '',
+      phone: null,
+    };
+  }
+
+  const examiner: ClaimContactsData['examiner'] = claimRow?.examiner_name
+    ? { name: claimRow.examiner_name, email: null }
+    : null;
+
+  let carrierDeskAdjusters: ClaimContactsData['carrierDeskAdjusters'] = [];
+  if (claimRow?.carrier_id) {
+    const { data: deskRows } = await admin
+      .from('firm_users')
+      .select('id, user_id, full_name, first_name, last_name')
+      .eq('firm_id', firmId)
+      .eq('carrier_id', claimRow.carrier_id)
+      .eq('role', 'carrier_desk_adjuster');
+    const rows = (deskRows ?? []) as Array<{
+      id: string;
+      user_id: string | null;
+      full_name: string | null;
+      first_name: string | null;
+      last_name: string | null;
+    }>;
+    const userIds = rows.map((row) => row.user_id).filter((value): value is string => Boolean(value));
+    const emails = await getUserEmailsById(userIds);
+    carrierDeskAdjusters = rows.map((row) => ({
+      firmUserId: row.id,
+      name:
+        [row.first_name, row.last_name].filter(Boolean).join(' ').trim() ||
+        row.full_name?.trim() ||
+        (row.user_id ? emails.get(row.user_id) ?? '' : '') ||
+        'Desk Adjuster',
+      email: row.user_id ? emails.get(row.user_id) ?? '' : '',
+    }));
+  }
+
+  return { adjuster, examiner, carrierDeskAdjusters, insured, editableContacts };
 }

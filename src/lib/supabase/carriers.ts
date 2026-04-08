@@ -254,6 +254,35 @@ export async function createCarrier(firmId: string, input: CarrierCreate): Promi
   return mapCarrier(data, 0, 0, []);
 }
 
+export interface CarrierForUser {
+  id: string;
+  firmId: string;
+  name: string;
+  intakeEmail: string | null;
+}
+
+export async function getCarrierForFirmUser(userId: string): Promise<CarrierForUser | null> {
+  const supabase = createAdminClient();
+  const { data: firmUser } = await supabase
+    .from('firm_users')
+    .select('firm_id, carrier_id')
+    .eq('user_id', userId)
+    .maybeSingle<{ firm_id: string; carrier_id: string | null }>();
+  if (!firmUser?.carrier_id) return null;
+  const { data: carrier } = await supabase
+    .from('carriers')
+    .select('id, firm_id, name, intake_email')
+    .eq('id', firmUser.carrier_id)
+    .maybeSingle<{ id: string; firm_id: string; name: string; intake_email: string | null }>();
+  if (!carrier) return null;
+  return {
+    id: carrier.id,
+    firmId: carrier.firm_id,
+    name: carrier.name,
+    intakeEmail: carrier.intake_email,
+  };
+}
+
 export async function updateCarrier(
   firmId: string,
   carrierId: string,
