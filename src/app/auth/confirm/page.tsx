@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { createClient } from '@/lib/supabase/client';
 
-type Status = 'loading' | 'ready' | 'submitting' | 'done';
+type Status = 'loading' | 'ready' | 'submitting' | 'done' | 'error';
 
 export default function AcceptInvitePage() {
   const [status, setStatus] = useState<Status>('loading');
@@ -20,25 +20,38 @@ export default function AcceptInvitePage() {
   useEffect(() => {
     const supabase = createClient();
 
-    // Supabase auto-exchanges the hash token on load. Listen for the resulting
-    // session event, and also poll getSession() once in case it already fired.
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'PASSWORD_RECOVERY') && session?.user?.email) {
-        setEmail(session.user.email);
-        setStatus('ready');
-      }
-    });
+    // Supabase invite links append `#access_token=...&type=invite` as a URL hash
+    // fragment. The Next.js App Router does not auto-rehydrate this into the
+    // Supabase client, so we parse it manually and exchange it for a session.
+    const hash = typeof window !== 'undefined' ? window.location.hash : '';
+    if (!hash) {
+      setStatus('error');
+      setError('No invite token found in URL.');
+      return;
+    }
 
-    void supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user?.email) {
+    const params = new URLSearchParams(hash.slice(1));
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    const type = params.get('type');
+
+    if (!accessToken || type !== 'invite') {
+      setStatus('error');
+      setError('Invalid or missing invite token.');
+      return;
+    }
+
+    void supabase.auth
+      .setSession({ access_token: accessToken, refresh_token: refreshToken ?? '' })
+      .then(({ data, error: setError2 }) => {
+        if (setError2 || !data.session?.user?.email) {
+          setStatus('error');
+          setError('This invite link has expired. Please ask your firm admin to resend your invitation.');
+          return;
+        }
         setEmail(data.session.user.email);
         setStatus('ready');
-      }
-    });
-
-    return () => subscription.unsubscribe();
+      });
   }, []);
 
   async function handleSubmit() {
@@ -132,6 +145,12 @@ export default function AcceptInvitePage() {
 
         {status === 'loading' ? (
           <p style={{ margin: 0, color: 'var(--muted)' }}>Setting up your account...</p>
+        ) : null}
+
+        {status === 'error' ? (
+          <p style={{ margin: 0, color: 'var(--red)', fontSize: '13px' }}>
+            {error ?? 'This invite link has expired. Please ask your firm admin to resend your invitation.'}
+          </p>
         ) : null}
 
         {status === 'ready' || status === 'submitting' ? (
