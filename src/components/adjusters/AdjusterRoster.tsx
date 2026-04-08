@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { InviteAdjusterModal } from '@/components/adjusters/InviteAdjusterModal';
 import type { AdjusterRow } from '@/lib/types';
 
 type AdjusterFilter = 'all' | 'available' | 'busy' | 'needs_setup';
@@ -54,7 +56,16 @@ function matchesFilter(adjuster: AdjusterRow, filter: AdjusterFilter) {
 }
 
 export function AdjusterRoster({ adjusters }: { adjusters: AdjusterRow[] }) {
+  const router = useRouter();
   const [filter, setFilter] = useState<AdjusterFilter>('all');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = window.setTimeout(() => setToast(null), 4000);
+    return () => window.clearTimeout(id);
+  }, [toast]);
 
   const filteredAdjusters = useMemo(
     () => adjusters.filter((adjuster) => matchesFilter(adjuster, filter)),
@@ -78,6 +89,7 @@ export function AdjusterRoster({ adjusters }: { adjusters: AdjusterRow[] }) {
           borderBottom: '1px solid var(--border)',
           background: 'var(--surface)',
           flexWrap: 'wrap',
+          alignItems: 'center',
         }}
       >
         {[
@@ -110,6 +122,9 @@ export function AdjusterRoster({ adjusters }: { adjusters: AdjusterRow[] }) {
             </button>
           );
         })}
+        <div style={{ marginLeft: 'auto' }}>
+          <Button onClick={() => setModalOpen(true)}>Invite Adjuster</Button>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gap: '0' }}>
@@ -243,6 +258,33 @@ export function AdjusterRoster({ adjusters }: { adjusters: AdjusterRow[] }) {
           );
         })}
       </div>
+      <InviteAdjusterModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onInvited={(message) => {
+          setToast(message);
+          router.refresh();
+        }}
+      />
+      {toast ? (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            padding: '12px 16px',
+            background: 'var(--sage-dim)',
+            color: 'var(--sage)',
+            border: '1px solid rgba(91,194,115,0.25)',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '13px',
+            zIndex: 300,
+            boxShadow: '0 12px 28px rgba(0,0,0,0.28)',
+          }}
+        >
+          {toast}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AdjusterRoster } from '@/components/adjusters/AdjusterRoster';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Button } from '@/components/ui/Button';
 import { getAdjusters } from '@/lib/supabase/adjusters';
 import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
 
@@ -19,7 +18,6 @@ export default async function AdjustersPage() {
       <PageHeader
         title="Adjusters"
         subtitle="Roster, capacity, and setup readiness for your firm."
-        actions={<Button disabled>Invite Adjuster</Button>}
       />
       <AdjusterRoster adjusters={adjusters} />
     </div>
