@@ -21,6 +21,20 @@ Add an entry any time a known gap, workaround, or deferred feature is introduced
 - **Deferred to:** Phase 5
 - **Code marker:** `// TODO: claims.carrier is a text column — fragile name match. Phase 5: add claims.carrier_id FK.`
 
+### Adjuster phone missing from contacts tab
+- **Discovered:** Phase 4, Contacts tab
+- **Files affected:** `src/lib/supabase/claims.ts` (`getClaimContactsData`)
+- **Issue:** `firm_users` has no `phone` column. Adjuster contact cards show "No phone on file."
+- **Resolution:** Add `phone` column to `firm_users`. Surface it in the adjuster profile editor and contacts tab.
+- **Deferred to:** Phase 5
+
+### Examiner email missing from contacts tab
+- **Discovered:** Phase 4, Contacts tab
+- **Files affected:** `src/lib/supabase/claims.ts` (`getClaimContactsData`)
+- **Issue:** `claims` table has `examiner_name` but no `examiner_email` column. Examiner card shows name only.
+- **Resolution:** Add `examiner_email` column to `claims` table. Populate during claim intake and edit claim flow.
+- **Deferred to:** Phase 5
+
 ### claim_category — not in live schema
 - **Discovered:** Phase 4, Step 2
 - **Files affected:** `src/lib/supabase/dispatch.ts`, `src/lib/types/index.ts`
