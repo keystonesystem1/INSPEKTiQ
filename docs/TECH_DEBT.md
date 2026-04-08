@@ -93,6 +93,18 @@ Add an entry any time a known gap, workaround, or deferred feature is introduced
 - **Resolution:** Read `searchParams.carrier` in `claims/page.tsx`, filter the fetched list (or pass to `ClaimsList` for client-side filter). Show an "Filtered by carrier: X · Clear" pill at the top of the list.
 - **Deferred to:** Phase 5
 
+### Pre-launch blocker — claim detail tab audit for carrier roles
+- **Discovered:** Phase 4, Step 6
+- **Issue:** Not all claim detail tabs have been audited for carrier role visibility. Reserves, financials, and other sensitive tabs may still be readable by `carrier_admin` and `carrier_desk_adjuster`. Must be audited and gated before any real carrier gets portal access.
+- **Resolution:** Go through all 14 claim detail tabs and explicitly gate each one — show, hide, or show read-only based on carrier role. Treat this as a pre-launch blocker.
+- **Deferred to:** Phase 5 — must complete before portal goes live
+
+### Dedicated carrier portal claim view
+- **Discovered:** Phase 4, Step 6
+- **Issue:** Carrier roles currently use the existing claims list and detail pages with role gating. A stripped-down carrier-specific view (different columns, cleaner layout, no firm-internal UI) would be a better portal experience.
+- **Resolution:** Build a dedicated carrier claim list layout and simplified claim detail view for carrier roles in a later phase.
+- **Deferred to:** Phase 6
+
 ### inviteUserByEmail — no fallback when user already exists
 - **Discovered:** Phase 4, Clients/Carriers build
 - **Files affected:** `src/app/api/carriers/route.ts`, `src/app/api/carriers/[carrierId]/invite/route.ts`
