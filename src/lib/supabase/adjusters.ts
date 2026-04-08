@@ -359,6 +359,10 @@ export async function updateAdjusterProfile(
 
   // Upsert handles both the lazily-created (existing row) case and the
   // legacy invited-pre-fix case where no profile row exists yet.
+  // Requires the unique constraint adjuster_profiles_user_firm_unique on
+  // (user_id, firm_id) to be present in the live schema — added via SQL
+  // migration. Without that constraint Postgres returns
+  // "no unique or exclusion constraint matching the ON CONFLICT specification".
   const { error } = await supabase
     .from('adjuster_profiles')
     .upsert(nextProfile, { onConflict: 'user_id,firm_id' });
