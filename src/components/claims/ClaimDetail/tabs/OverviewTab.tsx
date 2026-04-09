@@ -1,5 +1,7 @@
 import { Card } from '@/components/ui/Card';
-import type { Claim } from '@/lib/types';
+import type { Claim, Role } from '@/lib/types';
+
+const CARRIER_ROLES = new Set<Role>(['carrier', 'carrier_admin', 'carrier_desk_adjuster']);
 
 function formatLocation(city: string, state: string) {
   if (city && state) return `${city}, ${state}`;
@@ -8,13 +10,17 @@ function formatLocation(city: string, state: string) {
   return '-';
 }
 
-export function OverviewTab({ claim, documentCount }: { claim: Claim; documentCount: number }) {
+export function OverviewTab({ claim, role, documentCount }: { claim: Claim; role: Role; documentCount: number }) {
+  const isCarrierRole = CARRIER_ROLES.has(role);
+
   return (
     <div style={{ display: 'grid', gap: '20px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${isCarrierRole ? 3 : 4}, minmax(0, 1fr))`, gap: '12px' }}>
         <Card><div style={{ color: 'var(--muted)', fontSize: '10px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em' }}>Claim Status + SLA</div><div style={{ marginTop: '8px' }}>{claim.status.replace('_', ' ')}</div></Card>
         <Card><div style={{ color: 'var(--muted)', fontSize: '10px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em' }}>Key Contacts</div><div style={{ marginTop: '8px' }}>Insured, adjuster, examiner</div></Card>
-        <Card><div style={{ color: 'var(--muted)', fontSize: '10px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em' }}>Reserves Total</div><div style={{ marginTop: '8px' }}>${claim.reserveTotal.toLocaleString()}</div></Card>
+        {!isCarrierRole ? (
+          <Card><div style={{ color: 'var(--muted)', fontSize: '10px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em' }}>Reserves Total</div><div style={{ marginTop: '8px' }}>${claim.reserveTotal.toLocaleString()}</div></Card>
+        ) : null}
         <Card><div style={{ color: 'var(--muted)', fontSize: '10px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em' }}>Recent Documents</div><div style={{ marginTop: '8px' }}>{documentCount} documents</div></Card>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>

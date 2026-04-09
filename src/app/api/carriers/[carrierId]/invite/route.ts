@@ -60,17 +60,39 @@ export async function POST(
     data: { role: targetRole, firm_id: firmUser.firmId, carrier_id: carrier.id },
   });
 
-  if (inviteError) {
+  // If the user already exists in auth.users, inviteUserByEmail returns an error.
+  // Fall back to finding the existing auth user by email so we can still create/update
+  // their firm_users row and give them the correct role.
+  let resolvedUserId = invited?.user?.id ?? null;
+  if (inviteError && !body.resendUserId) {
+    const msg = inviteError.message.toLowerCase();
+    const userAlreadyExists = msg.includes('already') || msg.includes('exists');
+
+    if (!userAlreadyExists) {
+      return NextResponse.json({ error: inviteError.message }, { status: 500 });
+    }
+
+    // User already registered — locate them via the admin listUsers API.
+    const { data: listData } = await supabase.auth.admin.listUsers({ perPage: 50000 });
+    const existingAuthUser = listData?.users.find(
+      (u) => u.email?.toLowerCase() === targetEmail.toLowerCase(),
+    );
+
+    if (!existingAuthUser?.id) {
+      return NextResponse.json({ error: 'User already exists but could not be located. Please contact support.' }, { status: 500 });
+    }
+
+    resolvedUserId = existingAuthUser.id;
+  } else if (inviteError) {
     return NextResponse.json({ error: inviteError.message }, { status: 500 });
   }
 
-  const invitedUserId = invited?.user?.id;
-  if (invitedUserId && !body.resendUserId) {
+  if (resolvedUserId && !body.resendUserId) {
     const { data: existingFirmUser } = await supabase
       .from('firm_users')
       .select('id')
       .eq('firm_id', firmUser.firmId)
-      .eq('user_id', invitedUserId)
+      .eq('user_id', resolvedUserId)
       .maybeSingle<{ id: string }>();
 
     if (existingFirmUser?.id) {
@@ -89,7 +111,7 @@ export async function POST(
     } else {
       const { error: insertError } = await supabase.from('firm_users').insert({
         firm_id: firmUser.firmId,
-        user_id: invitedUserId,
+        user_id: resolvedUserId,
         role: targetRole,
         carrier_id: carrier.id,
         is_active: true,

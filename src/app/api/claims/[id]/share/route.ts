@@ -110,8 +110,7 @@ https://www.inspektiq.io/share/${token}
 
 This link expires in 30 days.
 
-Keystone Adjusting
-Powered by Keystone Stack`,
+${firmUser.firmName}`,
       trackingSettings: {
         clickTracking: {
           enable: false,

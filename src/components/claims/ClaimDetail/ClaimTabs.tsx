@@ -23,7 +23,16 @@ import { LinksTab } from '@/components/claims/ClaimDetail/tabs/LinksTab';
 import { TimelineTab } from '@/components/claims/ClaimDetail/tabs/TimelineTab';
 import { OverviewCustomizer } from '@/components/claims/ClaimDetail/OverviewCustomizer';
 
-const tabs = ['Overview', 'Contacts', 'Notes', 'Documents', 'Photos', 'Inspection', 'Time & Expense', 'Tasks', 'Reserves', 'Claimants', 'Coverages', 'Loss Locations', 'Carrier Forms', 'Firm Forms', 'Links', 'Timeline'] as const;
+const ALL_TABS = ['Overview', 'Contacts', 'Notes', 'Documents', 'Photos', 'Inspection', 'Time & Expense', 'Tasks', 'Reserves', 'Claimants', 'Coverages', 'Loss Locations', 'Carrier Forms', 'Firm Forms', 'Links', 'Timeline'] as const;
+
+type Tab = (typeof ALL_TABS)[number];
+
+// Tabs that contain firm-internal financial or operational data.
+// Hidden entirely from carrier roles — they must not see reserves, adjuster
+// time/cost entries, or internal firm document templates.
+const CARRIER_HIDDEN_TABS = new Set<Tab>(['Time & Expense', 'Reserves', 'Firm Forms']);
+
+const CARRIER_ROLES = new Set<Role>(['carrier', 'carrier_admin', 'carrier_desk_adjuster']);
 
 export function ClaimTabs({
   claim,
@@ -42,7 +51,12 @@ export function ClaimTabs({
   timeline: TimelineItem[];
   contacts: ClaimContactsData;
 }) {
-  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('Overview');
+  const isCarrierRole = CARRIER_ROLES.has(role);
+  const tabs = isCarrierRole
+    ? ALL_TABS.filter((tab) => !CARRIER_HIDDEN_TABS.has(tab))
+    : ALL_TABS;
+
+  const [activeTab, setActiveTab] = useState<Tab>('Overview');
   const [customizerOpen, setCustomizerOpen] = useState(false);
 
   return (
@@ -70,13 +84,15 @@ export function ClaimTabs({
           </button>
         ))}
         <div style={{ flex: 1 }} />
-        <Button variant={customizerOpen ? 'primary' : 'ghost'} size="sm" onClick={() => setCustomizerOpen((value) => !value)} style={{ marginLeft: '12px' }}>
-          Customize Overview
-        </Button>
+        {!isCarrierRole ? (
+          <Button variant={customizerOpen ? 'primary' : 'ghost'} size="sm" onClick={() => setCustomizerOpen((value) => !value)} style={{ marginLeft: '12px' }}>
+            Customize Overview
+          </Button>
+        ) : null}
       </div>
 
       <div style={{ paddingTop: '20px' }}>
-        {activeTab === 'Overview' ? <OverviewTab claim={claim} documentCount={documents.reports.length} /> : null}
+        {activeTab === 'Overview' ? <OverviewTab claim={claim} role={role} documentCount={documents.reports.length} /> : null}
         {activeTab === 'Contacts' ? <ContactsTab claimId={claim.id} contacts={contacts} /> : null}
         {activeTab === 'Notes' ? <NotesTab role={role} notes={notes} claimId={claim.id} /> : null}
         {activeTab === 'Documents' ? <DocumentsTab claimId={claim.id} role={role} documents={documents} /> : null}
