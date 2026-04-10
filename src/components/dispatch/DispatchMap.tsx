@@ -753,7 +753,7 @@ export function DispatchMap({
       }
     };
 
-    map.on('zoom', handleZoom);
+    map.on('zoomend', handleZoom);
 
     map.on('load', () => {
       ensureBuildingLayer(map, false);
@@ -776,7 +776,7 @@ export function DispatchMap({
       hoverPopupRef.current = null;
       markerRefs.current.forEach((marker) => marker.remove());
       markerRefs.current = [];
-      map.off('zoom', handleZoom);
+      map.off('zoomend', handleZoom);
       map.off('draw.delete', handleDrawDelete);
       map.removeControl(draw);
       drawRef.current = null;

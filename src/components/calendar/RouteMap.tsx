@@ -270,7 +270,7 @@ export function RouteMap({
       }
     };
 
-    map.on('zoom', handleZoom);
+    map.on('zoomend', handleZoom);
 
     map.on('load', () => {
       map.addSource(ROUTE_SOURCE_ID, {
@@ -316,7 +316,7 @@ export function RouteMap({
       popupRef.current = null;
       markerRefs.current.forEach((marker) => marker.remove());
       markerRefs.current = [];
-      map.off('zoom', handleZoom);
+      map.off('zoomend', handleZoom);
       map.remove();
       mapRef.current = null;
       setMapReady(false);

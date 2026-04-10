@@ -156,7 +156,6 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
           .list(`uploads/${claimId}/${uploadFolder.name}`, { limit: 100 });
 
         for (const file of uploadFiles ?? []) {
-          if (!file.name.toLowerCase().endsWith('.pdf')) continue;
           const filePath = `uploads/${claimId}/${uploadFolder.name}/${file.name}`;
           reports.push({
             path: filePath,
@@ -178,8 +177,10 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
       throw new Error(`getClaimDocuments user folder list error: ${claimFilesError.message}`);
     }
 
+    const ALLOWED_EXTENSIONS = new Set(['.pdf', '.png', '.jpg', '.jpeg', '.heic', '.heif', '.gif', '.webp', '.doc', '.docx', '.xls', '.xlsx']);
     for (const file of claimFiles ?? []) {
-      if (!file.name.toLowerCase().endsWith('.pdf')) continue;
+      const ext = file.name.toLowerCase().match(/\.[^.]+$/)?.[0] ?? '';
+      if (!ALLOWED_EXTENSIONS.has(ext)) continue;
       const filePath = `${folder.name}/${claimId}/${file.name}`;
       reports.push({
         path: filePath,
