@@ -15,7 +15,10 @@ export function OverviewTab({ claim, role, documentCount }: { claim: Claim; role
 
   return (
     <div style={{ display: 'grid', gap: '20px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${isCarrierRole ? 3 : 4}, minmax(0, 1fr))`, gap: '12px' }}>
+      <div
+        className={isCarrierRole ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'}
+        style={{ gap: '12px' }}
+      >
         <Card><div style={{ color: 'var(--muted)', fontSize: '10px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em' }}>Claim Status + SLA</div><div style={{ marginTop: '8px' }}>{claim.status.replace('_', ' ')}</div></Card>
         <Card><div style={{ color: 'var(--muted)', fontSize: '10px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em' }}>Key Contacts</div><div style={{ marginTop: '8px' }}>Insured, adjuster, examiner</div></Card>
         {!isCarrierRole ? (
@@ -23,7 +26,7 @@ export function OverviewTab({ claim, role, documentCount }: { claim: Claim; role
         ) : null}
         <Card><div style={{ color: 'var(--muted)', fontSize: '10px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em' }}>Recent Documents</div><div style={{ marginTop: '8px' }}>{documentCount} documents</div></Card>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: '14px' }}>
         <Card>
           <div style={{ color: 'var(--muted)', fontSize: '11px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em', marginBottom: '12px' }}>Claim Details</div>
           {[

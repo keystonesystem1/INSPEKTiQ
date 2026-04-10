@@ -60,6 +60,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // If an override reason was supplied, log it as a shared note on each assigned claim.
+  const overrideReason = body.overrideReason?.trim();
+  if (overrideReason) {
+    const { data: authorRow } = await supabase
+      .from('firm_users')
+      .select('id')
+      .eq('firm_id', firmUser.firmId)
+      .eq('user_id', firmUser.id)
+      .maybeSingle<{ id: string }>();
+    if (authorRow?.id) {
+      await Promise.all(
+        claimIds.map((claimId) =>
+          supabase.from('claim_notes').insert({
+            claim_id: claimId,
+            author_id: authorRow.id,
+            note_type: 'shared',
+            content: `Dispatch override: ${overrideReason}`,
+          }),
+        ),
+      );
+    }
+  }
+
   revalidatePath('/claims');
   revalidatePath('/dispatch');
   claimIds.forEach((claimId) => {

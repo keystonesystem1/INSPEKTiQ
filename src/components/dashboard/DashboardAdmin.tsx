@@ -85,10 +85,6 @@ export function DashboardAdmin({
             <div style={{ color: 'var(--muted)', fontSize: '13px' }}>No recent activity.</div>
           </Card>
 
-          <Card>
-            <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '14px' }}>Adjuster Workload</div>
-            <div style={{ color: 'var(--muted)', fontSize: '13px' }}>Workload data coming soon.</div>
-          </Card>
         </div>
       </div>
     </div>

@@ -33,7 +33,7 @@ export default async function BillingPage() {
       >
         Billing module not yet configured — invoice generation and fee schedules are coming in a future release.
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '12px' }}>
+      <div className="grid grid-cols-1 sm:grid-cols-3" style={{ gap: '12px' }}>
         <StatCard label="Pending Invoices" value="—" accent="var(--orange)" />
         <StatCard label="Approved This Month" value="—" accent="var(--blue)" />
         <StatCard label="Paid YTD" value="—" accent="var(--sage)" />

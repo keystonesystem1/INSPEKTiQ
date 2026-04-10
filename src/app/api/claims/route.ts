@@ -23,7 +23,7 @@ interface CreateClaimBody {
 function buildClaimNumber() {
   const now = new Date();
   const year = now.getFullYear();
-  const random = Math.floor(100000 + Math.random() * 900000);
+  const random = crypto.randomUUID().replace(/-/g, '').slice(0, 6).toUpperCase();
   return `MAN-${year}-${random}`;
 }
 

@@ -107,6 +107,14 @@ export function ClientProfile({ carrier }: { carrier: CarrierRow }) {
     if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
+    if (!name.trim()) {
+      setError('Carrier name is required.');
+      return;
+    }
+    if (!contactEmail.trim()) {
+      setError('Contact email is required.');
+      return;
+    }
     setSaving(true);
     setError(null);
     try {

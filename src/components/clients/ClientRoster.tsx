@@ -126,9 +126,8 @@ export function ClientRoster({ carriers }: { carriers: CarrierRow[] }) {
           return (
             <div
               key={carrier.id}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(220px,1fr)_minmax(140px,auto)_minmax(280px,1fr)_auto]"
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'minmax(0,1.4fr) minmax(220px,1fr) minmax(140px,auto) minmax(280px,1fr) auto',
                 gap: '16px',
                 alignItems: 'center',
                 padding: '18px 20px',

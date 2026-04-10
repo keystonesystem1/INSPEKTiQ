@@ -87,6 +87,7 @@ export function CalendarPage({ firmId, adjusterUserId }: CalendarPageProps) {
                   <button
                     type="button"
                     disabled
+                    title="Coming soon"
                     className="cursor-not-allowed rounded-[4px] px-[10px] py-[5px] font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)] opacity-60"
                   >
                     Week

@@ -8,9 +8,9 @@ import { canCreateClaims } from '@/lib/utils/roles';
 export default async function ClaimsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string }>;
+  searchParams: Promise<{ view?: string; carrier?: string }>;
 }) {
-  const { view } = await searchParams;
+  const { view, carrier } = await searchParams;
   const { id, role, firmId } = await requireAuthenticatedFirmUser();
   const archivedView = view === 'archived' && ['firm_admin', 'super_admin'].includes(role);
   const claims = await getClaims(firmId, role, id, { archived: archivedView });
@@ -22,7 +22,7 @@ export default async function ClaimsPage({
         subtitle="Status filters, SLA indicators, and role-aware claim visibility."
         actions={canCreateClaims(role) ? <NewClaimButton /> : undefined}
       />
-      <ClaimsList role={role} claims={claims} archivedView={archivedView} />
+      <ClaimsList role={role} claims={claims} archivedView={archivedView} carrierFilter={carrier} />
     </div>
   );
 }

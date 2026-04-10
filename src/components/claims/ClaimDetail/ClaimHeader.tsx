@@ -133,7 +133,9 @@ export function ClaimHeader({
               Submit to Carrier
             </Button>
           ) : null}
-          <Button variant="ghost" size="sm" disabled={isPending}>Request Changes</Button>
+          {!['carrier', 'carrier_admin', 'carrier_desk_adjuster'].includes(role) ? (
+            <Button variant="ghost" size="sm" disabled={isPending}>Request Changes</Button>
+          ) : null}
           <div style={{ position: 'relative' }}>
             <Button variant="ghost" size="sm" onClick={() => setMenuOpen((value) => !value)} disabled={isPending}>
               ···

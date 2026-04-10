@@ -143,9 +143,8 @@ export function AdjusterRoster({ adjusters }: { adjusters: AdjusterRow[] }) {
           return (
             <div
               key={adjuster.userId}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(180px,0.7fr)_minmax(220px,1fr)_minmax(220px,1fr)_auto]"
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'minmax(0,1.4fr) minmax(180px,0.7fr) minmax(220px,1fr) minmax(220px,1fr) auto',
                 gap: '16px',
                 alignItems: 'center',
                 padding: '18px 20px',

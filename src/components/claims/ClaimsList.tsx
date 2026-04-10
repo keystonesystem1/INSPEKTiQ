@@ -28,15 +28,20 @@ export function ClaimsList({
   role,
   claims,
   archivedView = false,
+  carrierFilter,
 }: {
   role: Role;
   claims: Claim[];
   archivedView?: boolean;
+  carrierFilter?: string;
 }) {
   const router = useRouter();
   const [filter, setFilter] = useState<ClaimStatus | 'all'>('all');
-  const filtered = archivedView || filter === 'all' ? claims : claims.filter((c) => c.status === filter);
-  const countByStatus = (status: ClaimStatus) => claims.filter((claim) => claim.status === status).length;
+  const carrierFiltered = carrierFilter
+    ? claims.filter((c) => c.client.toLowerCase() === carrierFilter.toLowerCase())
+    : claims;
+  const filtered = archivedView || filter === 'all' ? carrierFiltered : carrierFiltered.filter((c) => c.status === filter);
+  const countByStatus = (status: ClaimStatus) => carrierFiltered.filter((claim) => claim.status === status).length;
   const getFilterTone = (status: ClaimStatus): 'red' | 'orange' =>
     status === 'received' || status === 'on_hold' ? 'red' : 'orange';
   const filters = claimFilters.map((item) => {
