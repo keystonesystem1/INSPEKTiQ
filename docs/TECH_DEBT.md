@@ -1,5 +1,5 @@
 # INSPEKTiQ — Technical Debt & Deferred Work
-**Last updated: April 5, 2026**
+**Last updated: April 9, 2026**
 Add an entry any time a known gap, workaround, or deferred feature is introduced. Include the phase it was discovered and the phase it should be resolved in.
 
 ---
@@ -14,10 +14,10 @@ Add an entry any time a known gap, workaround, or deferred feature is introduced
 - **Deferred to:** Phase 5
 
 ### claims.carrier — text match instead of FK
-- **Discovered:** Phase 4, Clients/Carriers build
-- **Files affected:** `src/lib/supabase/claims.ts`, `src/lib/supabase/carriers.ts`
-- **Issue:** `claims.carrier` is a free-text column. `carrier_admin` portal filtering and per-carrier claim counts on the Clients roster match by `claims.carrier === carriers.name`. If a carrier is renamed, historical claims become orphaned from their carrier record.
-- **Resolution:** Add `claims.carrier_id uuid` FK to `carriers.id` in a Phase 5 schema migration. Backfill from the existing text column. Update queries to filter on `carrier_id`.
+- **Discovered:** Phase 4, Clients/Carriers build · **Confirmed:** P2 readiness audit (April 9, 2026)
+- **Files affected:** `src/lib/supabase/claims.ts`, `src/lib/supabase/carriers.ts`, `src/components/claims/ClaimsList.tsx`
+- **Issue:** `claims.carrier` is a free-text column. `carrier_admin` portal filtering and per-carrier claim counts on the Clients roster match by `claims.carrier === carriers.name`. The `/claims?carrier=` filter added in P2 also relies on this text match via `claim.client` (the mapped carrier name). If a carrier is renamed, historical claims become orphaned from their carrier record.
+- **Resolution:** Add `claims.carrier_id uuid` FK to `carriers.id` in a Phase 5 schema migration. Backfill from the existing text column. Update queries to filter on `carrier_id`. Update `ClaimsList` carrier filter to use carrier_id once available.
 - **Deferred to:** Phase 5
 - **Code marker:** `// TODO: claims.carrier is a text column — fragile name match. Phase 5: add claims.carrier_id FK.`
 
@@ -35,14 +35,22 @@ Add an entry any time a known gap, workaround, or deferred feature is introduced
 - **Resolution:** Add `examiner_email` column to `claims` table. Populate during claim intake and edit claim flow.
 - **Deferred to:** Phase 5
 
-### claim_category — not in live schema
-- **Discovered:** Phase 4, Step 2
-- **Files affected:** `src/lib/supabase/dispatch.ts`, `src/lib/types/index.ts`
-- **Issue:** The `claims` table has no `claim_category` column (Residential / Commercial / Farm/Ranch / Industrial). The `DispatchClaim.claimCategory` field is currently best-effort derived from existing claim fields and is not reliable.
-- **Impact:** Lasso pre-filter by category will not filter accurately. Adjuster capability mismatch checks for category are unreliable.
-- **Resolution:** Add `claim_category` enum column to `claims` table in a schema migration. Add `requires_twia` boolean column at the same time.
+### claim_category — not in live schema; policy_type used as holding column
+- **Discovered:** Phase 4, Step 2 · **Confirmed:** P2 readiness audit (April 9, 2026)
+- **Files affected:** `src/app/api/carriers/submit-claim/route.ts`, `src/lib/supabase/dispatch.ts`, `src/lib/types/index.ts`
+- **Issue:** The `claims` table has no `claim_category` column (Residential / Commercial / Farm/Ranch / Industrial). The carrier submit-claim route currently stores the submitted claim type in the `policy_type` column as a temporary holding field. The `DispatchClaim.claimCategory` field is best-effort derived from existing columns and is not reliable.
+- **Impact:** Lasso pre-filter by category will not filter accurately. Adjuster capability mismatch checks for category are unreliable. `policy_type` is being overloaded for two purposes until a proper column is added.
+- **Resolution:** Add `claim_category` enum column to `claims` table in a Phase 5 schema migration. Also add `requires_twia` boolean column at the same time (see below). Migrate `policy_type` values. Update submit-claim route to write to the correct column.
 - **Deferred to:** Phase 5
-- **Code marker:** `// TODO: claim_category not in schema — derived field, needs migration`
+- **Code marker:** `// TODO: claim_category not in schema — using policy_type as holding column. See TECH_DEBT.md`
+
+### requires_twia — not in live schema
+- **Discovered:** Phase 4, Step 2 · **Confirmed:** P2 readiness audit (April 9, 2026)
+- **Files affected:** `src/lib/supabase/dispatch.ts`, `src/lib/types/index.ts`
+- **Issue:** The `claims` table has no `requires_twia` boolean column. The Texas Windstorm Insurance Association flag appears in the adjuster capability mismatch logic but cannot be persisted or read from the database.
+- **Impact:** TWIA mismatch checks in the dispatch flow will never fire from database state.
+- **Resolution:** Add `requires_twia boolean DEFAULT false` to `claims` table alongside the `claim_category` migration (see above). Surface as a checkbox in the claim creation and edit forms.
+- **Deferred to:** Phase 5
 
 ---
 
@@ -63,11 +71,7 @@ Add an entry any time a known gap, workaround, or deferred feature is introduced
 - **Deferred to:** Phase 5
 
 ### Override reason — note insertion
-- **Discovered:** Phase 4, Step 9
-- **Files affected:** `src/app/api/claims/assign/route.ts`
-- **Issue:** When a dispatcher overrides a capability mismatch, the override reason is currently logged to console only. It should be saved as a note on the claim.
-- **Resolution:** Insert a record into `claim_notes` table (or equivalent) when `overrideReason` is present.
-- **Deferred to:** Phase 5
+- **Status:** RESOLVED in P2 readiness pass (April 9, 2026). Override reason is now inserted as a shared `claim_notes` record on each assigned claim when `overrideReason` is present in the assign payload. Prefixed with "Dispatch override: " for clarity.
 
 ### Adjuster home base — configurable
 - **Status:** RESOLVED in commit 8093f02. Home bases now use Mapbox address autocomplete and persist to `adjuster_profiles.home_bases` jsonb.
@@ -101,11 +105,7 @@ Add an entry any time a known gap, workaround, or deferred feature is introduced
 - **Deferred to:** Phase 5
 
 ### `?carrier=` query param on /claims — not honored
-- **Discovered:** Phase 4, Clients/Carriers build
-- **Files affected:** `src/app/(app)/claims/page.tsx`, `src/components/claims/ClaimsList.tsx`
-- **Issue:** The "View all claims →" link from the Client Profile page links to `/claims?carrier=<encoded carrier name>`, but the claims page does not read or apply that param. Click-through currently shows all claims, not just the selected carrier's.
-- **Resolution:** Read `searchParams.carrier` in `claims/page.tsx`, filter the fetched list (or pass to `ClaimsList` for client-side filter). Show an "Filtered by carrier: X · Clear" pill at the top of the list.
-- **Deferred to:** Phase 5
+- **Status:** RESOLVED in P2 readiness pass (April 9, 2026). `claims/page.tsx` now reads `searchParams.carrier` and passes it as `carrierFilter` to `ClaimsList`, which filters by `claim.client` (case-insensitive). Note: filtering relies on the text-match workaround described in "claims.carrier — text match instead of FK" above; a rename will break the filter until `carrier_id` FK is added.
 
 ### Pre-launch blocker — claim detail tab audit for carrier roles
 - **Discovered:** Phase 4, Step 6
@@ -152,10 +152,10 @@ Add an entry any time a known gap, workaround, or deferred feature is introduced
 ## Known Workarounds
 
 ### adjuster_user_id — no enforced foreign key
-- **Discovered:** Phase 4, Step 1
-- **Files affected:** `src/lib/supabase/calendar.ts`, `src/lib/supabase/dispatch.ts`
-- **Issue:** `appointments.adjuster_user_id` is not an enforced FK in the live Supabase schema. It is treated as referencing `auth.users.id` and joined against `firm_users` on `user_id` to get display name.
-- **Resolution:** Add FK constraint in a schema migration when schema is next revisited.
+- **Discovered:** Phase 4, Step 1 · **Confirmed:** P2 readiness audit (April 9, 2026)
+- **Files affected:** `src/lib/supabase/calendar.ts`, `src/lib/supabase/dispatch.ts`, `src/app/api/appointments/route.ts`
+- **Issue:** `appointments.adjuster_user_id` is not an enforced FK in the live Supabase schema. It is treated as referencing `auth.users.id` and joined against `firm_users` on `user_id` to get display name. Invalid UUIDs can be inserted without a database error.
+- **Resolution:** Add `REFERENCES auth.users(id)` FK constraint (or to `firm_users.user_id`) in a Phase 5 schema migration. Validate `adjuster_user_id` is a real firm member in the API route until then.
 - **Deferred to:** Phase 5
 
 ---
