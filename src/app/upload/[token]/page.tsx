@@ -201,6 +201,7 @@ export default function UploadPage() {
                 <input
                   type="file"
                   multiple
+                  accept="*/*"
                   onChange={(event) => event.target.files && void handleFiles(event.target.files)}
                   style={{ display: 'none' }}
                 />
