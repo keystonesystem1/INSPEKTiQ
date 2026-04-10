@@ -170,6 +170,31 @@ function getRouteGeoJson(appointments: Appointment[]): FeatureCollection<LineStr
   };
 }
 
+function ensureBuildingLayer(map: mapboxgl.Map, visible: boolean) {
+  if (map.getLayer('3d-buildings')) {
+    map.setLayoutProperty('3d-buildings', 'visibility', visible ? 'visible' : 'none');
+    return;
+  }
+  if (!map.getSource('composite')) return;
+  map.addLayer({
+    id: '3d-buildings',
+    source: 'composite',
+    'source-layer': 'building',
+    filter: ['==', 'extrude', 'true'],
+    type: 'fill-extrusion',
+    minzoom: 14,
+    paint: {
+      'fill-extrusion-color': '#162130',
+      'fill-extrusion-height': ['get', 'height'],
+      'fill-extrusion-base': ['get', 'min_height'],
+      'fill-extrusion-opacity': 0.8,
+    },
+  } as Parameters<mapboxgl.Map['addLayer']>[0]);
+  if (!visible) {
+    map.setLayoutProperty('3d-buildings', 'visibility', 'none');
+  }
+}
+
 export function RouteMap({
   open,
   selectedDay,
@@ -183,8 +208,10 @@ export function RouteMap({
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const markerRefs = useRef<mapboxgl.Marker[]>([]);
+  const is3DRef = useRef(false);
   const [mapReady, setMapReady] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [is3D, setIs3D] = useState(false);
 
   const sortedAppointments = useMemo(
     () =>
@@ -234,6 +261,17 @@ export function RouteMap({
       attributionControl: false,
     });
 
+    const handleZoom = () => {
+      const zoom = map.getZoom();
+      if (zoom >= 15) {
+        map.easeTo({ pitch: 45 });
+      } else if (zoom < 14) {
+        map.easeTo({ pitch: 0 });
+      }
+    };
+
+    map.on('zoom', handleZoom);
+
     map.on('load', () => {
       map.addSource(ROUTE_SOURCE_ID, {
         type: 'geojson',
@@ -256,6 +294,11 @@ export function RouteMap({
         },
       });
 
+      ensureBuildingLayer(map, false);
+      map.on('style.load', () => {
+        ensureBuildingLayer(map, is3DRef.current);
+      });
+
       setMapReady(true);
     });
 
@@ -273,11 +316,24 @@ export function RouteMap({
       popupRef.current = null;
       markerRefs.current.forEach((marker) => marker.remove());
       markerRefs.current = [];
+      map.off('zoom', handleZoom);
       map.remove();
       mapRef.current = null;
       setMapReady(false);
     };
   }, [hasToken, open]);
+
+  useEffect(() => {
+    is3DRef.current = is3D;
+    if (!mapRef.current || !mapReady) return;
+    if (is3D) {
+      mapRef.current.easeTo({ pitch: 45, bearing: 0 });
+      ensureBuildingLayer(mapRef.current, true);
+    } else {
+      mapRef.current.easeTo({ pitch: 0 });
+      ensureBuildingLayer(mapRef.current, false);
+    }
+  }, [is3D, mapReady]);
 
   useEffect(() => {
     if (!open || !mapRef.current || !mapReady) {
@@ -397,6 +453,30 @@ export function RouteMap({
               }`}
             >
               {showCompleted ? 'Shown' : 'Hidden'}
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-2">
+            <button
+              type="button"
+              onClick={() => setIs3D((value) => !value)}
+              className={`rounded border px-3 py-1 font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] ${
+                is3D
+                  ? 'border-[var(--sage)] bg-[var(--sage-dim)] text-[var(--sage)]'
+                  : 'border-[var(--border)] bg-[var(--card)] text-[var(--muted)]'
+              }`}
+            >
+              ⬡ 3D
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (!mapRef.current) return;
+                mapRef.current.easeTo({ bearing: (mapRef.current.getBearing() + 90) % 360 });
+              }}
+              className="rounded border border-[var(--border)] bg-[var(--card)] px-3 py-1 font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)]"
+            >
+              ↻ Rotate 90°
             </button>
           </div>
 

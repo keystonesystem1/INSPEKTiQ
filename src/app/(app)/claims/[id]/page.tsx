@@ -21,10 +21,13 @@ function isIntakeReviewRequired(claim: NonNullable<Awaited<ReturnType<typeof get
 
 export default async function ClaimDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const { id } = await params;
+  const { tab } = await searchParams;
   const { id: userId, role, firmId } = await requireAuthenticatedFirmUser();
   const claim = await getClaimById(id, firmId, role, userId);
   const adjusters = await getAdjusterOptions(firmId);
@@ -61,7 +64,7 @@ export default async function ClaimDetailPage({
         <ClaimHeader claim={claim} role={role} adjusters={adjusters} />
         <MilestoneBar claim={claim} />
       </Card>
-      <ClaimTabs claim={claim} role={role} notes={notes} documents={documents} inspection={inspection} timeline={[]} contacts={contacts} />
+      <ClaimTabs claim={claim} role={role} notes={notes} documents={documents} inspection={inspection} timeline={[]} contacts={contacts} initialTab={tab} />
     </div>
   );
 }

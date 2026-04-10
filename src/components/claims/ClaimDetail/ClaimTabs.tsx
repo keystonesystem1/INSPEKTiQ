@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { ClaimDocuments } from '@/lib/supabase/documents';
 import type { ClaimInspectionData } from '@/lib/supabase/inspections';
 import type { Claim, ClaimContactsData, NoteItem, Role, TimelineItem } from '@/lib/types';
@@ -27,6 +28,29 @@ const ALL_TABS = ['Overview', 'Contacts', 'Notes', 'Documents', 'Photos', 'Inspe
 
 type Tab = (typeof ALL_TABS)[number];
 
+const TAB_SLUGS: Record<Tab, string> = {
+  'Overview': 'overview',
+  'Contacts': 'contacts',
+  'Notes': 'notes',
+  'Documents': 'documents',
+  'Photos': 'photos',
+  'Inspection': 'inspection',
+  'Time & Expense': 'time-expense',
+  'Tasks': 'tasks',
+  'Reserves': 'reserves',
+  'Claimants': 'claimants',
+  'Coverages': 'coverages',
+  'Loss Locations': 'loss-locations',
+  'Carrier Forms': 'carrier-forms',
+  'Firm Forms': 'firm-forms',
+  'Links': 'links',
+  'Timeline': 'timeline',
+};
+
+const SLUG_TO_TAB = Object.fromEntries(
+  Object.entries(TAB_SLUGS).map(([tab, slug]) => [slug, tab as Tab]),
+) as Record<string, Tab>;
+
 // Tabs that contain firm-internal financial or operational data.
 // Hidden entirely from carrier roles — they must not see reserves, adjuster
 // time/cost entries, or internal firm document templates.
@@ -42,6 +66,7 @@ export function ClaimTabs({
   inspection,
   timeline,
   contacts,
+  initialTab,
 }: {
   claim: Claim;
   role: Role;
@@ -50,14 +75,28 @@ export function ClaimTabs({
   inspection: ClaimInspectionData;
   timeline: TimelineItem[];
   contacts: ClaimContactsData;
+  initialTab?: string;
 }) {
+  const router = useRouter();
   const isCarrierRole = CARRIER_ROLES.has(role);
   const tabs = isCarrierRole
     ? ALL_TABS.filter((tab) => !CARRIER_HIDDEN_TABS.has(tab))
     : ALL_TABS;
 
-  const [activeTab, setActiveTab] = useState<Tab>('Overview');
+  function resolveInitialTab(): Tab {
+    if (!initialTab) return 'Overview';
+    const resolved = SLUG_TO_TAB[initialTab];
+    if (!resolved || !tabs.includes(resolved)) return 'Overview';
+    return resolved;
+  }
+
+  const [activeTab, setActiveTab] = useState<Tab>(resolveInitialTab);
   const [customizerOpen, setCustomizerOpen] = useState(false);
+
+  function handleTabChange(tab: Tab) {
+    setActiveTab(tab);
+    router.replace(`?tab=${TAB_SLUGS[tab]}`, { scroll: false });
+  }
 
   return (
     <div>
@@ -65,7 +104,7 @@ export function ClaimTabs({
         {tabs.map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => handleTabChange(tab)}
             style={{
               fontFamily: 'Barlow Condensed, sans-serif',
               fontWeight: 700,

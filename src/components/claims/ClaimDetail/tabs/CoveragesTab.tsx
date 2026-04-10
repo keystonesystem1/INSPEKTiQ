@@ -1,23 +1,8 @@
-import { Card } from '@/components/ui/Card';
-
+// TODO: TECH_DEBT — wire to real Supabase coverage data (claims_coverages table or similar)
 export function CoveragesTab() {
-  const rows = [
-    ['Coverage A · Dwelling', '$225,000'],
-    ['Coverage B · Other Structures', '$22,500'],
-    ['Coverage C · Personal Property', '$110,000'],
-  ];
-
   return (
-    <Card>
-      <div style={{ marginBottom: '14px' }}>
-        <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>Coverage Limits</div>
-      </div>
-      {rows.map(([type, amount]) => (
-        <div key={type} style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px solid var(--border)' }}>
-          <span style={{ color: 'var(--muted)' }}>{type}</span>
-          <strong style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: '14px' }}>{amount}</strong>
-        </div>
-      ))}
-    </Card>
+    <div style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)', fontSize: '13px' }}>
+      No coverages recorded yet.
+    </div>
   );
 }

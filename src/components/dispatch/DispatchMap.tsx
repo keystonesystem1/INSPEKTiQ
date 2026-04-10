@@ -328,6 +328,31 @@ function createFreehandDrawMode() {
   };
 }
 
+function ensureBuildingLayer(map: mapboxgl.Map, visible: boolean) {
+  if (map.getLayer('3d-buildings')) {
+    map.setLayoutProperty('3d-buildings', 'visibility', visible ? 'visible' : 'none');
+    return;
+  }
+  if (!map.getSource('composite')) return;
+  map.addLayer({
+    id: '3d-buildings',
+    source: 'composite',
+    'source-layer': 'building',
+    filter: ['==', 'extrude', 'true'],
+    type: 'fill-extrusion',
+    minzoom: 14,
+    paint: {
+      'fill-extrusion-color': '#162130',
+      'fill-extrusion-height': ['get', 'height'],
+      'fill-extrusion-base': ['get', 'min_height'],
+      'fill-extrusion-opacity': 0.8,
+    },
+  } as Parameters<mapboxgl.Map['addLayer']>[0]);
+  if (!visible) {
+    map.setLayoutProperty('3d-buildings', 'visibility', 'none');
+  }
+}
+
 function claimMatchesLassoFilters(claim: DispatchClaim, filters: LassoFilterState) {
   const activeCarriers = filters.carriers;
   const activeCertifications = filters.requiredCertifications;
@@ -613,12 +638,14 @@ export function DispatchMap({
   const onSelectionChangeRef = useRef(onSelectionChange);
   const onFinishLassoRef = useRef(onFinishLasso);
   const viewportSignatureRef = useRef<string | null>(null);
+  const is3DRef = useRef(false);
   const [mapReady, setMapReady] = useState(false);
   const [showClaims, setShowClaims] = useState(true);
   const [showAdjusters, setShowAdjusters] = useState(true);
   const [showAdjusterActivity, setShowAdjusterActivity] = useState(false);
   const [lassoPreviewCount, setLassoPreviewCount] = useState(0);
   const [mapStyle, setMapStyle] = useState<MapStyleKey>('dark');
+  const [is3D, setIs3D] = useState(false);
 
   const recenterMap = useCallback(() => {
     if (!mapRef.current) {
@@ -717,7 +744,22 @@ export function DispatchMap({
 
     map.on('draw.delete', handleDrawDelete);
 
+    const handleZoom = () => {
+      const zoom = map.getZoom();
+      if (zoom >= 15) {
+        map.easeTo({ pitch: 45 });
+      } else if (zoom < 14) {
+        map.easeTo({ pitch: 0 });
+      }
+    };
+
+    map.on('zoom', handleZoom);
+
     map.on('load', () => {
+      ensureBuildingLayer(map, false);
+      map.on('style.load', () => {
+        ensureBuildingLayer(map, is3DRef.current);
+      });
       setMapReady(true);
     });
 
@@ -734,6 +776,7 @@ export function DispatchMap({
       hoverPopupRef.current = null;
       markerRefs.current.forEach((marker) => marker.remove());
       markerRefs.current = [];
+      map.off('zoom', handleZoom);
       map.off('draw.delete', handleDrawDelete);
       map.removeControl(draw);
       drawRef.current = null;
@@ -742,6 +785,18 @@ export function DispatchMap({
       setMapReady(false);
     };
   }, []);
+
+  useEffect(() => {
+    is3DRef.current = is3D;
+    if (!mapRef.current || !mapReady) return;
+    if (is3D) {
+      mapRef.current.easeTo({ pitch: 45, bearing: 0 });
+      ensureBuildingLayer(mapRef.current, true);
+    } else {
+      mapRef.current.easeTo({ pitch: 0 });
+      ensureBuildingLayer(mapRef.current, false);
+    }
+  }, [is3D, mapReady]);
 
   useEffect(() => {
     if (!mapRef.current || !drawRef.current || !mapReady) {
@@ -754,10 +809,12 @@ export function DispatchMap({
 
     setLassoPreviewCount(0);
     drawRef.current.deleteAll();
+    // Use refs so this effect only re-runs when lassoStartToken changes (explicit user activation),
+    // not on every claims/lassoFilters update — which would cancel an in-progress draw.
     drawRef.current.changeMode(DRAW_MODE_FREEHAND, {
-      claims,
-      filters: lassoFilters,
-      maxClaims: lassoFilters.maxClaims,
+      claims: claimsRef.current,
+      filters: lassoFiltersRef.current,
+      maxClaims: lassoFiltersRef.current.maxClaims,
       onPreviewChange: setLassoPreviewCount,
       onComplete: (claimIds: string[]) => {
         onSelectionChangeRef.current(claimIds);
@@ -765,7 +822,8 @@ export function DispatchMap({
         onFinishLassoRef.current();
       },
     });
-  }, [claims, lassoFilters, lassoStartToken, mapReady]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lassoStartToken, mapReady]);
 
   useEffect(() => {
     if (!mapRef.current) {
@@ -1014,10 +1072,29 @@ export function DispatchMap({
           <button
             type="button"
             onClick={recenterMap}
-            className="flex w-full items-center gap-2 px-3 py-2 text-left font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)]"
+            className="flex w-full items-center gap-2 border-b border-[var(--border)] px-3 py-2 text-left font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)]"
           >
             <span>◎</span>
             <span>Recenter</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIs3D((value) => !value)}
+            className={`flex w-full items-center gap-2 border-b border-[var(--border)] px-3 py-2 text-left font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] ${is3D ? 'bg-[var(--sage-dim)] text-[var(--sage)]' : 'text-[var(--muted)]'}`}
+          >
+            <span>⬡</span>
+            <span>3D</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!mapRef.current) return;
+              mapRef.current.easeTo({ bearing: (mapRef.current.getBearing() + 90) % 360 });
+            }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)]"
+          >
+            <span>↻</span>
+            <span>Rotate 90°</span>
           </button>
         </div>
         {selectedCount ? (
@@ -1038,7 +1115,7 @@ export function DispatchMap({
       ) : null}
 
       {(lassoActive || selectedCount) ? (
-        <div className="absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded-lg border border-[var(--sage)] bg-[var(--card-hi)] px-5 py-2 text-center">
+        <div className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded-lg border border-[var(--sage)] bg-[var(--card-hi)] px-5 py-2 text-center">
           <div className="font-['Barlow_Condensed'] text-2xl font-black text-[var(--sage)]">
             {lassoIndicatorCount}
           </div>

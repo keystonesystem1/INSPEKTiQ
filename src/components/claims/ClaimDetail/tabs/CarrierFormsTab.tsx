@@ -1,14 +1,8 @@
-import { Card } from '@/components/ui/Card';
-
+// TODO: TECH_DEBT — wire to real Supabase carrier forms data (carrier_forms or claim_documents table)
 export function CarrierFormsTab() {
   return (
-    <Card>
-      {['Proof of Loss', 'Carrier Photo Index', 'Final Report Template'].map((form) => (
-        <div key={form} style={{ padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
-          <div>{form}</div>
-          <div style={{ color: 'var(--muted)', fontSize: '11px' }}>From carrier document library</div>
-        </div>
-      ))}
-    </Card>
+    <div style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)', fontSize: '13px' }}>
+      No carrier forms uploaded yet.
+    </div>
   );
 }

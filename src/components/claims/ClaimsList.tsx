@@ -29,18 +29,30 @@ export function ClaimsList({
   claims,
   archivedView = false,
   carrierFilter,
+  searchQuery,
 }: {
   role: Role;
   claims: Claim[];
   archivedView?: boolean;
   carrierFilter?: string;
+  searchQuery?: string;
 }) {
   const router = useRouter();
   const [filter, setFilter] = useState<ClaimStatus | 'all'>('all');
   const carrierFiltered = carrierFilter
     ? claims.filter((c) => c.client.toLowerCase() === carrierFilter.toLowerCase())
     : claims;
-  const filtered = archivedView || filter === 'all' ? carrierFiltered : carrierFiltered.filter((c) => c.status === filter);
+  const statusFiltered = archivedView || filter === 'all' ? carrierFiltered : carrierFiltered.filter((c) => c.status === filter);
+  const q = searchQuery?.trim().toLowerCase() ?? '';
+  const filtered = q
+    ? statusFiltered.filter(
+        (c) =>
+          c.number?.toLowerCase().includes(q) ||
+          c.insured?.toLowerCase().includes(q) ||
+          c.address?.toLowerCase().includes(q) ||
+          c.client?.toLowerCase().includes(q),
+      )
+    : statusFiltered;
   const countByStatus = (status: ClaimStatus) => carrierFiltered.filter((claim) => claim.status === status).length;
   const getFilterTone = (status: ClaimStatus): 'red' | 'orange' =>
     status === 'received' || status === 'on_hold' ? 'red' : 'orange';
@@ -71,6 +83,11 @@ export function ClaimsList({
         showArchivedToggle={['firm_admin', 'super_admin'].includes(role)}
         onArchiveViewChange={(archived) => router.push(archived ? '/claims?view=archived' : '/claims')}
       />
+      {q ? (
+        <div style={{ padding: '8px 0 12px', fontSize: '12px', color: 'var(--muted)' }}>
+          Showing {filtered.length} result{filtered.length !== 1 ? 's' : ''} for &lsquo;{searchQuery}&rsquo;
+        </div>
+      ) : null}
       <Table columns={columns}>
         {filtered.length === 0 ? (
           <tr>
@@ -78,7 +95,7 @@ export function ClaimsList({
               colSpan={columns.length}
               style={{ padding: '32px', textAlign: 'center', color: 'var(--muted)' }}
             >
-              {archivedView ? 'No archived claims.' : filter === 'all' ? 'No claims yet.' : `No claims with status "${filter.replace(/_/g, ' ')}".`}
+              {q ? `No results for "${searchQuery}".` : archivedView ? 'No archived claims.' : filter === 'all' ? 'No claims yet.' : `No claims with status "${filter.replace(/_/g, ' ')}".`}
             </td>
           </tr>
         ) : null}

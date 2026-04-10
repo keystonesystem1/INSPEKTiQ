@@ -7,6 +7,32 @@ import { Toggle } from '@/components/ui/Toggle';
 import { Button } from '@/components/ui/Button';
 import { FormInput } from '@/components/ui/FormInput';
 
+const INTAKE_EMAIL = process.env.NEXT_PUBLIC_FIRM_INTAKE_EMAIL ?? 'intake+e79f863e@parse.keystonestack.com';
+
+function IntakeEmailRow() {
+  const [copied, setCopied] = useState(false);
+  function copy() {
+    void navigator.clipboard.writeText(INTAKE_EMAIL).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
+      <div>
+        <div style={{ color: 'var(--muted)', fontSize: '11px', marginBottom: '2px' }}>Intake Email</div>
+        <strong style={{ fontSize: '13px', fontFamily: 'monospace' }}>{INTAKE_EMAIL}</strong>
+      </div>
+      <button
+        onClick={copy}
+        style={{ padding: '4px 10px', borderRadius: '6px', background: 'var(--card)', border: '1px solid var(--border)', color: copied ? 'var(--sage)' : 'var(--muted)', fontSize: '11px', cursor: 'pointer' }}
+      >
+        {copied ? 'Copied!' : 'Copy'}
+      </button>
+    </div>
+  );
+}
+
 const NOTIFICATION_ITEMS = ['New claim assigned', 'SLA alert', 'Report submitted', 'Invoice approved'] as const;
 
 const sections = ['Firm Profile', 'User Profile', 'SLA Configuration', 'Notifications', 'Integrations', 'Activity Log', 'Routing Preferences'] as const;
@@ -92,6 +118,7 @@ export function SettingsLayout({
         {active === 'Firm Profile' ? (
           <div style={{ display: 'grid', gap: '14px' }}>
             <FormInput label="Firm Name" value={firmName} onChange={setFirmName} />
+            <IntakeEmailRow />
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
               <span style={{ color: 'var(--muted)' }}>Portal URL</span>
               <strong>—</strong>

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useTransition } from 'react';
+import { useMemo, useTransition, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Avatar } from '@/components/ui/Avatar';
 import { NavTab } from '@/components/nav/NavTab';
@@ -24,6 +24,16 @@ export function TopNav({ user }: { user: UserSession }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const tabs = useMemo(() => ROLE_TABS[user.role], [user.role]);
+  const [searchValue, setSearchValue] = useState('');
+
+  function handleSearch(value: string) {
+    setSearchValue(value);
+    if (value.trim()) {
+      router.replace(`/claims?search=${encodeURIComponent(value.trim())}`);
+    } else {
+      router.replace('/claims');
+    }
+  }
 
   return (
     <nav
@@ -76,6 +86,8 @@ export function TopNav({ user }: { user: UserSession }) {
           </span>
           <input
             placeholder="Search claims, clients, adjusters"
+            value={searchValue}
+            onChange={(e) => handleSearch(e.target.value)}
             style={{
               width: '220px',
               background: 'var(--surface)',
