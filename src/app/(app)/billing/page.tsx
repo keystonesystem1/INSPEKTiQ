@@ -1,34 +1,44 @@
-'use client';
-
-import { useState } from 'react';
+import { redirect } from 'next/navigation';
+import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Button } from '@/components/ui/Button';
 import { StatCard } from '@/components/ui/StatCard';
 import { BillingTable } from '@/components/billing/BillingTable';
-import { InvoiceModal } from '@/components/billing/InvoiceModal';
 
-export default function BillingPage() {
-  const [invoiceOpen, setInvoiceOpen] = useState(false);
+export default async function BillingPage() {
+  const { role } = await requireAuthenticatedFirmUser();
+
+  if (!['firm_admin', 'super_admin', 'examiner'].includes(role)) {
+    redirect('/dashboard');
+  }
 
   return (
     <div style={{ display: 'grid', gap: '24px' }}>
       <PageHeader
         title="Billing"
         subtitle="Fee schedules, invoices, and examiner review workflow."
-        actions={
-          <>
-            <Button variant="ghost">Fee Schedules</Button>
-            <Button onClick={() => setInvoiceOpen(true)}>New Invoice</Button>
-          </>
-        }
       />
+      <div
+        style={{
+          border: '1px solid rgba(224,123,63,0.35)',
+          background: 'rgba(224,123,63,0.08)',
+          color: 'var(--orange)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '12px 16px',
+          fontFamily: 'Barlow Condensed, sans-serif',
+          fontWeight: 700,
+          fontSize: '12px',
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+        }}
+      >
+        Billing module not yet configured — invoice generation and fee schedules are coming in a future release.
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '12px' }}>
-        <StatCard label="Pending Invoices" value="7" accent="var(--orange)" />
-        <StatCard label="Approved This Month" value="18" accent="var(--blue)" />
-        <StatCard label="Paid YTD" value="$218K" accent="var(--sage)" />
+        <StatCard label="Pending Invoices" value="—" accent="var(--orange)" />
+        <StatCard label="Approved This Month" value="—" accent="var(--blue)" />
+        <StatCard label="Paid YTD" value="—" accent="var(--sage)" />
       </div>
       <BillingTable />
-      <InvoiceModal open={invoiceOpen} onClose={() => setInvoiceOpen(false)} />
     </div>
   );
 }

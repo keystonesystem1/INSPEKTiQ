@@ -39,11 +39,30 @@ export async function POST(request: Request) {
     data: { role: 'adjuster', firm_id: firmUser.firmId },
   });
 
+  // If the user already exists in auth.users, inviteUserByEmail returns an error.
+  // Fall back to finding the existing auth user by email so we can still create
+  // their firm_users row with the adjuster role.
+  let invitedUserId = invited?.user?.id ?? null;
   if (inviteError) {
-    return NextResponse.json({ error: inviteError.message }, { status: 500 });
+    const msg = inviteError.message.toLowerCase();
+    const userAlreadyExists = msg.includes('already') || msg.includes('exists');
+
+    if (!userAlreadyExists) {
+      return NextResponse.json({ error: inviteError.message }, { status: 500 });
+    }
+
+    const { data: listData } = await supabase.auth.admin.listUsers({ perPage: 50000 });
+    const existingAuthUser = listData?.users.find(
+      (u) => u.email?.toLowerCase() === email.toLowerCase(),
+    );
+
+    if (!existingAuthUser?.id) {
+      return NextResponse.json({ error: 'User already exists but could not be located. Please contact support.' }, { status: 500 });
+    }
+
+    invitedUserId = existingAuthUser.id;
   }
 
-  const invitedUserId = invited?.user?.id;
   if (!invitedUserId) {
     return NextResponse.json({ error: 'Invite sent but no user id returned.' }, { status: 500 });
   }

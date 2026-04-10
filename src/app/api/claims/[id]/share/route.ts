@@ -44,59 +44,59 @@ export async function POST(
     return NextResponse.json({ error: 'Missing share details' }, { status: 400 });
   }
 
-  const documents = await getClaimDocuments(claimId);
-  const allowedPaths = new Set(documents.reports.map((document) => document.path));
-  const validPaths = documentPaths.filter((path) => allowedPaths.has(path));
-
-  if (validPaths.length === 0) {
-    return NextResponse.json({ error: 'No valid documents selected' }, { status: 400 });
-  }
-
-  const supabase = createAdminClient();
-  const { data: firmUserRow, error: firmUserError } = await supabase
-    .from('firm_users')
-    .select('id')
-    .eq('firm_id', firmUser.firmId)
-    .eq('user_id', firmUser.id)
-    .maybeSingle<FirmUserRow>();
-
-  if (firmUserError || !firmUserRow) {
-    return NextResponse.json({ error: 'Unable to resolve sharing user' }, { status: 500 });
-  }
-
-  const { data: claim, error: claimError } = await supabase
-    .from('claims')
-    .select('claim_number, insured_name')
-    .eq('id', claimId)
-    .eq('firm_id', firmUser.firmId)
-    .maybeSingle<ClaimRow>();
-
-  if (claimError || !claim) {
-    return NextResponse.json({ error: 'Claim not found' }, { status: 404 });
-  }
-
-  const token = randomBytes(24).toString('hex');
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-  const { error: shareError } = await supabase
-    .from('claim_shares')
-    .insert({
-      token,
-      claim_id: claimId,
-      document_paths: validPaths,
-      created_by: firmUser.id,
-      recipient_email: recipientEmail,
-      recipient_name: recipientName || null,
-      expires_at: expiresAt,
-    });
-
-  if (shareError) {
-    return NextResponse.json({ error: shareError.message }, { status: 500 });
-  }
-
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
-
   try {
+    const documents = await getClaimDocuments(claimId);
+    const allowedPaths = new Set(documents.reports.map((document) => document.path));
+    const validPaths = documentPaths.filter((path) => allowedPaths.has(path));
+
+    if (validPaths.length === 0) {
+      return NextResponse.json({ error: 'No valid documents selected' }, { status: 400 });
+    }
+
+    const supabase = createAdminClient();
+    const { data: firmUserRow, error: firmUserError } = await supabase
+      .from('firm_users')
+      .select('id')
+      .eq('firm_id', firmUser.firmId)
+      .eq('user_id', firmUser.id)
+      .maybeSingle<FirmUserRow>();
+
+    if (firmUserError || !firmUserRow) {
+      return NextResponse.json({ error: 'Unable to resolve sharing user' }, { status: 500 });
+    }
+
+    const { data: claim, error: claimError } = await supabase
+      .from('claims')
+      .select('claim_number, insured_name')
+      .eq('id', claimId)
+      .eq('firm_id', firmUser.firmId)
+      .maybeSingle<ClaimRow>();
+
+    if (claimError || !claim) {
+      return NextResponse.json({ error: 'Claim not found' }, { status: 404 });
+    }
+
+    const token = randomBytes(24).toString('hex');
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { error: shareError } = await supabase
+      .from('claim_shares')
+      .insert({
+        token,
+        claim_id: claimId,
+        document_paths: validPaths,
+        created_by: firmUser.id,
+        recipient_email: recipientEmail,
+        recipient_name: recipientName || null,
+        expires_at: expiresAt,
+      });
+
+    if (shareError) {
+      return NextResponse.json({ error: shareError.message }, { status: 500 });
+    }
+
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+
     await sgMail.send({
       to: recipientEmail,
       from: process.env.SENDGRID_FROM_EMAIL!,
@@ -118,9 +118,12 @@ ${firmUser.firmName}`,
         },
       },
     });
-  } catch {
-    return NextResponse.json({ error: 'Unable to send share email' }, { status: 500 });
-  }
 
-  return NextResponse.json({ token });
+    return NextResponse.json({ token });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Unexpected error sharing documents.' },
+      { status: 500 },
+    );
+  }
 }

@@ -45,80 +45,87 @@ export async function POST(request: Request) {
     }
   }
 
-  const supabase = createAdminClient();
-  const nowIso = new Date().toISOString();
+  try {
+    const supabase = createAdminClient();
+    const nowIso = new Date().toISOString();
 
-  const { data: claim, error: claimError } = await supabase
-    .from('claims')
-    .insert({
-      firm_id: carrier.firmId,
-      carrier_id: carrier.id,
-      carrier: carrier.name,
-      // claims.user_id is NOT NULL — attribute the submission to the
-      // authenticated carrier portal user.
-      user_id: firmUser.id,
-      insured_name: insuredName,
-      policy_number: policyNumber,
-      date_of_loss: dateOfLoss,
-      loss_type: lossType || null,
-      // TODO: claim_category not in schema — using policy_type as holding column. See TECH_DEBT.md
-      policy_type: claimType || null,
-      loss_address: lossAddress || null,
-      city: city || null,
-      state: state || null,
-      zip: zip || null,
-      loss_description: description || null,
-      status: 'pending_acceptance',
-      received_at: nowIso,
-      created_at: nowIso,
-      updated_at: nowIso,
-    })
-    .select('id, claim_number, insured_name')
-    .single();
+    const { data: claim, error: claimError } = await supabase
+      .from('claims')
+      .insert({
+        firm_id: carrier.firmId,
+        carrier_id: carrier.id,
+        carrier: carrier.name,
+        // claims.user_id is NOT NULL — attribute the submission to the
+        // authenticated carrier portal user.
+        user_id: firmUser.id,
+        insured_name: insuredName,
+        policy_number: policyNumber,
+        date_of_loss: dateOfLoss,
+        loss_type: lossType || null,
+        // TODO: claim_category not in schema — using policy_type as holding column. See TECH_DEBT.md
+        policy_type: claimType || null,
+        loss_address: lossAddress || null,
+        city: city || null,
+        state: state || null,
+        zip: zip || null,
+        loss_description: description || null,
+        status: 'pending_acceptance',
+        received_at: nowIso,
+        created_at: nowIso,
+        updated_at: nowIso,
+      })
+      .select('id, claim_number, insured_name')
+      .single();
 
-  if (claimError || !claim) {
-    return NextResponse.json({ error: claimError?.message ?? 'Unable to create claim.' }, { status: 500 });
-  }
+    if (claimError || !claim) {
+      return NextResponse.json({ error: claimError?.message ?? 'Unable to create claim.' }, { status: 500 });
+    }
 
-  const claimId = claim.id as string;
-  const uploadedBy = carrier.name;
+    const claimId = claim.id as string;
+    const uploadedBy = carrier.name;
 
-  for (const file of files) {
-    const safeName = sanitizeFilename(file.name);
-    const storagePath = `uploads/${claimId}/carrier/${Date.now()}-${safeName}`;
-    const arrayBuffer = await file.arrayBuffer();
-    const { error: uploadError } = await supabase.storage
-      .from('claim-documents')
-      .upload(storagePath, arrayBuffer, {
-        contentType: file.type || 'application/octet-stream',
-        upsert: false,
+    for (const file of files) {
+      const safeName = sanitizeFilename(file.name);
+      const storagePath = `uploads/${claimId}/carrier/${Date.now()}-${safeName}`;
+      const arrayBuffer = await file.arrayBuffer();
+      const { error: uploadError } = await supabase.storage
+        .from('claim-documents')
+        .upload(storagePath, arrayBuffer, {
+          contentType: file.type || 'application/octet-stream',
+          upsert: false,
+        });
+      if (uploadError) {
+        return NextResponse.json(
+          { error: `Claim created, but file upload failed for "${file.name}": ${uploadError.message}`, claimId },
+          { status: 500 },
+        );
+      }
+      const { error: docInsertError } = await supabase.from('claim_documents').insert({
+        claim_id: claimId,
+        filename: file.name,
+        storage_path: storagePath,
+        mime_type: file.type || null,
+        size_bytes: file.size,
+        uploaded_by: uploadedBy,
+        source: 'carrier_portal',
       });
-    if (uploadError) {
-      return NextResponse.json(
-        { error: `Claim created, but file upload failed for "${file.name}": ${uploadError.message}`, claimId },
-        { status: 500 },
-      );
+      if (docInsertError) {
+        return NextResponse.json(
+          { error: `Claim created and file uploaded, but metadata insert failed for "${file.name}": ${docInsertError.message}`, claimId },
+          { status: 500 },
+        );
+      }
     }
-    const { error: docInsertError } = await supabase.from('claim_documents').insert({
-      claim_id: claimId,
-      filename: file.name,
-      storage_path: storagePath,
-      mime_type: file.type || null,
-      size_bytes: file.size,
-      uploaded_by: uploadedBy,
-      source: 'carrier_portal',
-    });
-    if (docInsertError) {
-      return NextResponse.json(
-        { error: `Claim created and file uploaded, but metadata insert failed for "${file.name}": ${docInsertError.message}`, claimId },
-        { status: 500 },
-      );
-    }
+
+    revalidatePath('/dashboard');
+    revalidatePath('/claims');
+    revalidatePath('/dispatch');
+
+    return NextResponse.json({ success: true, claim });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Unexpected error submitting claim.' },
+      { status: 500 },
+    );
   }
-
-  revalidatePath('/dashboard');
-  revalidatePath('/claims');
-  revalidatePath('/dispatch');
-
-  return NextResponse.json({ success: true, claim });
 }

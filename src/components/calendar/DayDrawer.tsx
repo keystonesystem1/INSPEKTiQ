@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -26,7 +27,13 @@ export function DayDrawer({
   date,
   appointments,
 }: DayDrawerProps) {
+  const [cancelToast, setCancelToast] = useState(false);
   const dateLabel = date ? format(parseISO(date), 'EEEE, MMMM d') : 'Appointments';
+
+  function handleCancelClick() {
+    setCancelToast(true);
+    setTimeout(() => setCancelToast(false), 3000);
+  }
 
   return (
     <div
@@ -42,6 +49,11 @@ export function DayDrawer({
           ✕
         </button>
       </div>
+      {cancelToast ? (
+        <div className="mb-3 rounded-[6px] bg-[var(--surface)] px-3 py-2 text-[11px] text-[var(--muted)]">
+          Appointment cancellation coming soon.
+        </div>
+      ) : null}
 
       {appointments.length ? (
         <div className="flex flex-wrap gap-3 overflow-y-auto">
@@ -64,7 +76,7 @@ export function DayDrawer({
                 <a href={`/claims/${appointment.claimId}`}>
                   <Button size="sm" variant="ghost">View Claim</Button>
                 </a>
-                <Button size="sm" variant="ghost">Cancel</Button>
+                <Button size="sm" variant="ghost" onClick={handleCancelClick}>Cancel</Button>
               </div>
             </div>
           ))}

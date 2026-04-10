@@ -67,6 +67,16 @@ export function ClaimsList({
         onArchiveViewChange={(archived) => router.push(archived ? '/claims?view=archived' : '/claims')}
       />
       <Table columns={columns}>
+        {filtered.length === 0 ? (
+          <tr>
+            <td
+              colSpan={columns.length}
+              style={{ padding: '32px', textAlign: 'center', color: 'var(--muted)' }}
+            >
+              {archivedView ? 'No archived claims.' : filter === 'all' ? 'No claims yet.' : `No claims with status "${filter.replace(/_/g, ' ')}".`}
+            </td>
+          </tr>
+        ) : null}
         {filtered.map((claim) => (
           <ClaimRow
             key={claim.id}

@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
 export function CoveragesTab() {
@@ -10,9 +9,8 @@ export function CoveragesTab() {
 
   return (
     <Card>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
+      <div style={{ marginBottom: '14px' }}>
         <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>Coverage Limits</div>
-        <Button size="sm">Edit</Button>
       </div>
       {rows.map(([type, amount]) => (
         <div key={type} style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px solid var(--border)' }}>

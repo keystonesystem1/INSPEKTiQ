@@ -1,9 +1,14 @@
+import { redirect } from 'next/navigation';
 import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
 
 export default async function SettingsPage() {
-  const { firmName } = await requireAuthenticatedFirmUser();
+  const { firmName, role } = await requireAuthenticatedFirmUser();
+
+  if (!['firm_admin', 'super_admin'].includes(role)) {
+    redirect('/dashboard');
+  }
 
   return (
     <div>

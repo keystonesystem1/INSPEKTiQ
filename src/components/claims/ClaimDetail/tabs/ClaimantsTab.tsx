@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
 export function ClaimantsTab() {
@@ -9,9 +8,6 @@ export function ClaimantsTab() {
 
   return (
     <div style={{ display: 'grid', gap: '10px' }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button size="sm">Add Claimant</Button>
-      </div>
       {claimants.map(([name, role, phone, email, address]) => (
         <Card key={name} style={{ background: 'var(--surface)' }}>
           <div style={{ fontSize: '14px', fontWeight: 500 }}>{name}</div>

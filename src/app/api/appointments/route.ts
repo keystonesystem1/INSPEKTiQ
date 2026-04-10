@@ -66,45 +66,52 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid appointment status.' }, { status: 400 });
   }
 
-  const supabase = createAdminClient();
-  const now = new Date().toISOString();
-  const { data, error } = await supabase
-    .from('appointments')
-    .insert({
-      claim_id: claimId,
-      firm_id: firmId,
-      adjuster_user_id: adjusterUserId,
-      date: body.date,
-      arrival_time: arrivalTime,
-      end_time: endTime,
-      status,
-      notes: body.notes ?? null,
-      created_at: now,
-      updated_at: now,
-    })
-    .select('id, claim_id, firm_id, adjuster_user_id, date, arrival_time, end_time, status, notes, created_at, updated_at')
-    .single();
+  try {
+    const supabase = createAdminClient();
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from('appointments')
+      .insert({
+        claim_id: claimId,
+        firm_id: firmId,
+        adjuster_user_id: adjusterUserId,
+        date: body.date,
+        arrival_time: arrivalTime,
+        end_time: endTime,
+        status,
+        notes: body.notes ?? null,
+        created_at: now,
+        updated_at: now,
+      })
+      .select('id, claim_id, firm_id, adjuster_user_id, date, arrival_time, end_time, status, notes, created_at, updated_at')
+      .single();
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    const { error: claimError } = await supabase
+      .from('claims')
+      .update({
+        status: 'scheduled',
+        updated_at: now,
+      })
+      .eq('id', claimId)
+      .eq('firm_id', firmId);
+
+    if (claimError) {
+      return NextResponse.json({ error: claimError.message }, { status: 500 });
+    }
+
+    revalidatePath('/calendar');
+    revalidatePath('/claims');
+    revalidatePath(`/claims/${claimId}`);
+
+    return NextResponse.json({ success: true, appointment: data }, { status: 201 });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Unexpected error creating appointment.' },
+      { status: 500 },
+    );
   }
-
-  const { error: claimError } = await supabase
-    .from('claims')
-    .update({
-      status: 'scheduled',
-      updated_at: now,
-    })
-    .eq('id', claimId)
-    .eq('firm_id', firmId);
-
-  if (claimError) {
-    return NextResponse.json({ error: claimError.message }, { status: 500 });
-  }
-
-  revalidatePath('/calendar');
-  revalidatePath('/claims');
-  revalidatePath(`/claims/${claimId}`);
-
-  return NextResponse.json({ success: true, appointment: data }, { status: 201 });
 }
