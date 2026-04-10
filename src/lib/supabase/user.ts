@@ -12,6 +12,8 @@ interface FirmUserRecord {
 
 interface FirmRecord {
   name: string;
+  phone: string | null;
+  settings: Record<string, unknown> | null;
 }
 
 export interface AuthenticatedFirmUser {
@@ -20,6 +22,10 @@ export interface AuthenticatedFirmUser {
   role: Role;
   firmId: string;
   firmName: string;
+  /** Requires firms.phone column. Null until migrated. */
+  firmPhone: string | null;
+  /** Requires firms.settings jsonb column. Null until migrated. */
+  firmSettings: Record<string, unknown> | null;
   name: string;
 }
 
@@ -45,7 +51,7 @@ export async function getAuthenticatedFirmUser(): Promise<AuthenticatedFirmUser 
 
   const { data: firm } = await supabase
     .from('firms')
-    .select('name')
+    .select('name, phone, settings')
     .eq('id', firmUser.firm_id)
     .single<FirmRecord>();
 
@@ -85,6 +91,8 @@ export async function getAuthenticatedFirmUser(): Promise<AuthenticatedFirmUser 
     role: firmUser.role,
     firmId: firmUser.firm_id,
     firmName: firm?.name ?? 'Firm',
+    firmPhone: firm?.phone ?? null,
+    firmSettings: (firm?.settings as Record<string, unknown> | null) ?? null,
     name: firmUser.full_name?.trim() || user.email.split('@')[0] || 'User',
   };
 }

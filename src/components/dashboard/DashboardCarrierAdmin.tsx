@@ -29,10 +29,12 @@ export function DashboardCarrierAdmin({
   claims,
   carrierName,
   intakeEmail,
+  firmPhone,
 }: {
   claims: Claim[];
   carrierName: string;
   intakeEmail: string | null;
+  firmPhone: string | null;
 }) {
   const router = useRouter();
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -104,6 +106,7 @@ export function DashboardCarrierAdmin({
         open={optionsOpen}
         onClose={() => setOptionsOpen(false)}
         intakeEmail={intakeEmail}
+        firmPhone={firmPhone}
         onChooseForm={() => {
           setOptionsOpen(false);
           setFormOpen(true);

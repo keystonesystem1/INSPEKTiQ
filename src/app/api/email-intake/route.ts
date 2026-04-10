@@ -47,12 +47,6 @@ function parseClaimNumber(subject: string) {
   return match?.[0] ?? 'UNPARSED';
 }
 
-function parseCarrier(from: string) {
-  if (from.includes('summit')) return 'Summit Commercial';
-  if (from.includes('agri')) return 'AgriSure';
-  return 'Lone Star Mutual';
-}
-
 function stripHyphens(value: string) {
   return value.replace(/-/g, '').toLowerCase();
 }
@@ -203,7 +197,7 @@ export async function POST(request: Request) {
     : {
         ...baseRecord,
         firm_id: INTAKE_FIRM_ID,
-        carrier: parsed.carrier || parseCarrier(from),
+        carrier: parsed.carrier || null,
         status: 'received',
       };
 

@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
-import { AddressField } from '@/components/clients/NewClientModal';
+import { AddressField } from '@/components/ui/AddressField';
 
 const LOSS_TYPES = ['Wind', 'Hail', 'Wind/Hail', 'Fire', 'Flood', 'Liability', 'Other'] as const;
 const CLAIM_TYPES = ['Residential', 'Commercial'] as const;
@@ -216,11 +216,11 @@ export function SubmitClaimModal({
           label="Loss Address"
           value={lossAddress}
           onChange={setLossAddress}
-          onSelect={(parsed) => {
-            setLossAddress(parsed.address);
-            setCity(parsed.city);
-            setState(parsed.state);
-            setZip(parsed.zip);
+          onSelect={(s) => {
+            setLossAddress(s.formattedAddress);
+            setCity(s.city);
+            setState(s.state);
+            setZip(s.zip);
           }}
         />
         <label style={{ display: 'grid', gap: '5px' }}>

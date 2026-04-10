@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -27,12 +28,36 @@ export function DayDrawer({
   date,
   appointments,
 }: DayDrawerProps) {
-  const [cancelToast, setCancelToast] = useState(false);
+  const router = useRouter();
+  const [localAppointments, setLocalAppointments] = useState(appointments);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const dateLabel = date ? format(parseISO(date), 'EEEE, MMMM d') : 'Appointments';
 
-  function handleCancelClick() {
-    setCancelToast(true);
-    setTimeout(() => setCancelToast(false), 3000);
+  async function handleConfirmCancel(appointmentId: string) {
+    setCancelling(true);
+    try {
+      const response = await fetch(`/api/appointments/${appointmentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled' }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(data?.error ?? 'Failed to cancel appointment.');
+      }
+      setLocalAppointments((prev) => prev.filter((a) => a.id !== appointmentId));
+      setToast('Appointment cancelled.');
+      setTimeout(() => setToast(null), 3000);
+      router.refresh();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : 'Failed to cancel appointment.');
+      setTimeout(() => setToast(null), 4000);
+    } finally {
+      setCancelling(false);
+      setConfirmingId(null);
+    }
   }
 
   return (
@@ -49,15 +74,15 @@ export function DayDrawer({
           ✕
         </button>
       </div>
-      {cancelToast ? (
+      {toast ? (
         <div className="mb-3 rounded-[6px] bg-[var(--surface)] px-3 py-2 text-[11px] text-[var(--muted)]">
-          Appointment cancellation coming soon.
+          {toast}
         </div>
       ) : null}
 
-      {appointments.length ? (
+      {localAppointments.length ? (
         <div className="flex flex-wrap gap-3 overflow-y-auto">
-          {appointments.map((appointment) => (
+          {localAppointments.map((appointment) => (
             <div
               key={appointment.id}
               className="min-w-[220px] rounded-[8px] border border-[var(--border)] bg-[var(--card)] px-[14px] py-3"
@@ -72,12 +97,26 @@ export function DayDrawer({
                 <Badge tone="faint">{appointment.lossType}</Badge>
                 <Badge tone={getStatusTone(appointment.status)}>{appointment.status}</Badge>
               </div>
-              <div className="mt-3 flex gap-2">
-                <a href={`/claims/${appointment.claimId}`}>
-                  <Button size="sm" variant="ghost">View Claim</Button>
-                </a>
-                <Button size="sm" variant="ghost" onClick={handleCancelClick}>Cancel</Button>
-              </div>
+              {confirmingId === appointment.id ? (
+                <div className="mt-3">
+                  <div className="mb-2 text-[11px] text-[var(--muted)]">Cancel this appointment?</div>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="ghost" onClick={() => setConfirmingId(null)} disabled={cancelling}>
+                      Never Mind
+                    </Button>
+                    <Button size="sm" variant="danger" onClick={() => void handleConfirmCancel(appointment.id)} disabled={cancelling}>
+                      {cancelling ? 'Cancelling…' : 'Cancel Appointment'}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-3 flex gap-2">
+                  <a href={`/claims/${appointment.claimId}`}>
+                    <Button size="sm" variant="ghost">View Claim</Button>
+                  </a>
+                  <Button size="sm" variant="ghost" onClick={() => setConfirmingId(appointment.id)}>Cancel</Button>
+                </div>
+              )}
             </div>
           ))}
         </div>

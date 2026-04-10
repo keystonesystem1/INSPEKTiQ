@@ -7,24 +7,43 @@ import { Toggle } from '@/components/ui/Toggle';
 import { Button } from '@/components/ui/Button';
 import { FormInput } from '@/components/ui/FormInput';
 
+const NOTIFICATION_ITEMS = ['New claim assigned', 'SLA alert', 'Report submitted', 'Invoice approved'] as const;
+
 const sections = ['Firm Profile', 'User Profile', 'SLA Configuration', 'Notifications', 'Integrations', 'Activity Log', 'Routing Preferences'] as const;
 
-export function SettingsLayout({ firmName: initialFirmName }: { firmName: string }) {
+function getInitialNotifications(firmSettings: Record<string, unknown> | null): Record<string, boolean> {
+  const saved = firmSettings?.notifications as Record<string, boolean> | undefined;
+  return Object.fromEntries(NOTIFICATION_ITEMS.map((item) => [item, saved?.[item] ?? true]));
+}
+
+function getInitialActivityLog(firmSettings: Record<string, unknown> | null): boolean {
+  return (firmSettings?.activityLog as boolean | undefined) ?? true;
+}
+
+export function SettingsLayout({
+  firmName: initialFirmName,
+  firmSettings,
+}: {
+  firmName: string;
+  firmSettings: Record<string, unknown> | null;
+}) {
   const router = useRouter();
   const [active, setActive] = useState<(typeof sections)[number]>('Firm Profile');
   const [firmName, setFirmName] = useState(initialFirmName);
+  const [notifications, setNotifications] = useState<Record<string, boolean>>(() => getInitialNotifications(firmSettings));
+  const [activityLog, setActivityLog] = useState(() => getInitialActivityLog(firmSettings));
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
-    if (active !== 'Firm Profile') {
+    if (active !== 'Firm Profile' && active !== 'Notifications' && active !== 'Activity Log') {
       setToast('No editable fields in this section yet.');
       setTimeout(() => setToast(null), 3000);
       return;
     }
 
-    if (!firmName.trim()) {
+    if (active === 'Firm Profile' && !firmName.trim()) {
       setError('Firm name is required.');
       return;
     }
@@ -32,11 +51,16 @@ export function SettingsLayout({ firmName: initialFirmName }: { firmName: string
     setSaving(true);
     setError(null);
 
+    const body: Record<string, unknown> = {};
+    if (active === 'Firm Profile') body.firmName = firmName.trim();
+    if (active === 'Notifications') body.settings = { notifications };
+    if (active === 'Activity Log') body.settings = { activityLog };
+
     try {
       const response = await fetch('/api/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firmName: firmName.trim() }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -80,13 +104,16 @@ export function SettingsLayout({ firmName: initialFirmName }: { firmName: string
         ) : null}
         {active === 'Notifications' ? (
           <div style={{ display: 'grid', gap: '12px' }}>
-            {['New claim assigned', 'SLA alert', 'Report submitted', 'Invoice approved'].map((item) => (
+            {NOTIFICATION_ITEMS.map((item) => (
               <div key={item} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
                 <div>
                   <div>{item}</div>
                   <div style={{ color: 'var(--muted)', fontSize: '11px' }}>Email + In-app</div>
                 </div>
-                <Toggle checked />
+                <Toggle
+                  checked={notifications[item] ?? true}
+                  onToggle={() => setNotifications((prev) => ({ ...prev, [item]: !prev[item] }))}
+                />
               </div>
             ))}
           </div>
@@ -109,7 +136,7 @@ export function SettingsLayout({ firmName: initialFirmName }: { firmName: string
               <div>Auto-log all user actions to claim notes</div>
               <div style={{ color: 'var(--muted)', fontSize: '11px' }}>Assignments, status changes, and uploads become system notes.</div>
             </div>
-            <Toggle checked />
+            <Toggle checked={activityLog} onToggle={() => setActivityLog((prev) => !prev)} />
           </div>
         ) : null}
         {active !== 'Firm Profile' && active !== 'Notifications' && active !== 'Integrations' && active !== 'Activity Log' ? (

@@ -11,7 +11,7 @@ import { getDashboardStats } from '@/lib/supabase/dashboard';
 import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
 
 export default async function DashboardPage() {
-  const { id, role, firmId, name, firmName } = await requireAuthenticatedFirmUser();
+  const { id, role, firmId, name, firmName, firmPhone } = await requireAuthenticatedFirmUser();
 
   if (role === 'examiner') return <DashboardExaminer />;
   if (role === 'dispatcher') return <DashboardDispatcher />;
@@ -29,6 +29,7 @@ export default async function DashboardPage() {
         claims={claims}
         carrierName={carrierName}
         intakeEmail={carrier?.intakeEmail ?? null}
+        firmPhone={firmPhone}
       />
     );
   }

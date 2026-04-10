@@ -8,11 +8,13 @@ export function SubmitClaimOptionsModal({
   open,
   onClose,
   intakeEmail,
+  firmPhone,
   onChooseForm,
 }: {
   open: boolean;
   onClose: () => void;
   intakeEmail: string | null;
+  firmPhone?: string | null;
   onChooseForm: () => void;
 }) {
   const [copied, setCopied] = useState(false);
@@ -117,12 +119,20 @@ export function SubmitClaimOptionsModal({
           <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '14px', color: 'var(--white)', marginBottom: '4px' }}>
             📞 Call us
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '6px' }}>
-            Coming soon — (254) 555-0100
-          </div>
-          <div style={{ fontSize: '11px', color: 'var(--faint)' }}>
-            Mon–Fri, 8am–6pm CT
-          </div>
+          {firmPhone ? (
+            <>
+              <div style={{ fontSize: '12px', color: 'var(--white)', marginBottom: '6px', fontWeight: 600 }}>
+                {firmPhone}
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--faint)' }}>
+                Mon–Fri, 8am–6pm CT
+              </div>
+            </>
+          ) : (
+            <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+              Phone support coming soon — check back for hours and contact info.
+            </div>
+          )}
         </div>
       </div>
     </Modal>

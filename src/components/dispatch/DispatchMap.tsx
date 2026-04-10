@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import mapboxgl from 'mapbox-gl';
-import type { Feature, Polygon } from 'geojson';
+import type { Feature, LineString, Polygon } from 'geojson';
 import type { LassoFilterState } from '@/components/dispatch/LassoFilters';
 import { Button } from '@/components/ui/Button';
 import type { DispatchAdjuster, DispatchClaim } from '@/lib/types';
@@ -284,7 +284,7 @@ function createFreehandDrawMode() {
     toDisplayFeatures(
       state: FreehandModeState | undefined,
       geojson: Feature<Polygon>,
-      display: (feature: Feature<Polygon>) => void,
+      display: (feature: Feature<Polygon | LineString>) => void,
     ) {
       if (!state?.polygon) {
         display(geojson);
@@ -316,7 +316,7 @@ function createFreehandDrawMode() {
             type: 'LineString',
             coordinates: geojson.geometry.coordinates[0].slice(0, 2),
           },
-        } as unknown as Feature<Polygon>);
+        } satisfies Feature<LineString>);
 
         if (coordinateCount === 3) {
           return;

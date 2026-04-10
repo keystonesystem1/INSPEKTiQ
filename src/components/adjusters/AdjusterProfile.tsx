@@ -5,27 +5,16 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FormInput } from '@/components/ui/FormInput';
+import { AddressField } from '@/components/ui/AddressField';
+import type { AddressFieldSuggestion } from '@/components/ui/AddressField';
 import type { CarrierOption } from '@/lib/supabase/adjusters';
 import type { AdjusterHomeBase, AdjusterRow } from '@/lib/types';
 
 const CERTIFICATION_OPTIONS = ['TWIA Cert', 'Flood Cert', 'Commercial Lic', 'Drone Cert', 'Xactimate Cert'] as const;
 const CLAIM_TYPE_OPTIONS = ['Residential', 'Commercial', 'Farm/Ranch', 'Industrial', 'Flood', 'Auto'] as const;
 const AVAILABILITY_OPTIONS = ['available', 'busy', 'remote', 'on_leave'] as const;
-const MAPBOX_SUGGESTION_LIMIT = 5;
-
 interface EditableHomeBase extends AdjusterHomeBase {
   localId: string;
-}
-
-interface MapboxSuggestion {
-  id: string;
-  label: string;
-  formattedAddress: string;
-  city: string;
-  state: string;
-  zip: string;
-  lat: number | null;
-  lng: number | null;
 }
 
 function buildMissingItems(values: {
@@ -87,234 +76,6 @@ function createEditableHomeBase(homeBase?: Partial<AdjusterHomeBase>): EditableH
     ...defaultHomeBase(),
     ...homeBase,
   };
-}
-
-function parseSuggestionContext(feature: {
-  place_name?: string;
-  center?: [number, number];
-  properties?: Record<string, unknown>;
-  context?: Array<{ id?: string; text?: string; short_code?: string }>;
-}) {
-  const context = feature.context ?? [];
-  const place = context.find((item) => item.id?.startsWith('place'));
-  const region = context.find((item) => item.id?.startsWith('region'));
-  const postcode = context.find((item) => item.id?.startsWith('postcode'));
-
-  return {
-    city: place?.text ?? '',
-    state: region?.short_code?.split('-')[1] ?? region?.text ?? '',
-    zip: postcode?.text ?? '',
-    formattedAddress: feature.place_name ?? '',
-    lat: typeof feature.center?.[1] === 'number' ? feature.center[1] : null,
-    lng: typeof feature.center?.[0] === 'number' ? feature.center[0] : null,
-  };
-}
-
-function HomeBaseAddressField({
-  value,
-  disabled,
-  onChange,
-  onSelect,
-}: {
-  value: string;
-  disabled: boolean;
-  onChange: (value: string) => void;
-  onSelect: (suggestion: MapboxSuggestion) => void;
-}) {
-  const [suggestions, setSuggestions] = useState<MapboxSuggestion[]>([]);
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const requestSequenceRef = useRef(0);
-  const justSelectedRef = useRef(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (disabled) {
-      setSuggestions([]);
-      setOpen(false);
-      return;
-    }
-
-    if (justSelectedRef.current) {
-      // Skip refetch when value change came from selecting a suggestion.
-      justSelectedRef.current = false;
-      setSuggestions([]);
-      setOpen(false);
-      return;
-    }
-
-    const query = value.trim();
-    const accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-
-    if (!accessToken || query.length < 3) {
-      setSuggestions([]);
-      setOpen(false);
-      setLoading(false);
-      return;
-    }
-
-    const requestId = requestSequenceRef.current + 1;
-    requestSequenceRef.current = requestId;
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(async () => {
-      setLoading(true);
-      try {
-        const url = new URL(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json`,
-        );
-        url.searchParams.set('access_token', accessToken);
-        url.searchParams.set('country', 'US');
-        url.searchParams.set('types', 'address,place,postcode,locality,neighborhood');
-        url.searchParams.set('limit', String(MAPBOX_SUGGESTION_LIMIT));
-        url.searchParams.set('autocomplete', 'true');
-
-        const response = await fetch(url, {
-          signal: controller.signal,
-          cache: 'no-store',
-        });
-
-        if (!response.ok) {
-          throw new Error('Unable to load address suggestions.');
-        }
-
-        const payload = (await response.json()) as {
-          features?: Array<{
-            id?: string;
-            place_name?: string;
-            text?: string;
-            center?: [number, number];
-            properties?: Record<string, unknown>;
-            context?: Array<{ id?: string; text?: string; short_code?: string }>;
-          }>;
-        };
-
-        if (requestSequenceRef.current !== requestId) {
-          return;
-        }
-
-        const nextSuggestions = (payload.features ?? []).map((feature) => {
-          const parsed = parseSuggestionContext(feature);
-          return {
-            id: feature.id ?? `${feature.place_name ?? feature.text ?? 'address'}-${Math.random().toString(16).slice(2)}`,
-            label: feature.text ?? feature.place_name ?? 'Address',
-            ...parsed,
-          } satisfies MapboxSuggestion;
-        });
-
-        setSuggestions(nextSuggestions);
-        setOpen(nextSuggestions.length > 0);
-      } catch (error) {
-        if (controller.signal.aborted) {
-          return;
-        }
-        setSuggestions([]);
-        setOpen(false);
-      } finally {
-        if (requestSequenceRef.current === requestId) {
-          setLoading(false);
-        }
-      }
-    }, 250);
-
-    return () => {
-      controller.abort();
-      window.clearTimeout(timeoutId);
-    };
-  }, [disabled, value]);
-
-  return (
-    <label style={{ display: 'grid', gap: '5px', position: 'relative' }}>
-      <span
-        style={{
-          fontFamily: 'Barlow Condensed, sans-serif',
-          fontWeight: 700,
-          fontSize: '10px',
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          color: 'var(--muted)',
-        }}
-      >
-        Address
-      </span>
-      <input
-        ref={inputRef}
-        value={value}
-        onChange={(event) => {
-          onChange(event.target.value);
-          setOpen(true);
-        }}
-        onBlur={() => {
-          window.setTimeout(() => setOpen(false), 150);
-        }}
-        onFocus={() => {
-          if (suggestions.length > 0) {
-            setOpen(true);
-          }
-        }}
-        placeholder="Search for an address"
-        disabled={disabled}
-        className="form-input"
-        style={{
-          background: 'var(--card)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-md)',
-          padding: '9px 12px',
-          color: 'var(--white)',
-          width: '100%',
-        }}
-      />
-      {loading ? (
-        <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Searching addresses...</div>
-      ) : null}
-      {open && suggestions.length > 0 ? (
-        <div
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            zIndex: 20,
-            marginTop: '6px',
-            border: '1px solid var(--border-hi)',
-            borderRadius: 'var(--radius-md)',
-            background: 'var(--surface)',
-            boxShadow: '0 12px 28px rgba(0,0,0,0.28)',
-            overflow: 'hidden',
-          }}
-        >
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion.id}
-              type="button"
-              onMouseDown={(event) => {
-                event.preventDefault();
-                justSelectedRef.current = true;
-                onSelect(suggestion);
-                setSuggestions([]);
-                setOpen(false);
-                inputRef.current?.blur();
-              }}
-              style={{
-                width: '100%',
-                textAlign: 'left',
-                padding: '10px 12px',
-                border: 'none',
-                borderTop: '1px solid var(--border)',
-                background: 'transparent',
-                color: 'var(--white)',
-                cursor: 'pointer',
-              }}
-            >
-              <div style={{ fontSize: '12px', fontWeight: 600 }}>{suggestion.label}</div>
-              <div style={{ marginTop: '3px', fontSize: '11px', color: 'var(--muted)' }}>
-                {suggestion.formattedAddress}
-              </div>
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </label>
-  );
 }
 
 export function AdjusterProfile({
@@ -850,7 +611,7 @@ export function AdjusterProfile({
                           )
                         }
                       />
-                      <HomeBaseAddressField
+                      <AddressField
                         value={homeBase.address ?? ''}
                         disabled={!canEdit || saving}
                         onChange={(value) =>

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { AddressField } from '@/components/clients/NewClientModal';
+import { AddressField } from '@/components/ui/AddressField';
 import type { CarrierRow } from '@/lib/types';
 
 function Label({ children }: { children: React.ReactNode }) {
@@ -193,11 +193,11 @@ export function ClientProfile({ carrier }: { carrier: CarrierRow }) {
             label="Address"
             value={address}
             onChange={setAddress}
-            onSelect={(parsed) => {
-              setAddress(parsed.address);
-              setCity(parsed.city);
-              setState(parsed.state);
-              setZip(parsed.zip);
+            onSelect={(s) => {
+              setAddress(s.formattedAddress);
+              setCity(s.city);
+              setState(s.state);
+              setZip(s.zip);
             }}
           />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 100px', gap: '8px' }}>
@@ -301,11 +301,11 @@ export function ClientProfile({ carrier }: { carrier: CarrierRow }) {
                 label="Billing Address"
                 value={billingAddress}
                 onChange={setBillingAddress}
-                onSelect={(parsed) => {
-                  setBillingAddress(parsed.address);
-                  setBillingCity(parsed.city);
-                  setBillingState(parsed.state);
-                  setBillingZip(parsed.zip);
+                onSelect={(s) => {
+                  setBillingAddress(s.formattedAddress);
+                  setBillingCity(s.city);
+                  setBillingState(s.state);
+                  setBillingZip(s.zip);
                 }}
               />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 100px', gap: '8px' }}>

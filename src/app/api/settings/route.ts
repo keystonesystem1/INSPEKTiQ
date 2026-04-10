@@ -4,6 +4,7 @@ import { getAuthenticatedFirmUser } from '@/lib/supabase/user';
 
 interface SettingsPatchBody {
   firmName?: string;
+  settings?: Record<string, unknown>;
 }
 
 export async function PATCH(request: Request) {
@@ -20,14 +21,30 @@ export async function PATCH(request: Request) {
   const body = (await request.json()) as SettingsPatchBody;
   const firmName = body.firmName?.trim();
 
-  if (!firmName) {
+  if (firmName !== undefined && !firmName) {
     return NextResponse.json({ error: 'Firm name is required' }, { status: 400 });
   }
 
+  if (!firmName && !body.settings) {
+    return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
+  }
+
   const supabase = createAdminClient();
+  const updates: Record<string, unknown> = {};
+  if (firmName) updates.name = firmName;
+  if (body.settings) {
+    // Merge with existing settings so partial updates don't overwrite other keys.
+    const { data: existing } = await supabase
+      .from('firms')
+      .select('settings')
+      .eq('id', firmUser.firmId)
+      .maybeSingle<{ settings: Record<string, unknown> | null }>();
+    updates.settings = { ...(existing?.settings ?? {}), ...body.settings };
+  }
+
   const { error } = await supabase
     .from('firms')
-    .update({ name: firmName })
+    .update(updates)
     .eq('id', firmUser.firmId);
 
   if (error) {

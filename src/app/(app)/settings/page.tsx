@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
 
 export default async function SettingsPage() {
-  const { firmName, role } = await requireAuthenticatedFirmUser();
+  const { firmName, firmSettings, role } = await requireAuthenticatedFirmUser();
 
   if (!['firm_admin', 'super_admin'].includes(role)) {
     redirect('/dashboard');
@@ -13,7 +13,7 @@ export default async function SettingsPage() {
   return (
     <div>
       <PageHeader title="Settings" subtitle="Firm profile, SLAs, notifications, integrations, and routing preferences." />
-      <SettingsLayout firmName={firmName} />
+      <SettingsLayout firmName={firmName} firmSettings={firmSettings} />
     </div>
   );
 }
