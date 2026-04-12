@@ -3,8 +3,8 @@ import type { Role } from '@/lib/types';
 export { type Role } from '@/lib/types';
 
 export const ROLE_TABS: Record<Role, string[]> = {
-  super_admin: ['dashboard', 'claims', 'clients', 'dispatch', 'adjusters', 'calendar', 'billing', 'settings'],
-  firm_admin: ['dashboard', 'claims', 'clients', 'dispatch', 'adjusters', 'billing', 'settings'],
+  super_admin: ['dashboard', 'claims', 'clients', 'dispatch', 'adjusters', 'calendar', 'billing', 'settings', 'workflow-studio'],
+  firm_admin: ['dashboard', 'claims', 'clients', 'dispatch', 'adjusters', 'billing', 'settings', 'workflow-studio'],
   examiner: ['dashboard', 'claims', 'billing'],
   dispatcher: ['dashboard', 'claims', 'dispatch'],
   adjuster: ['dashboard', 'claims', 'calendar'],

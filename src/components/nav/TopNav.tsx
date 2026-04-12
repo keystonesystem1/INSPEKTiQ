@@ -18,6 +18,7 @@ const labels: Record<string, string> = {
   calendar: 'Calendar',
   billing: 'Billing',
   settings: 'Settings',
+  'workflow-studio': 'Workflow Studio',
 };
 
 export function TopNav({ user }: { user: UserSession }) {
