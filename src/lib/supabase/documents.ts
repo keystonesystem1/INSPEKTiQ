@@ -14,6 +14,7 @@ export interface ClaimPhotoDocument {
   subsection: string;
   label: string;
   caption: string;
+  pills: string[];
   signedUrl: string;
 }
 
@@ -28,6 +29,7 @@ interface PhotoRow {
   subsection: string | null;
   label: string | null;
   caption: string | null;
+  pills: string[] | null;
 }
 
 function getFilename(path: string) {
@@ -69,7 +71,7 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
 
   const { data: photoRows, error: photosError } = await supabase
     .from('photos')
-    .select('storage_path, section, subsection, label, caption')
+    .select('storage_path, section, subsection, label, caption, pills')
     .eq('claim_id', claimId);
 
   if (photosError) {
@@ -93,6 +95,7 @@ export async function getClaimDocuments(claimId: string): Promise<ClaimDocuments
         subsection: row.subsection ?? '',
         label: row.label ?? getFilename(row.storage_path),
         caption: row.caption ?? '',
+        pills: row.pills ?? [],
         signedUrl: data?.signedUrl ?? '',
       };
     }),

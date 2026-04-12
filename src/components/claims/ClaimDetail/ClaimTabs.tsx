@@ -135,7 +135,7 @@ export function ClaimTabs({
         {activeTab === 'Contacts' ? <ContactsTab claimId={claim.id} contacts={contacts} /> : null}
         {activeTab === 'Notes' ? <NotesTab role={role} notes={notes} claimId={claim.id} /> : null}
         {activeTab === 'Documents' ? <DocumentsTab claimId={claim.id} role={role} documents={documents} /> : null}
-        {activeTab === 'Photos' ? <PhotosTab documents={documents} /> : null}
+        {activeTab === 'Photos' ? <PhotosTab documents={documents} inspection={inspection} /> : null}
         {activeTab === 'Inspection' ? <InspectionTab inspection={inspection} /> : null}
         {activeTab === 'Time & Expense' ? <TimeExpenseTab role={role} /> : null}
         {activeTab === 'Tasks' ? <TasksTab /> : null}
