@@ -39,8 +39,10 @@ export default async function DashboardPage() {
     return <DashboardCarrierDeskAdjuster claims={claims} />;
   }
 
-  const stats = await getDashboardStats(firmId);
-  const claims = await getClaims(firmId, role, id);
+  const [stats, claims] = await Promise.all([
+    getDashboardStats(firmId),
+    getClaims(firmId, role, id),
+  ]);
 
   return <DashboardAdmin name={name} firmName={firmName} stats={stats} claims={claims} />;
 }

@@ -29,12 +29,14 @@ export default async function ClaimDetailPage({
   const { id } = await params;
   const { tab } = await searchParams;
   const { id: userId, role, firmId } = await requireAuthenticatedFirmUser();
-  const claim = await getClaimById(id, firmId, role, userId);
-  const adjusters = await getAdjusterOptions(firmId);
-  const documents = await getClaimDocuments(id);
-  const inspection = await getInspectionData(id);
-  const notes = await getClaimNotes(id);
-  const contacts = await getClaimContactsData(id, firmId);
+  const [claim, adjusters, documents, inspection, notes, contacts] = await Promise.all([
+    getClaimById(id, firmId, role, userId),
+    getAdjusterOptions(firmId),
+    getClaimDocuments(id),
+    getInspectionData(id),
+    getClaimNotes(id),
+    getClaimContactsData(id, firmId),
+  ]);
 
   if (!claim) redirect('/claims');
   const needsReview = isIntakeReviewRequired(claim);

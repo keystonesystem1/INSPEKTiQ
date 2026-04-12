@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useTransition, useState } from 'react';
+import { useMemo, useTransition, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Avatar } from '@/components/ui/Avatar';
 import { NavTab } from '@/components/nav/NavTab';
@@ -25,14 +25,18 @@ export function TopNav({ user }: { user: UserSession }) {
   const [isPending, startTransition] = useTransition();
   const tabs = useMemo(() => ROLE_TABS[user.role], [user.role]);
   const [searchValue, setSearchValue] = useState('');
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function handleSearch(value: string) {
     setSearchValue(value);
-    if (value.trim()) {
-      router.replace(`/claims?search=${encodeURIComponent(value.trim())}`);
-    } else {
-      router.replace('/claims');
-    }
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => {
+      if (value.trim()) {
+        router.replace(`/claims?search=${encodeURIComponent(value.trim())}`);
+      } else {
+        router.replace('/claims');
+      }
+    }, 300);
   }
 
   return (
