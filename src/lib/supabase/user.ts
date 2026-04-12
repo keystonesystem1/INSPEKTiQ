@@ -17,7 +17,10 @@ interface FirmRecord {
 }
 
 export interface AuthenticatedFirmUser {
+  /** auth.users.id — use for RLS, JWT, most API calls */
   id: string;
+  /** firm_users.id (PK) — use for user_preferences FK and adjuster_profiles FK */
+  firmUserId: string;
   email: string;
   role: Role;
   firmId: string;
@@ -87,6 +90,7 @@ export async function getAuthenticatedFirmUser(): Promise<AuthenticatedFirmUser 
 
   return {
     id: user.id,
+    firmUserId: firmUser.id,
     email: user.email,
     role: firmUser.role,
     firmId: firmUser.firm_id,

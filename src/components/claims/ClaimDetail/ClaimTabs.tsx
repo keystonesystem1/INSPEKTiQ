@@ -137,11 +137,11 @@ export function ClaimTabs({
         {activeTab === 'Documents' ? <DocumentsTab claimId={claim.id} role={role} documents={documents} /> : null}
         {activeTab === 'Photos' ? <PhotosTab documents={documents} inspection={inspection} /> : null}
         {activeTab === 'Inspection' ? <InspectionTab inspection={inspection} /> : null}
-        {activeTab === 'Time & Expense' ? <TimeExpenseTab role={role} /> : null}
-        {activeTab === 'Tasks' ? <TasksTab /> : null}
-        {activeTab === 'Reserves' ? <ReservesTab claim={claim} role={role} /> : null}
-        {activeTab === 'Claimants' ? <ClaimantsTab /> : null}
-        {activeTab === 'Coverages' ? <CoveragesTab /> : null}
+        {activeTab === 'Time & Expense' ? <TimeExpenseTab claimId={claim.id} role={role} /> : null}
+        {activeTab === 'Tasks' ? <TasksTab claimId={claim.id} /> : null}
+        {activeTab === 'Reserves' ? <ReservesTab claimId={claim.id} role={role} /> : null}
+        {activeTab === 'Claimants' ? <ClaimantsTab claimId={claim.id} /> : null}
+        {activeTab === 'Coverages' ? <CoveragesTab claimId={claim.id} role={role} /> : null}
         {activeTab === 'Loss Locations' ? <LossLocationsTab claim={claim} /> : null}
         {activeTab === 'Carrier Forms' ? <CarrierFormsTab /> : null}
         {activeTab === 'Firm Forms' ? <FirmFormsTab /> : null}

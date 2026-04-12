@@ -1,10 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { endOfMonth, format, startOfMonth } from 'date-fns';
+import { endOfMonth, endOfWeek, format, startOfMonth, startOfWeek } from 'date-fns';
 import { Button } from '@/components/ui/Button';
 import { DayDrawer } from '@/components/calendar/DayDrawer';
 import { MonthCalendar } from '@/components/calendar/MonthCalendar';
+import { WeekCalendar } from '@/components/calendar/WeekCalendar';
 import { RouteMap } from '@/components/calendar/RouteMap';
 import { SchedulingQueue } from '@/components/calendar/SchedulingQueue';
 import { SchedulingModal } from '@/components/calendar/SchedulingModal';
@@ -16,17 +17,20 @@ interface CalendarPageProps {
 }
 
 export function CalendarPage({ firmId, adjusterUserId }: CalendarPageProps) {
+  const [view, setView] = useState<'month' | 'week'>('month');
   const [routeMapOpen, setRouteMapOpen] = useState(false);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [scheduleClaimId, setScheduleClaimId] = useState<string | undefined>();
   const [scheduleDate, setScheduleDate] = useState<string | undefined>();
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
+  const [currentWeekStart, setCurrentWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 0 }));
   const [dayDrawerOpen, setDayDrawerOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const monthStart = useMemo(() => startOfMonth(currentMonth), [currentMonth]);
   const monthEnd = useMemo(() => endOfMonth(monthStart), [monthStart]);
-  const from = format(monthStart, 'yyyy-MM-dd');
-  const to = format(monthEnd, 'yyyy-MM-dd');
+  const weekEnd = useMemo(() => endOfWeek(currentWeekStart, { weekStartsOn: 0 }), [currentWeekStart]);
+  const from = view === 'week' ? format(currentWeekStart, 'yyyy-MM-dd') : format(monthStart, 'yyyy-MM-dd');
+  const to = view === 'week' ? format(weekEnd, 'yyyy-MM-dd') : format(monthEnd, 'yyyy-MM-dd');
 
   const {
     claimsNeedingScheduling,
@@ -80,15 +84,15 @@ export function CalendarPage({ firmId, adjusterUserId }: CalendarPageProps) {
                 <div className="flex gap-[2px]">
                   <button
                     type="button"
-                    className="rounded-[4px] bg-[var(--sage)] px-[10px] py-[5px] font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[#06120C]"
+                    onClick={() => setView('month')}
+                    className={`rounded-[4px] px-[10px] py-[5px] font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] transition-colors ${view === 'month' ? 'bg-[var(--sage)] text-[#06120C]' : 'text-[var(--muted)] hover:text-[var(--white)]'}`}
                   >
                     Month
                   </button>
                   <button
                     type="button"
-                    disabled
-                    title="Coming soon"
-                    className="cursor-not-allowed rounded-[4px] px-[10px] py-[5px] font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)] opacity-60"
+                    onClick={() => setView('week')}
+                    className={`rounded-[4px] px-[10px] py-[5px] font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] transition-colors ${view === 'week' ? 'bg-[var(--sage)] text-[#06120C]' : 'text-[var(--muted)] hover:text-[var(--white)]'}`}
                   >
                     Week
                   </button>
@@ -100,36 +104,41 @@ export function CalendarPage({ firmId, adjusterUserId }: CalendarPageProps) {
             </div>
           </div>
 
-          <div className="border-b border-[var(--border)] bg-[var(--surface)] px-5 py-3">
-            <div className="grid grid-cols-7 gap-3">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <div key={day} className="text-center">
-                  <div className="font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--faint)]">
-                    {day}
-                  </div>
-                  <div className="mt-1 text-[10px] text-[var(--faint)]">Weather</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div className="min-h-0 flex-1 bg-[var(--bg)] p-5">
             <div className="relative h-full">
-              <MonthCalendar
-                appointments={appointments}
-                month={currentMonth}
-                onMonthChange={setCurrentMonth}
-                onToday={() => setCurrentMonth(startOfMonth(new Date()))}
-                onOpenSchedule={(claimId, date) => {
-                  setScheduleClaimId(claimId);
-                  setScheduleDate(date);
-                  setScheduleModalOpen(true);
-                }}
-                onOpenDay={(date) => {
-                  setSelectedDay(date);
-                  setDayDrawerOpen(true);
-                }}
-              />
+              {view === 'week' ? (
+                <WeekCalendar
+                  appointments={appointments}
+                  weekStart={currentWeekStart}
+                  onWeekChange={setCurrentWeekStart}
+                  onToday={() => setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 0 }))}
+                  onOpenSchedule={(claimId, date) => {
+                    setScheduleClaimId(claimId);
+                    setScheduleDate(date);
+                    setScheduleModalOpen(true);
+                  }}
+                  onOpenDay={(date) => {
+                    setSelectedDay(date);
+                    setDayDrawerOpen(true);
+                  }}
+                />
+              ) : (
+                <MonthCalendar
+                  appointments={appointments}
+                  month={currentMonth}
+                  onMonthChange={setCurrentMonth}
+                  onToday={() => setCurrentMonth(startOfMonth(new Date()))}
+                  onOpenSchedule={(claimId, date) => {
+                    setScheduleClaimId(claimId);
+                    setScheduleDate(date);
+                    setScheduleModalOpen(true);
+                  }}
+                  onOpenDay={(date) => {
+                    setSelectedDay(date);
+                    setDayDrawerOpen(true);
+                  }}
+                />
+              )}
               <DayDrawer
                 open={dayDrawerOpen}
                 onClose={() => setDayDrawerOpen(false)}
