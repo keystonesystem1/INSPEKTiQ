@@ -13,8 +13,8 @@ export function NavTab({ href, label }: { href: string; label: string }) {
       style={{
         fontFamily: 'Barlow Condensed, sans-serif',
         fontWeight: 700,
-        fontSize: '12px',
-        letterSpacing: '0.14em',
+        fontSize: '13px',
+        letterSpacing: '0.18em',
         textTransform: 'uppercase',
         padding: '10px 16px',
         borderRadius: 'var(--radius-md)',
