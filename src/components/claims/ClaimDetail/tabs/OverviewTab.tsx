@@ -19,16 +19,16 @@ export function OverviewTab({ claim, role, documentCount }: { claim: Claim; role
         className={isCarrierRole ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'}
         style={{ gap: '12px' }}
       >
-        <Card><div style={{ color: 'var(--muted)', fontSize: '10px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em' }}>Claim Status + SLA</div><div style={{ marginTop: '8px' }}>{claim.status.replace('_', ' ')}</div></Card>
-        <Card><div style={{ color: 'var(--muted)', fontSize: '10px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em' }}>Key Contacts</div><div style={{ marginTop: '8px' }}>Insured, adjuster, examiner</div></Card>
+        <Card><div style={{ color: 'var(--muted)', fontSize: '11px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.14em' }}>Claim Status + SLA</div><div style={{ marginTop: '8px' }}>{claim.status.replace('_', ' ')}</div></Card>
+        <Card><div style={{ color: 'var(--muted)', fontSize: '11px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.14em' }}>Key Contacts</div><div style={{ marginTop: '8px' }}>Insured, adjuster, examiner</div></Card>
         {!isCarrierRole ? (
-          <Card><div style={{ color: 'var(--muted)', fontSize: '10px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em' }}>Reserves Total</div><div style={{ marginTop: '8px' }}>${claim.reserveTotal.toLocaleString()}</div></Card>
+          <Card><div style={{ color: 'var(--muted)', fontSize: '11px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.14em' }}>Reserves Total</div><div style={{ marginTop: '8px' }}>${claim.reserveTotal.toLocaleString()}</div></Card>
         ) : null}
-        <Card><div style={{ color: 'var(--muted)', fontSize: '10px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em' }}>Recent Documents</div><div style={{ marginTop: '8px' }}>{documentCount} documents</div></Card>
+        <Card><div style={{ color: 'var(--muted)', fontSize: '11px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.14em' }}>Recent Documents</div><div style={{ marginTop: '8px' }}>{documentCount} documents</div></Card>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: '14px' }}>
         <Card>
-          <div style={{ color: 'var(--muted)', fontSize: '11px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em', marginBottom: '12px' }}>Claim Details</div>
+          <div style={{ color: 'var(--muted)', fontSize: '12px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.14em', marginBottom: '12px' }}>Claim Details</div>
           {[
             ['Policy Number', claim.policyNumber],
             ['Loss Cause', claim.lossCause],
@@ -41,7 +41,7 @@ export function OverviewTab({ claim, role, documentCount }: { claim: Claim; role
           ))}
         </Card>
         <Card>
-          <div style={{ color: 'var(--muted)', fontSize: '11px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.1em', marginBottom: '12px' }}>Insured Information</div>
+          <div style={{ color: 'var(--muted)', fontSize: '12px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.14em', marginBottom: '12px' }}>Insured Information</div>
           {[
             ['Name', claim.insured],
             ['Address', claim.address],

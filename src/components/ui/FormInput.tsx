@@ -19,7 +19,7 @@ export function FormInput({
     background: 'var(--card)',
     border: '1px solid var(--border)',
     borderRadius: 'var(--radius-md)',
-    padding: '9px 12px',
+    padding: '10px 14px',
     color: 'var(--white)',
     width: '100%',
   } as const;
@@ -30,8 +30,8 @@ export function FormInput({
         style={{
           fontFamily: 'Barlow Condensed, sans-serif',
           fontWeight: 700,
-          fontSize: '10px',
-          letterSpacing: '0.1em',
+          fontSize: '11px',
+          letterSpacing: '0.14em',
           textTransform: 'uppercase',
           color: 'var(--muted)',
         }}

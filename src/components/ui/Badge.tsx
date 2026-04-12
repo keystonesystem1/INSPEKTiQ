@@ -28,8 +28,8 @@ export function Badge({
         borderRadius: 'var(--radius-sm)',
         fontFamily: 'Barlow Condensed, sans-serif',
         fontWeight: 700,
-        fontSize: large ? '11px' : '9px',
-        letterSpacing: '0.08em',
+        fontSize: large ? '11px' : '10px',
+        letterSpacing: '0.1em',
         textTransform: 'uppercase',
         ...tones[tone],
       }}

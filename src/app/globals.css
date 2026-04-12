@@ -5,11 +5,11 @@
 
 :root {
   --bg: #0a0a0a;
-  --surface: #0f1923;
-  --card: #162130;
-  --card-hi: #1c2b3d;
+  --surface: #111113;
+  --card: #181819;
+  --card-hi: #1e1e21;
   --border: rgba(255, 255, 255, 0.07);
-  --border-hi: rgba(255, 255, 255, 0.14);
+  --border-hi: rgba(255, 255, 255, 0.13);
   --sage: #5bc273;
   --sage-light: #6dd882;
   --sage-dim: rgba(91, 194, 115, 0.12);
@@ -23,13 +23,14 @@
   --bronze: #c9a84c;
   --bronze-dim: rgba(201, 168, 76, 0.12);
   --white: #f2f2f4;
-  --muted: rgba(242, 242, 244, 0.45);
-  --faint: rgba(242, 242, 244, 0.18);
-  --nav-h: 56px;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
-  --radius-xl: 12px;
+  --dim: #c8c8d0;
+  --muted: #a8a8b4;
+  --faint: #3e3e46;
+  --nav-h: 72px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
 }
 
 * {
@@ -53,7 +54,8 @@ body {
     var(--bg);
   color: var(--white);
   font-family: 'Barlow', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 300;
   line-height: 1.6;
 }
 
@@ -110,7 +112,7 @@ button {
 .dispatch-popup .mapboxgl-popup-content {
   background: var(--card-hi);
   border: 1px solid var(--border-hi);
-  border-radius: 8px;
+  border-radius: 0;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38);
   padding: 12px 14px;
 }
@@ -122,7 +124,7 @@ button {
 .route-map-popup .mapboxgl-popup-content {
   background: var(--card-hi);
   border: 1px solid var(--border-hi);
-  border-radius: 8px;
+  border-radius: 0;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38);
   padding: 12px 14px;
 }

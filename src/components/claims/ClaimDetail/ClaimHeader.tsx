@@ -69,12 +69,12 @@ export function ClaimHeader({
 
   return (
     <div style={{ paddingBottom: '14px' }}>
-      <Link href="/claims" style={{ display: 'inline-flex', color: 'var(--muted)', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+      <Link href="/claims" style={{ display: 'inline-flex', color: 'var(--muted)', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '8px' }}>
         ← Back to Claims
       </Link>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px' }}>
         <div>
-          <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '22px', letterSpacing: '0.03em' }}>{claim.insured}</div>
+          <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '26px', letterSpacing: '0.03em' }}>{claim.insured}</div>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '6px', color: 'var(--muted)', fontSize: '12px' }}>
             <span><strong style={{ color: 'var(--white)' }}>Claim #</strong> {claim.number}</span>
             <span><strong style={{ color: 'var(--white)' }}>Client</strong> {claim.client}</span>

@@ -14,7 +14,7 @@ export function DashboardAdjuster() {
         <StatCard label="SLA At-Risk" value="0" accent="var(--orange)" />
       </div>
       <Card>
-        <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '14px' }}>Active Claims</div>
+        <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '12px', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '14px' }}>Active Claims</div>
         <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--muted)' }}>No active claims.</div>
       </Card>
     </div>

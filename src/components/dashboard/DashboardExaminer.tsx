@@ -15,7 +15,7 @@ export function DashboardExaminer() {
       </div>
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
-          <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>Review Queue</div>
+          <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '12px', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)' }}>Review Queue</div>
         </div>
         <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--muted)' }}>No claims in review queue.</div>
       </Card>
