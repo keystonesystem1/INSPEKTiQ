@@ -108,8 +108,8 @@ export function ClaimTabs({
             style={{
               fontFamily: 'Barlow Condensed, sans-serif',
               fontWeight: 700,
-              fontSize: '11px',
-              letterSpacing: '0.09em',
+              fontSize: '12px',
+              letterSpacing: '0.12em',
               textTransform: 'uppercase',
               padding: '10px 14px',
               color: activeTab === tab ? 'var(--sage)' : 'var(--muted)',

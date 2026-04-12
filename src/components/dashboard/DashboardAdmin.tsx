@@ -54,14 +54,14 @@ export function DashboardAdmin({
         <div style={{ display: 'grid', gap: '16px' }}>
           <Card>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
-              <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>SLA Alerts</div>
+              <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '12px', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)' }}>SLA Alerts</div>
             </div>
             <div style={{ color: 'var(--muted)', fontSize: '13px' }}>No SLA alerts at this time.</div>
           </Card>
 
           <Card>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
-              <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>Unassigned Claims</div>
+              <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '12px', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)' }}>Unassigned Claims</div>
             </div>
             {unassignedClaims.length ? unassignedClaims.map((claim) => (
               <div key={claim.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
@@ -81,7 +81,7 @@ export function DashboardAdmin({
 
         <div style={{ display: 'grid', gap: '16px' }}>
           <Card>
-            <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '14px' }}>Today&apos;s Activity</div>
+            <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '12px', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '14px' }}>Today&apos;s Activity</div>
             <div style={{ color: 'var(--muted)', fontSize: '13px' }}>No recent activity.</div>
           </Card>
 

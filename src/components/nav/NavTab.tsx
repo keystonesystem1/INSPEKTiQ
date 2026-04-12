@@ -13,10 +13,10 @@ export function NavTab({ href, label }: { href: string; label: string }) {
       style={{
         fontFamily: 'Barlow Condensed, sans-serif',
         fontWeight: 700,
-        fontSize: '11px',
-        letterSpacing: '0.1em',
+        fontSize: '13px',
+        letterSpacing: '0.18em',
         textTransform: 'uppercase',
-        padding: '8px 14px',
+        padding: '10px 16px',
         borderRadius: 'var(--radius-md)',
         color: active ? 'var(--sage)' : 'var(--muted)',
         position: 'relative',
@@ -27,9 +27,9 @@ export function NavTab({ href, label }: { href: string; label: string }) {
         <span
           style={{
             position: 'absolute',
-            left: '14px',
-            right: '14px',
-            bottom: '-12px',
+            left: '16px',
+            right: '16px',
+            bottom: '-14px',
             height: '2px',
             background: 'linear-gradient(90deg, var(--sage), var(--sage-light))',
             borderRadius: '2px 2px 0 0',

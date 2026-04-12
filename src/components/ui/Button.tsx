@@ -37,11 +37,11 @@ export function Button({
       disabled={disabled}
       style={{
         fontFamily: 'Barlow Condensed, sans-serif',
-        fontWeight: 800,
-        fontSize: size === 'sm' ? '10px' : '11px',
-        letterSpacing: '0.1em',
+        fontWeight: 700,
+        fontSize: '12px',
+        letterSpacing: '0.14em',
         textTransform: 'uppercase',
-        padding: size === 'sm' ? '6px 11px' : '9px 16px',
+        padding: size === 'sm' ? '8px 16px' : '13px 28px',
         borderRadius: 'var(--radius-md)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         border: variant === 'ghost' ? '1px solid var(--border)' : 'none',

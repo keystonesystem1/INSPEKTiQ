@@ -30,30 +30,30 @@ export function Modal({ open, title, subtitle, children, onClose, footer }: Moda
     >
       <div
         style={{
-          width: 'min(520px, 92vw)',
+          width: 'min(540px, 92vw)',
           background: 'var(--surface)',
           border: '1px solid var(--border-hi)',
           borderRadius: 'var(--radius-xl)',
           overflow: 'hidden',
         }}
       >
-        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ padding: '24px 28px 18px', borderBottom: '1px solid var(--border)' }}>
           <div
             style={{
               fontFamily: 'Barlow Condensed, sans-serif',
               fontWeight: 800,
-              fontSize: '18px',
+              fontSize: '22px',
               letterSpacing: '0.04em',
             }}
           >
             {title}
           </div>
-          {subtitle ? <div style={{ marginTop: '4px', color: 'var(--muted)' }}>{subtitle}</div> : null}
+          {subtitle ? <div style={{ marginTop: '4px', color: 'var(--dim)' }}>{subtitle}</div> : null}
         </div>
-        <div style={{ padding: '18px 24px' }}>{children}</div>
+        <div style={{ padding: '22px 28px' }}>{children}</div>
         <div
           style={{
-            padding: '14px 24px',
+            padding: '16px 28px',
             borderTop: '1px solid var(--border)',
             display: 'flex',
             justifyContent: 'flex-end',

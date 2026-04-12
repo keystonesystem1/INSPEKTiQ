@@ -13,7 +13,7 @@ export function Card({
         background: 'var(--card)',
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-xl)',
-        padding: '18px 20px',
+        padding: '24px',
         position: 'relative',
         overflow: 'hidden',
         ...style,

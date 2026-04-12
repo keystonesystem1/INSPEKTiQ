@@ -34,7 +34,7 @@ export function AppShell({
     <>
       <TopNav user={user ?? initialUser} />
       <div style={{ minHeight: '100vh', paddingTop: 'var(--nav-h)' }}>
-        <main className="page-enter" style={{ padding: '28px 32px' }}>
+        <main className="page-enter" style={{ padding: '32px 40px' }}>
           {children}
         </main>
       </div>

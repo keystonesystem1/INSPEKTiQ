@@ -14,9 +14,9 @@ export function StatCard({
   return (
     <Card
       style={{
-        padding: '16px 18px',
+        padding: '20px',
         background:
-          'linear-gradient(180deg, rgba(22,33,48,0.98), rgba(22,33,48,0.78))',
+          'linear-gradient(180deg, rgba(24,24,25,0.98), rgba(24,24,25,0.78))',
       }}
     >
       <span
@@ -32,8 +32,8 @@ export function StatCard({
         style={{
           fontFamily: 'Barlow Condensed, sans-serif',
           fontWeight: 700,
-          fontSize: '10px',
-          letterSpacing: '0.12em',
+          fontSize: '11px',
+          letterSpacing: '0.14em',
           textTransform: 'uppercase',
           color: 'var(--muted)',
           marginBottom: '8px',

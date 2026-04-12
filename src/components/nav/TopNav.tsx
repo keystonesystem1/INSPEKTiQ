@@ -44,7 +44,7 @@ export function TopNav({ user }: { user: UserSession }) {
         display: 'flex',
         alignItems: 'center',
         padding: '0 24px',
-        background: 'rgba(8, 12, 16, 0.92)',
+        background: 'rgba(9, 9, 9, 0.92)',
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid var(--border)',
         boxShadow: '0 1px 0 rgba(0, 0, 0, 0.4)',
@@ -56,7 +56,7 @@ export function TopNav({ user }: { user: UserSession }) {
         style={{
           marginRight: '36px',
           fontFamily: 'Orbitron, sans-serif',
-          fontSize: '15px',
+          fontSize: '18px',
           fontWeight: 900,
           letterSpacing: '0.04em',
         }}
@@ -89,10 +89,10 @@ export function TopNav({ user }: { user: UserSession }) {
             value={searchValue}
             onChange={(e) => handleSearch(e.target.value)}
             style={{
-              width: '220px',
+              width: '260px',
               background: 'var(--surface)',
               border: '1px solid var(--border)',
-              borderRadius: '8px',
+              borderRadius: '0',
               color: 'var(--white)',
               padding: '7px 12px 7px 34px',
             }}
@@ -105,8 +105,8 @@ export function TopNav({ user }: { user: UserSession }) {
               style={{
                 fontFamily: 'Barlow Condensed, sans-serif',
                 fontWeight: 700,
-                fontSize: '11px',
-                letterSpacing: '0.08em',
+                fontSize: '12px',
+                letterSpacing: '0.12em',
                 textTransform: 'uppercase',
               }}
             >
