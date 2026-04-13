@@ -93,7 +93,7 @@ export async function getClaims(
   let query = supabase
     .from('claims')
     .select(
-      'id, claim_number, is_archived, insured_name, insured_phone, insured_email, zip, carrier, loss_type, policy_type, date_of_loss, status, city, state, loss_address, policy_number, loss_description, assigned_user_id, loss_lat, loss_lng, created_at',
+      'id, claim_number, is_archived, insured_name, insured_phone, insured_email, zip, carrier, loss_type, policy_type, date_of_loss, status, city, state, loss_address, policy_number, loss_description, assigned_user_id, loss_lat, loss_lng, examiner_name, created_at',
     )
     .eq('firm_id', firmId)
     .eq('is_archived', archived)

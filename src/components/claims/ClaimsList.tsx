@@ -67,6 +67,7 @@ export function ClaimsList({
     };
   });
   const visibleFilters = archivedView ? filters.filter((item) => item.value === 'all') : filters;
+
   return (
     <div>
       <ClaimsFilters
@@ -82,25 +83,39 @@ export function ClaimsList({
           Showing {filtered.length} result{filtered.length !== 1 ? 's' : ''} for &lsquo;{searchQuery}&rsquo;
         </div>
       ) : null}
-      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)' }}>
+      <div
+        style={{
+          background: 'var(--card)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-xl)',
+          overflow: 'hidden',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+        }}
+      >
         {filtered.length === 0 ? (
-          <div style={{ padding: '32px', textAlign: 'center', color: 'var(--muted)', fontSize: '13px' }}>
+          <div
+            style={{ padding: '32px', textAlign: 'center', color: 'var(--muted)' }}
+          >
             {q ? `No results for "${searchQuery}".` : archivedView ? 'No archived claims.' : filter === 'all' ? 'No claims yet.' : `No claims with status "${filter.replace(/_/g, ' ')}".`}
           </div>
-        ) : (
-          filtered.map((claim) => (
-            <ClaimRow
-              key={claim.id}
-              claim={claim}
-              role={role}
-              archivedView={archivedView}
-              onRestore={async (claimId) => {
-                const response = await fetch(`/api/claims/${claimId}/archive`, { method: 'DELETE' });
-                if (response.ok) router.refresh();
-              }}
-            />
-          ))
-        )}
+        ) : null}
+        {filtered.map((claim) => (
+          <ClaimRow
+            key={claim.id}
+            claim={claim}
+            role={role}
+            archivedView={archivedView}
+            onRestore={async (claimId) => {
+              const response = await fetch(`/api/claims/${claimId}/archive`, {
+                method: 'DELETE',
+              });
+
+              if (response.ok) {
+                router.refresh();
+              }
+            }}
+          />
+        ))}
       </div>
     </div>
   );

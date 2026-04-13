@@ -132,3 +132,13 @@ button {
 .route-map-popup .mapboxgl-popup-tip {
   border-top-color: var(--card-hi);
 }
+
+@keyframes urgency-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}

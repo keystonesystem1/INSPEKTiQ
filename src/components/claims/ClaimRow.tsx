@@ -1,21 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import type { CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Claim, ClaimStatus, Role } from '@/lib/types';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-
-// ── Status accent colour ─────────────────────────────────────────────────────
-
-function accentForStatus(status: ClaimStatus): string {
-  if (status === 'pending_acceptance') return 'var(--bronze)';
-  if (status === 'approved' || status === 'submitted' || status === 'closed') return 'var(--sage)';
-  if (status === 'in_review' || status === 'scheduled' || status === 'inspected') return 'var(--orange)';
-  if (status === 'received' || status === 'on_hold') return 'var(--red)';
-  return 'var(--blue)';
-}
 
 function toneForStatus(status: ClaimStatus) {
   if (status === 'pending_acceptance') return 'bronze';
@@ -25,33 +16,74 @@ function toneForStatus(status: ClaimStatus) {
   return 'blue';
 }
 
-// ── Actionable SLA urgency ───────────────────────────────────────────────────
-// Only surface an SLA signal when the firm can take immediate action.
-// Statuses where someone at the firm owns the next move:
-
-const ACTIONABLE_FOR_SLA = new Set<ClaimStatus>(['received', 'in_review', 'approved', 'on_hold']);
-
-function urgencyBadge(hours: number, status: ClaimStatus): { text: string } | null {
-  if (!ACTIONABLE_FOR_SLA.has(status)) return null;
-  if (hours < 0) {
-    const h = Math.abs(hours);
-    return { text: h >= 24 ? `Overdue ${Math.floor(h / 24)}d` : `Overdue ${h}h` };
-  }
-  if (hours <= 24) return { text: `${hours}h left` };
-  return null;
+function accentColorVar(status: ClaimStatus): string {
+  if (status === 'pending_acceptance') return 'var(--bronze)';
+  if (status === 'approved' || status === 'submitted' || status === 'closed') return 'var(--sage)';
+  if (status === 'in_review' || status === 'scheduled' || status === 'inspected') return 'var(--orange)';
+  if (status === 'received' || status === 'on_hold') return 'var(--red)';
+  return 'var(--blue)';
 }
 
-// ── Reserve formatter ────────────────────────────────────────────────────────
+const FIRM_ACTIONABLE = new Set<ClaimStatus>([
+  'received', 'in_review', 'approved', 'on_hold',
+]);
 
-function formatReserve(amount: number): string {
-  if (amount === 0) return '$0';
-  if (amount >= 1000) return `$${(amount / 1000).toFixed(amount % 1000 === 0 ? 0 : 1)}k`;
-  return `$${amount.toLocaleString()}`;
+function isClaimUrgent(claim: Claim): boolean {
+  return FIRM_ACTIONABLE.has(claim.status) && claim.slaHoursRemaining <= 48;
 }
-
-// ── Main component ───────────────────────────────────────────────────────────
 
 const ACCEPT_DECLINE_ROLES = new Set<Role>(['firm_admin', 'super_admin', 'dispatcher']);
+
+/* ---- Shared inline styles ---- */
+
+const fieldRow: CSSProperties = {
+  display: 'flex',
+  alignItems: 'baseline',
+  gap: '6px',
+  fontSize: '13px',
+  lineHeight: '1.4',
+};
+
+const fieldLabel: CSSProperties = {
+  fontFamily: 'Barlow Condensed, sans-serif',
+  fontWeight: 700,
+  fontSize: '10px',
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  color: 'var(--muted)',
+  flexShrink: 0,
+  minWidth: '58px',
+};
+
+const fieldValue: CSSProperties = {
+  color: 'var(--white)',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+};
+
+const linkValue: CSSProperties = {
+  ...fieldValue,
+  color: 'var(--sage)',
+};
+
+const emptyValue: CSSProperties = {
+  ...fieldValue,
+  color: 'var(--faint)',
+};
+
+const section: CSSProperties = {
+  padding: '14px 16px',
+  borderRight: '1px solid var(--border)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+};
+
+const sectionLast: CSSProperties = {
+  ...section,
+  borderRight: 'none',
+};
 
 export function ClaimRow({
   claim,
@@ -69,16 +101,14 @@ export function ClaimRow({
   const canAcceptDecline =
     !archivedView && claim.status === 'pending_acceptance' && ACCEPT_DECLINE_ROLES.has(role);
 
+  const [hovered, setHovered] = useState(false);
   const [optimisticStatus, setOptimisticStatus] = useState<ClaimStatus | null>(null);
   const [declineOpen, setDeclineOpen] = useState(false);
   const [busy, setBusy] = useState<'accept' | 'decline' | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   const displayStatus = optimisticStatus ?? claim.status;
-  const urgency = urgencyBadge(claim.slaHoursRemaining, displayStatus);
-  const accent = accentForStatus(displayStatus);
-  const carrier = claim.carrier || claim.client;
-  const location = [claim.address, claim.city, claim.state].filter(Boolean).join(', ');
+  const urgent = isClaimUrgent(claim);
 
   function flashToast(message: string) {
     setToast(message);
@@ -126,184 +156,299 @@ export function ClaimRow({
     }
   }
 
+  const dueColor =
+    claim.slaHoursRemaining < 0
+      ? 'var(--red)'
+      : claim.slaHoursRemaining <= 48
+        ? 'var(--orange)'
+        : 'var(--white)';
+
   return (
-    <>
+    <div
+      style={{
+        position: 'relative',
+        display: 'flex',
+        background: hovered && !archivedView ? 'var(--card-hi)' : 'var(--card)',
+        borderBottom: '1px solid var(--border)',
+        cursor: archivedView ? 'default' : 'pointer',
+        opacity: archivedView ? 0.82 : 1,
+        transition: 'background 0.12s',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => {
+        if (!archivedView) router.push(`/claims/${claim.id}`);
+      }}
+    >
+      {/* Left accent bar */}
       <div
-        onClick={() => { if (!archivedView) router.push(`/claims/${claim.id}`); }}
         style={{
-          display: 'flex',
-          cursor: archivedView ? 'default' : 'pointer',
-          opacity: archivedView ? 0.78 : 1,
-          borderBottom: '1px solid var(--border)',
-          background: 'transparent',
-          transition: 'background 0.1s',
+          width: '3px',
+          flexShrink: 0,
+          background: accentColorVar(displayStatus),
         }}
-        onMouseEnter={(e) => { if (!archivedView) (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)'; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'transparent'; }}
+      />
+
+      {/* Sections grid */}
+      <div
+        style={{
+          flex: 1,
+          display: 'grid',
+          gridTemplateColumns: '1.5fr 1fr 1fr 0.75fr 0.75fr',
+          minWidth: 0,
+        }}
       >
-        {/* Status accent bar */}
-        <div style={{ width: '3px', flexShrink: 0, background: accent, borderRadius: '0' }} />
-
-        {/* Card body */}
-        <div style={{ flex: 1, padding: '12px 16px', minWidth: 0 }}>
-
-          {/* Line 1: Claim # · Insured · Status · SLA + actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <span style={{
-              fontFamily: 'Barlow Condensed, sans-serif',
-              fontWeight: 800,
-              fontSize: '13px',
-              letterSpacing: '0.06em',
-              color: 'var(--sage)',
-              flexShrink: 0,
-            }}>
-              {claim.number || '—'}
+        {/* Section 1: Claim Details (2-column grid) */}
+        <div
+          style={{
+            ...section,
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '4px 16px',
+          }}
+        >
+          <div style={fieldRow}>
+            <span style={fieldLabel}>Claim #</span>
+            <span
+              style={{
+                fontFamily: 'Barlow Condensed, sans-serif',
+                fontWeight: 700,
+                fontSize: '14px',
+                color: 'var(--sage)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {claim.number}
             </span>
-
-            <span style={{
-              fontFamily: 'Barlow Condensed, sans-serif',
-              fontWeight: 700,
-              fontSize: '14px',
-              letterSpacing: '0.02em',
-              color: 'var(--white)',
-              minWidth: 0,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}>
-              {claim.insured}
+          </div>
+          <div style={fieldRow}>
+            <span style={fieldLabel}>DOL</span>
+            <span style={fieldValue}>{claim.dateOfLoss.slice(0, 10)}</span>
+          </div>
+          <div style={fieldRow}>
+            <span style={fieldLabel}>Type</span>
+            <span style={fieldValue}>{claim.type}</span>
+          </div>
+          <div style={fieldRow}>
+            <span style={fieldLabel}>Carrier</span>
+            <span style={linkValue}>{claim.client}</span>
+          </div>
+          <div style={{ ...fieldRow, gridColumn: '1 / -1' }}>
+            <span style={fieldLabel}>Loss Loc</span>
+            <span style={linkValue}>
+              {claim.address ? `${claim.address}` : ''}
+              {claim.city ? `${claim.address ? ', ' : ''}${claim.city}` : ''}
+              {claim.state ? `, ${claim.state}` : ''}
             </span>
+          </div>
+          <div style={fieldRow}>
+            <span style={fieldLabel}>Assign</span>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '2px 6px',
+                fontFamily: 'Barlow Condensed, sans-serif',
+                fontWeight: 700,
+                fontSize: '9px',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                background: 'rgba(255,255,255,0.05)',
+                color: 'var(--white)',
+                border: '1px solid var(--border)',
+              }}
+            >
+              {claim.category ?? 'Full Field Inspection'}
+            </span>
+          </div>
+        </div>
 
-            <Badge tone={toneForStatus(displayStatus)}>
-              {displayStatus.replace(/_/g, ' ')}
-            </Badge>
+        {/* Section 2: People */}
+        <div style={section}>
+          <div style={fieldRow}>
+            <span style={fieldLabel}>INS</span>
+            <span style={{ ...fieldValue, color: 'var(--white)' }}>{claim.insured}</span>
+          </div>
+          <div style={fieldRow}>
+            <span style={fieldLabel}>EX</span>
+            <span style={claim.examiner ? linkValue : emptyValue}>
+              {claim.examiner ?? '—'}
+            </span>
+          </div>
+          <div style={fieldRow}>
+            <span style={fieldLabel}>FA</span>
+            <span style={claim.adjuster ? linkValue : emptyValue}>
+              {claim.adjuster ?? 'Unassigned'}
+            </span>
+          </div>
+        </div>
 
-            {claim.isArchived && <Badge tone="faint">Archived</Badge>}
+        {/* Section 3: Activity */}
+        <div style={section}>
+          <div style={fieldRow}>
+            <span style={fieldLabel}>Reserve(s)</span>
+            <span style={linkValue}>
+              ${claim.reserveTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            </span>
+          </div>
+          <div style={fieldRow}>
+            <span style={fieldLabel}>Contacted</span>
+            <span style={fieldValue}>
+              {claim.milestones.contacted ? (
+                <span style={{ color: 'var(--sage)' }}>
+                  {new Date(claim.milestones.contacted).toLocaleDateString()}
+                </span>
+              ) : (
+                <span style={{ color: 'var(--sage)' }}>Contact Activity</span>
+              )}
+            </span>
+          </div>
+          <div style={fieldRow}>
+            <span style={fieldLabel}>Inspected</span>
+            <span style={fieldValue}>
+              {claim.milestones.inspected ? (
+                <span>{new Date(claim.milestones.inspected).toLocaleDateString()}</span>
+              ) : (
+                <span style={{ color: 'var(--sage)' }}>Mark Inspected</span>
+              )}
+            </span>
+          </div>
+        </div>
 
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-              {urgency && (
-                <span style={{
+        {/* Section 4: Dates */}
+        <div style={section}>
+          <div style={fieldRow}>
+            <span style={fieldLabel}>Rec&apos;d</span>
+            <span style={{ fontSize: '13px', color: 'var(--white)' }}>
+              {claim.milestones.received
+                ? new Date(claim.milestones.received).toLocaleDateString()
+                : claim.dateOfLoss.slice(0, 10)}
+            </span>
+          </div>
+          <div style={fieldRow}>
+            <span style={fieldLabel}>Due</span>
+            <span style={{ fontSize: '13px', color: dueColor }}>
+              {claim.dueDate.slice(0, 10)}
+            </span>
+          </div>
+          <div style={fieldRow}>
+            <span style={fieldLabel}>Processed</span>
+            <span style={{ fontSize: '13px', color: 'var(--white)' }}>
+              {claim.milestones.submitted
+                ? new Date(claim.milestones.submitted).toLocaleDateString()
+                : '—'}
+            </span>
+          </div>
+        </div>
+
+        {/* Section 5: Status */}
+        <div
+          style={{
+            ...sectionLast,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+          }}
+        >
+          <Badge tone={toneForStatus(displayStatus)}>
+            {displayStatus.replace(/_/g, ' ')}
+          </Badge>
+          {claim.isArchived ? <Badge tone="faint">Archived</Badge> : null}
+
+          {/* Urgency dot */}
+          {urgent && !archivedView ? (
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background:
+                  claim.slaHoursRemaining < 0 ? 'var(--red)' : 'var(--orange)',
+                boxShadow:
+                  claim.slaHoursRemaining < 0
+                    ? '0 0 6px rgba(224,92,92,0.5)'
+                    : '0 0 6px rgba(224,123,63,0.4)',
+                animation: 'urgency-pulse 1.6s ease-in-out infinite',
+              }}
+            />
+          ) : null}
+
+          {/* Accept/Decline or Restore */}
+          {canRestore ? (
+            <span onClick={(e) => e.stopPropagation()}>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => void onRestore?.(claim.id)}
+              >
+                Restore
+              </Button>
+            </span>
+          ) : null}
+
+          {canAcceptDecline && displayStatus === 'pending_acceptance' ? (
+            <div
+              style={{ display: 'flex', gap: '6px', marginTop: '4px' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Button
+                size="sm"
+                onClick={() => void handleAccept()}
+                disabled={busy !== null}
+              >
+                {busy === 'accept' ? 'Accepting...' : 'Accept'}
+              </Button>
+              <button
+                type="button"
+                onClick={() => setDeclineOpen(true)}
+                disabled={busy !== null}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--red)',
+                  background: 'transparent',
+                  color: 'var(--red)',
                   fontFamily: 'Barlow Condensed, sans-serif',
                   fontWeight: 800,
                   fontSize: '10px',
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
-                  color: 'var(--red)',
-                  background: 'var(--red-dim)',
-                  padding: '2px 7px',
-                  borderRadius: 'var(--radius-sm)',
-                }}>
-                  {urgency.text}
-                </span>
-              )}
-
-              {canRestore && (
-                <span onClick={(e) => e.stopPropagation()}>
-                  <Button size="sm" variant="ghost" onClick={() => void onRestore?.(claim.id)}>
-                    Restore
-                  </Button>
-                </span>
-              )}
-
-              {canAcceptDecline && displayStatus === 'pending_acceptance' && (
-                <span onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: '6px' }}>
-                  <Button size="sm" onClick={() => void handleAccept()} disabled={busy !== null}>
-                    {busy === 'accept' ? 'Accepting…' : 'Accept'}
-                  </Button>
-                  <button
-                    type="button"
-                    onClick={() => setDeclineOpen(true)}
-                    disabled={busy !== null}
-                    style={{
-                      padding: '4px 10px',
-                      border: '1px solid var(--red)',
-                      borderRadius: 'var(--radius-md)',
-                      background: 'transparent',
-                      color: 'var(--red)',
-                      fontFamily: 'Barlow Condensed, sans-serif',
-                      fontWeight: 800,
-                      fontSize: '10px',
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      cursor: busy !== null ? 'not-allowed' : 'pointer',
-                      opacity: busy !== null ? 0.6 : 1,
-                    }}
-                  >
-                    Decline
-                  </button>
-                </span>
-              )}
+                  cursor: busy !== null ? 'not-allowed' : 'pointer',
+                  opacity: busy !== null ? 0.6 : 1,
+                }}
+              >
+                Decline
+              </button>
             </div>
-          </div>
-
-          {/* Line 2: Carrier · Loss location */}
-          <div style={{
-            marginTop: '4px',
-            fontFamily: 'Barlow Condensed, sans-serif',
-            fontSize: '12px',
-            letterSpacing: '0.03em',
-            color: 'var(--muted)',
-            display: 'flex',
-            gap: '8px',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-          }}>
-            {carrier && (
-              <span style={{ color: 'var(--dim)', fontWeight: 600 }}>{carrier}</span>
-            )}
-            {carrier && location && (
-              <span style={{ color: 'var(--faint)', fontSize: '10px' }}>·</span>
-            )}
-            {location && <span>{location}</span>}
-          </div>
-
-          {/* Line 3: DOL · Type · Personnel · Reserve · Counts */}
-          <div style={{
-            marginTop: '5px',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '0',
-            alignItems: 'center',
-            fontFamily: 'Barlow Condensed, sans-serif',
-            fontSize: '11px',
-            color: 'var(--muted)',
-            letterSpacing: '0.04em',
-          }}>
-            {[
-              claim.dateOfLoss ? `DOL ${new Date(claim.dateOfLoss).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' })}` : null,
-              claim.type || null,
-              claim.adjuster && role !== 'adjuster' ? `FA: ${claim.adjuster}` : null,
-              claim.examiner ? `EX: ${claim.examiner}` : null,
-              claim.reserveTotal > 0 ? formatReserve(claim.reserveTotal) : '$0',
-              claim.photosCount > 0 ? `${claim.photosCount} photo${claim.photosCount !== 1 ? 's' : ''}` : null,
-              claim.notesCount > 0 ? `${claim.notesCount} note${claim.notesCount !== 1 ? 's' : ''}` : null,
-            ].filter(Boolean).map((item, i, arr) => (
-              <span key={i} style={{ display: 'flex', alignItems: 'center' }}>
-                <span>{item}</span>
-                {i < arr.length - 1 && (
-                  <span style={{ margin: '0 6px', color: 'var(--faint)', fontSize: '9px' }}>·</span>
-                )}
-              </span>
-            ))}
-          </div>
-
+          ) : null}
         </div>
       </div>
 
       {/* Toast */}
-      {toast && (
-        <div style={{
-          position: 'fixed', bottom: '24px', right: '24px',
-          padding: '12px 16px', background: 'var(--sage-dim)',
-          color: 'var(--sage)', border: '1px solid rgba(91,194,115,0.25)',
-          borderRadius: 'var(--radius-md)', fontSize: '13px',
-          zIndex: 300, boxShadow: '0 12px 28px rgba(0,0,0,0.28)',
-        }}>
+      {toast ? (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            padding: '12px 16px',
+            background: 'var(--sage-dim)',
+            color: 'var(--sage)',
+            border: '1px solid rgba(91,194,115,0.25)',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '13px',
+            zIndex: 300,
+            boxShadow: '0 12px 28px rgba(0,0,0,0.28)',
+          }}
+        >
           {toast}
         </div>
-      )}
+      ) : null}
 
-      {/* Decline modal */}
+      {/* Decline Modal */}
       <div onClick={(e) => e.stopPropagation()}>
         <Modal
           open={declineOpen}
@@ -320,16 +465,21 @@ export function ClaimRow({
                 onClick={() => void handleConfirmDecline()}
                 disabled={busy === 'decline'}
                 style={{
-                  padding: '8px 14px', borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--red)', background: 'rgba(224,63,63,0.12)',
-                  color: 'var(--red)', fontFamily: 'Barlow Condensed, sans-serif',
-                  fontWeight: 800, fontSize: '11px', letterSpacing: '0.08em',
+                  padding: '8px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--red)',
+                  background: 'rgba(224,63,63,0.12)',
+                  color: 'var(--red)',
+                  fontFamily: 'Barlow Condensed, sans-serif',
+                  fontWeight: 800,
+                  fontSize: '11px',
+                  letterSpacing: '0.08em',
                   textTransform: 'uppercase',
                   cursor: busy === 'decline' ? 'not-allowed' : 'pointer',
                   opacity: busy === 'decline' ? 0.6 : 1,
                 }}
               >
-                {busy === 'decline' ? 'Declining…' : 'Decline Claim'}
+                {busy === 'decline' ? 'Declining...' : 'Decline Claim'}
               </button>
             </>
           }
@@ -339,6 +489,6 @@ export function ClaimRow({
           </p>
         </Modal>
       </div>
-    </>
+    </div>
   );
 }
