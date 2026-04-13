@@ -4,9 +4,12 @@ import { useEffect, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { FormInput } from '@/components/ui/FormInput';
+import { AddressField } from '@/components/ui/AddressField';
+import type { AddressFieldSuggestion } from '@/components/ui/AddressField';
 import type { Claim } from '@/lib/types';
 
 interface ClaimFormValues {
+  claimNumber: string;
   insuredName: string;
   phone: string;
   email: string;
@@ -34,6 +37,7 @@ interface ClaimFormModalProps {
 
 export function getClaimFormValues(claim: Claim): ClaimFormValues {
   return {
+    claimNumber: claim.number || '',
     insuredName: claim.insured || '',
     phone: claim.insuredPhone || '',
     email: claim.insuredEmail || '',
@@ -52,6 +56,7 @@ export function getClaimFormValues(claim: Claim): ClaimFormValues {
 
 function createDefaultValues(initialValues?: Partial<ClaimFormValues>): ClaimFormValues {
   return {
+    claimNumber: initialValues?.claimNumber ?? '',
     insuredName: initialValues?.insuredName ?? '',
     phone: initialValues?.phone ?? '',
     email: initialValues?.email ?? '',
@@ -130,13 +135,30 @@ export function ClaimFormModal({
       <div style={{ display: 'grid', gap: '12px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <FormInput label="Insured Name" value={values.insuredName} onChange={(value) => setField('insuredName', value)} />
-          <FormInput label="Phone" value={values.phone} onChange={(value) => setField('phone', value)} />
+          <FormInput label="Claim Number" value={values.claimNumber} onChange={(value) => setField('claimNumber', value)} placeholder="e.g. MAN-2026-ABC123" />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <FormInput label="Phone" value={values.phone} onChange={(value) => setField('phone', value)} />
           <FormInput label="Email" value={values.email} onChange={(value) => setField('email', value)} />
-          <FormInput label="Carrier" value={values.carrier} onChange={(value) => setField('carrier', value)} />
         </div>
-        <FormInput label="Loss Address" value={values.lossAddress} onChange={(value) => setField('lossAddress', value)} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <FormInput label="Carrier" value={values.carrier} onChange={(value) => setField('carrier', value)} />
+          <FormInput label="Policy Number" value={values.policyNumber} onChange={(value) => setField('policyNumber', value)} />
+        </div>
+        <AddressField
+          label="Loss Address"
+          value={values.lossAddress}
+          onChange={(value) => setField('lossAddress', value)}
+          onSelect={(suggestion: AddressFieldSuggestion) => {
+            setValues((current) => ({
+              ...current,
+              lossAddress: suggestion.formattedAddress.split(',')[0]?.trim() || suggestion.formattedAddress,
+              city: suggestion.city || current.city,
+              state: suggestion.state || current.state,
+              zip: suggestion.zip || current.zip,
+            }));
+          }}
+        />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 90px', gap: '12px' }}>
           <FormInput label="City" value={values.city} onChange={(value) => setField('city', value)} />
           <FormInput label="State" value={values.state} onChange={(value) => setField('state', value)} />
@@ -171,9 +193,8 @@ export function ClaimFormModal({
               style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '9px 12px', color: 'var(--white)', width: '100%' }}
             />
           </label>
-          <FormInput label="Policy Number" value={values.policyNumber} onChange={(value) => setField('policyNumber', value)} />
+          <FormInput label="Loss Description" value={values.lossDescription} onChange={(value) => setField('lossDescription', value)} />
         </div>
-        <FormInput label="Loss Description" value={values.lossDescription} onChange={(value) => setField('lossDescription', value)} multiline />
         {error ? <div style={{ color: 'var(--red)', fontSize: '12px' }}>{error}</div> : null}
       </div>
     </Modal>

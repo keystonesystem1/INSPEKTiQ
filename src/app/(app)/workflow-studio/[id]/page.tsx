@@ -1,5 +1,6 @@
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
+import { getWorkflowById } from '@/lib/supabase/workflows';
 import { WorkflowEditor } from '@/components/workflow-studio/WorkflowEditor';
 
 export default async function WorkflowEditorPage({
@@ -14,6 +15,11 @@ export default async function WorkflowEditorPage({
   }
 
   const { id } = await params;
+  const draft = await getWorkflowById(id, user.firmId);
 
-  return <WorkflowEditor workflowId={id} />;
+  if (!draft) {
+    notFound();
+  }
+
+  return <WorkflowEditor initialDraft={draft} />;
 }

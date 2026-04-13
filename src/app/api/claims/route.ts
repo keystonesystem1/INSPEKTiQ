@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getAuthenticatedFirmUser } from '@/lib/supabase/user';
 
 interface CreateClaimBody {
+  claimNumber?: string;
   insuredName?: string;
   phone?: string;
   email?: string;
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase
     .from('claims')
     .insert({
-      claim_number: buildClaimNumber(),
+      claim_number: body.claimNumber?.trim() || buildClaimNumber(),
       insured_name: body.insuredName,
       insured_phone: body.phone ?? null,
       insured_email: body.email ?? null,

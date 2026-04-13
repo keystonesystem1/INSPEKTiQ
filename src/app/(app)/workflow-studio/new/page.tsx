@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
-import { WorkflowEditor } from '@/components/workflow-studio/WorkflowEditor';
+import { createWorkflow } from '@/lib/supabase/workflows';
 
 export default async function NewWorkflowPage() {
   const user = await requireAuthenticatedFirmUser();
@@ -9,5 +9,6 @@ export default async function NewWorkflowPage() {
     redirect('/dashboard');
   }
 
-  return <WorkflowEditor />;
+  const id = await createWorkflow(user.firmId);
+  redirect(`/workflow-studio/${id}`);
 }

@@ -6,6 +6,7 @@ import { getAuthenticatedFirmUser } from '@/lib/supabase/user';
 import type { ClaimContactEntry } from '@/lib/types';
 
 interface UpdateClaimBody {
+  claimNumber?: string;
   insuredName?: string;
   phone?: string;
   email?: string;
@@ -102,6 +103,7 @@ export async function PATCH(
   }
 
   const update: Record<string, unknown> = {
+    ...(body.claimNumber !== undefined && { claim_number: body.claimNumber.trim() || undefined }),
     insured_name: body.insuredName,
     insured_phone: body.phone,
     insured_email: body.email,

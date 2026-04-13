@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
+import { getWorkflows } from '@/lib/supabase/workflows';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { WorkflowList } from '@/components/workflow-studio/WorkflowList';
 
@@ -10,13 +11,15 @@ export default async function WorkflowStudioPage() {
     redirect('/dashboard');
   }
 
+  const workflows = await getWorkflows(user.firmId);
+
   return (
     <div>
       <PageHeader
         title="Workflow Studio"
         subtitle="Configure report templates, matching rules, and inspection workflows for your firm."
       />
-      <WorkflowList />
+      <WorkflowList workflows={workflows} />
     </div>
   );
 }

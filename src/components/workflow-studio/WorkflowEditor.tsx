@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { Toggle } from '@/components/ui/Toggle';
 import { Button } from '@/components/ui/Button';
 import { defaultWorkflowDraft } from '@/lib/constants/workflowRegistry';
-import type { SectionMode, WorkflowDraft } from '@/lib/types/workflow';
+import type { WorkflowDraft } from '@/lib/types/workflow';
+import { saveWorkflow } from '@/lib/actions/workflow';
 import { OverviewTab } from '@/components/workflow-studio/tabs/OverviewTab';
 import { MatchingTab } from '@/components/workflow-studio/tabs/MatchingTab';
 import { InspectionTab } from '@/components/workflow-studio/tabs/InspectionTab';
@@ -24,120 +25,46 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'preview', label: 'Preview' },
 ];
 
-function getMockDraft(id: string): WorkflowDraft | null {
-  const base = defaultWorkflowDraft();
-
-  if (id === '1') {
-    return {
-      ...base,
-      id: '1',
-      name: 'Standard Wind & Hail',
-      isDefault: true,
-      templates: {
-        ...base.templates,
-        initial_report: {
-          ...base.templates.initial_report,
-          sections: base.templates.initial_report.sections.map((s) => {
-            if (s.sectionKey === 'claim_summary')
-              return { ...s, headingOverride: 'Claim Information', mode: 'full' as SectionMode };
-            if (s.sectionKey === 'initial_inspection')
-              return { ...s, mode: 'narrative' as SectionMode };
-            if (s.sectionKey === 'mortgage')
-              return { ...s, enabled: false };
-            if (s.sectionKey === 'conclusion')
-              return { ...s, headingOverride: 'Summary & Recommendations' };
-            return s;
-          }),
-        },
-        final_report: {
-          ...base.templates.final_report,
-          sections: base.templates.final_report.sections.map((s) => {
-            if (s.sectionKey === 'risk_description')
-              return { ...s, mode: 'narrative' as SectionMode };
-            if (s.sectionKey === 'initial_inspection')
-              return { ...s, mode: 'narrative' as SectionMode };
-            return s;
-          }),
-        },
-        inspection_only: {
-          ...base.templates.inspection_only,
-          sections: base.templates.inspection_only.sections.map((s) => {
-            if (s.sectionKey === 'conclusion') return { ...s, enabled: false };
-            if (s.sectionKey === 'enclosures') return { ...s, enabled: false };
-            return s;
-          }),
-        },
-      },
-    };
-  }
-
-  if (id === '2') {
-    return {
-      ...base,
-      id: '2',
-      name: 'Commercial Property',
-      isDefault: false,
-      templates: {
-        ...base.templates,
-        supplement_report: { ...base.templates.supplement_report, enabled: false },
-        inspection_only: { ...base.templates.inspection_only, enabled: false },
-        initial_report: {
-          ...base.templates.initial_report,
-          sections: base.templates.initial_report.sections.map((s) => {
-            if (s.sectionKey === 'risk_description')
-              return {
-                ...s,
-                headingOverride: 'Property Risk Assessment',
-                mode: 'structured' as SectionMode,
-              };
-            if (s.sectionKey === 'coverage_c') return { ...s, enabled: false };
-            if (s.sectionKey === 'contractors') return { ...s, enabled: false };
-            if (s.sectionKey === 'coverage_a')
-              return {
-                ...s,
-                subsections:
-                  s.subsections?.map((sub) =>
-                    sub.subsectionKey === 'interior'
-                      ? { ...sub, headingOverride: 'Interior Assessment' }
-                      : sub,
-                  ) ?? null,
-              };
-            return s;
-          }),
-        },
-        final_report: {
-          ...base.templates.final_report,
-          sections: base.templates.final_report.sections.map((s) => {
-            if (s.sectionKey === 'coverage_c') return { ...s, enabled: false };
-            if (s.sectionKey === 'contractors') return { ...s, enabled: false };
-            return s;
-          }),
-        },
-      },
-    };
-  }
-
-  return null;
+interface Toast {
+  message: string;
+  type: 'success' | 'error';
 }
 
 interface WorkflowEditorProps {
-  workflowId?: string;
+  initialDraft?: WorkflowDraft;
 }
 
-export function WorkflowEditor({ workflowId }: WorkflowEditorProps = {}) {
-  const [workflow, setWorkflow] = useState<WorkflowDraft>(() => {
-    if (workflowId) {
-      const mock = getMockDraft(workflowId);
-      if (mock) return mock;
-    }
-    return defaultWorkflowDraft();
-  });
+export function WorkflowEditor({ initialDraft }: WorkflowEditorProps = {}) {
+  const [workflow, setWorkflow] = useState<WorkflowDraft>(() => initialDraft ?? defaultWorkflowDraft());
   const [activeTab, setActiveTab] = useState<TabId>('reports');
-  const [saveToast, setSaveToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<Toast | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function showToast(message: string, type: Toast['type']) {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }
 
   function handleSave() {
-    setSaveToast('Persistence available in Phase 2');
-    setTimeout(() => setSaveToast(null), 3000);
+    if (!workflow.id || workflow.id === 'new') {
+      showToast('No workflow ID — cannot save', 'error');
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await saveWorkflow(workflow.id, {
+        name: workflow.name,
+        isDefault: workflow.isDefault,
+        templates: workflow.templates,
+        matching: workflow.matching,
+      });
+
+      if (result.success) {
+        showToast('Workflow saved', 'success');
+      } else {
+        showToast(result.error, 'error');
+      }
+    });
   }
 
   function updateWorkflow(updates: Partial<WorkflowDraft>) {
@@ -175,24 +102,25 @@ export function WorkflowEditor({ workflowId }: WorkflowEditorProps = {}) {
           />
         </div>
         <div className="relative">
-          <Button size="sm" onClick={handleSave}>
-            Save Workflow
+          <Button size="sm" onClick={handleSave} disabled={isPending}>
+            {isPending ? 'Saving…' : 'Save Workflow'}
           </Button>
-          {saveToast && (
-            <div className="absolute right-0 top-full mt-2 whitespace-nowrap rounded-[6px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[11px] text-[var(--muted)] shadow-lg">
-              {saveToast}
+          {toast && (
+            <div
+              className={`absolute right-0 top-full mt-2 whitespace-nowrap rounded-[6px] border px-3 py-2 text-[11px] shadow-lg ${
+                toast.type === 'success'
+                  ? 'border-[rgba(91,194,115,0.3)] bg-[var(--surface)] text-[var(--sage)]'
+                  : 'border-[rgba(255,80,80,0.3)] bg-[var(--surface)] text-[#ff6b6b]'
+              }`}
+            >
+              {toast.message}
             </div>
           )}
         </div>
       </div>
 
-      {/* Subtitle */}
-      <div className="mb-6 font-['Barlow_Condensed'] text-[11px] text-[var(--faint)]">
-        Phase 1 — Local state only · Changes are not persisted
-      </div>
-
       {/* Tab bar — full bleed */}
-      <div className="-mx-10 border-b border-[var(--border)] bg-[var(--bg)]">
+      <div className="-mx-10 mt-6 border-b border-[var(--border)] bg-[var(--bg)]">
         <div className="flex px-10">
           {TABS.map((tab) => (
             <button
@@ -203,7 +131,7 @@ export function WorkflowEditor({ workflowId }: WorkflowEditorProps = {}) {
                 activeTab === tab.id
                   ? 'border-[var(--sage)] text-[var(--white)]'
                   : 'border-transparent text-[var(--muted)] hover:text-[var(--white)]'
-              } ${tab.id === 'reports' || tab.id === 'preview' ? '' : 'opacity-75'}`}
+              } ${tab.id === 'overview' || tab.id === 'inspection' || tab.id === 'photos' ? 'opacity-75' : ''}`}
             >
               {tab.label}
             </button>
@@ -214,7 +142,12 @@ export function WorkflowEditor({ workflowId }: WorkflowEditorProps = {}) {
       {/* Tab content */}
       <div className="mt-8">
         {activeTab === 'overview' && <OverviewTab workflow={workflow} />}
-        {activeTab === 'matching' && <MatchingTab matching={workflow.matching} />}
+        {activeTab === 'matching' && (
+          <MatchingTab
+            matching={workflow.matching}
+            onChange={(updated) => updateWorkflow({ matching: updated })}
+          />
+        )}
         {activeTab === 'inspection' && <InspectionTab />}
         {activeTab === 'photos' && <PhotosTab />}
         {activeTab === 'reports' && (

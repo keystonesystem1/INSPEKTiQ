@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Table } from '@/components/ui/Table';
 import { ClaimsFilters } from '@/components/claims/ClaimsFilters';
 import { ClaimRow } from '@/components/claims/ClaimRow';
 import type { Claim, ClaimStatus, Role } from '@/lib/types';
@@ -68,11 +67,6 @@ export function ClaimsList({
     };
   });
   const visibleFilters = archivedView ? filters.filter((item) => item.value === 'all') : filters;
-  const columns =
-    role === 'adjuster'
-      ? ['Claim #', 'Insured', 'Client', 'Type', 'DOL', 'Due Date', 'Status']
-      : ['Claim #', 'Insured', 'Client', 'Type', 'DOL', 'Adjuster', 'Due Date', 'Status'];
-
   return (
     <div>
       <ClaimsFilters
@@ -88,35 +82,26 @@ export function ClaimsList({
           Showing {filtered.length} result{filtered.length !== 1 ? 's' : ''} for &lsquo;{searchQuery}&rsquo;
         </div>
       ) : null}
-      <Table columns={columns}>
+      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)' }}>
         {filtered.length === 0 ? (
-          <tr>
-            <td
-              colSpan={columns.length}
-              style={{ padding: '32px', textAlign: 'center', color: 'var(--muted)' }}
-            >
-              {q ? `No results for "${searchQuery}".` : archivedView ? 'No archived claims.' : filter === 'all' ? 'No claims yet.' : `No claims with status "${filter.replace(/_/g, ' ')}".`}
-            </td>
-          </tr>
-        ) : null}
-        {filtered.map((claim) => (
-          <ClaimRow
-            key={claim.id}
-            claim={claim}
-            role={role}
-            archivedView={archivedView}
-            onRestore={async (claimId) => {
-              const response = await fetch(`/api/claims/${claimId}/archive`, {
-                method: 'DELETE',
-              });
-
-              if (response.ok) {
-                router.refresh();
-              }
-            }}
-          />
-        ))}
-      </Table>
+          <div style={{ padding: '32px', textAlign: 'center', color: 'var(--muted)', fontSize: '13px' }}>
+            {q ? `No results for "${searchQuery}".` : archivedView ? 'No archived claims.' : filter === 'all' ? 'No claims yet.' : `No claims with status "${filter.replace(/_/g, ' ')}".`}
+          </div>
+        ) : (
+          filtered.map((claim) => (
+            <ClaimRow
+              key={claim.id}
+              claim={claim}
+              role={role}
+              archivedView={archivedView}
+              onRestore={async (claimId) => {
+                const response = await fetch(`/api/claims/${claimId}/archive`, { method: 'DELETE' });
+                if (response.ok) router.refresh();
+              }}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 }
