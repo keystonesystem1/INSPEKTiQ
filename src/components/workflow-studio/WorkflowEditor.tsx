@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { Toggle } from '@/components/ui/Toggle';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { defaultWorkflowDraft } from '@/lib/constants/workflowRegistry';
 import type { WorkflowDraft } from '@/lib/types/workflow';
 import { saveWorkflow } from '@/lib/actions/workflow';
@@ -32,6 +33,15 @@ interface Toast {
 
 interface WorkflowEditorProps {
   initialDraft?: WorkflowDraft;
+}
+
+function matchingSummary(wf: WorkflowDraft): string {
+  const parts = [
+    wf.matching.carrier,
+    wf.matching.lossType,
+    wf.matching.propertyType,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(' · ') : 'No match criteria set';
 }
 
 export function WorkflowEditor({ initialDraft }: WorkflowEditorProps = {}) {
@@ -73,79 +83,116 @@ export function WorkflowEditor({ initialDraft }: WorkflowEditorProps = {}) {
 
   return (
     <div>
-      {/* Back link */}
-      <div className="mb-5">
+      {/* Editor header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '6px' }}>
         <Link
           href="/workflow-studio"
-          className="font-['Barlow_Condensed'] text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--muted)] hover:text-[var(--white)]"
+          style={{
+            display: 'flex', alignItems: 'center', gap: '5px',
+            fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700,
+            fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase',
+            color: 'var(--muted)', padding: '4px 8px',
+          }}
         >
-          ← Workflow Studio
+          ← Workflows
         </Link>
-      </div>
-
-      {/* Header */}
-      <div className="mb-2 flex items-center gap-4">
-        <input
-          type="text"
-          value={workflow.name}
-          onChange={(e) => updateWorkflow({ name: e.target.value })}
-          placeholder="Untitled Workflow"
-          className="flex-1 rounded-[6px] border border-[var(--border)] bg-transparent px-3 py-2 font-['Barlow_Condensed'] text-[22px] font-extrabold tracking-[0.04em] text-[var(--white)] placeholder:text-[var(--faint)] focus:border-[var(--border-hi)] focus:outline-none"
-        />
-        <div className="flex items-center gap-2">
-          <span className="font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
-            Default
-          </span>
-          <Toggle
-            checked={workflow.isDefault}
-            onToggle={() => updateWorkflow({ isDefault: !workflow.isDefault })}
-          />
-        </div>
-        <div className="relative">
-          <Button size="sm" onClick={handleSave} disabled={isPending}>
-            {isPending ? 'Saving…' : 'Save Workflow'}
-          </Button>
-          {toast && (
+        <div style={{ width: '1px', height: '16px', background: 'var(--border)', flexShrink: 0 }} />
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div
-              className={`absolute right-0 top-full mt-2 whitespace-nowrap rounded-[6px] border px-3 py-2 text-[11px] shadow-lg ${
-                toast.type === 'success'
-                  ? 'border-[rgba(91,194,115,0.3)] bg-[var(--surface)] text-[var(--sage)]'
-                  : 'border-[rgba(255,80,80,0.3)] bg-[var(--surface)] text-[#ff6b6b]'
-              }`}
-            >
-              {toast.message}
-            </div>
-          )}
+              style={{
+                width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0,
+                background: workflow.isDefault ? 'var(--sage)' : 'var(--orange)',
+              }}
+            />
+            <input
+              type="text"
+              value={workflow.name}
+              onChange={(e) => updateWorkflow({ name: e.target.value })}
+              placeholder="Untitled Workflow"
+              style={{
+                flex: 1, border: 'none', background: 'transparent',
+                fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800,
+                fontSize: '18px', letterSpacing: '0.04em', color: 'var(--white)',
+                outline: 'none',
+              }}
+            />
+            {workflow.isDefault && <Badge tone="sage">Default</Badge>}
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px', marginLeft: '15px' }}>
+            {matchingSummary(workflow)}
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+              Default
+            </span>
+            <Toggle
+              checked={workflow.isDefault}
+              onToggle={() => updateWorkflow({ isDefault: !workflow.isDefault })}
+            />
+          </div>
+          <div style={{ position: 'relative' }}>
+            <Button size="sm" onClick={handleSave} disabled={isPending}>
+              {isPending ? 'Saving…' : 'Save Changes'}
+            </Button>
+            {toast && (
+              <div
+                style={{
+                  position: 'absolute', right: 0, top: '100%', marginTop: '8px',
+                  whiteSpace: 'nowrap', padding: '8px 12px', fontSize: '11px',
+                  border: `1px solid ${toast.type === 'success' ? 'rgba(91,194,115,0.3)' : 'rgba(255,80,80,0.3)'}`,
+                  background: 'var(--surface)',
+                  color: toast.type === 'success' ? 'var(--sage)' : 'var(--red)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                  zIndex: 10,
+                }}
+              >
+                {toast.message}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Tab bar — full bleed */}
-      <div className="-mx-10 mt-6 border-b border-[var(--border)] bg-[var(--bg)]">
-        <div className="flex px-10">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`border-b-2 px-5 py-3 font-['Barlow_Condensed'] text-[12px] font-bold uppercase tracking-[0.1em] transition-colors ${
-                activeTab === tab.id
-                  ? 'border-[var(--sage)] text-[var(--white)]'
-                  : 'border-transparent text-[var(--muted)] hover:text-[var(--white)]'
-              } ${tab.id === 'overview' || tab.id === 'inspection' || tab.id === 'photos' ? 'opacity-75' : ''}`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      {/* Tab bar */}
+      <div style={{ borderBottom: '1px solid var(--border)', display: 'flex', marginTop: '16px' }}>
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              padding: '10px 18px',
+              fontFamily: 'Barlow Condensed, sans-serif',
+              fontWeight: 700,
+              fontSize: '12px',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: activeTab === tab.id ? 'var(--white)' : 'var(--muted)',
+              borderBottom: activeTab === tab.id ? '2px solid var(--sage)' : '2px solid transparent',
+              background: 'none',
+              cursor: 'pointer',
+              marginBottom: '-1px',
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Tab content */}
-      <div className="mt-8">
-        {activeTab === 'overview' && <OverviewTab workflow={workflow} />}
+      <div style={{ marginTop: '24px' }}>
+        {activeTab === 'overview' && (
+          <OverviewTab workflow={workflow} onUpdate={updateWorkflow} />
+        )}
         {activeTab === 'matching' && (
           <MatchingTab
             matching={workflow.matching}
+            templates={workflow.templates}
             onChange={(updated) => updateWorkflow({ matching: updated })}
+            onTemplatesChange={(updated) => updateWorkflow({ templates: updated })}
           />
         )}
         {activeTab === 'inspection' && <InspectionTab />}

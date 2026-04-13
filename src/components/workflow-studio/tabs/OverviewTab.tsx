@@ -1,56 +1,130 @@
+import { Toggle } from '@/components/ui/Toggle';
 import type { WorkflowDraft } from '@/lib/types/workflow';
 
 interface OverviewTabProps {
   workflow: WorkflowDraft;
+  onUpdate: (updates: Partial<WorkflowDraft>) => void;
 }
 
-export function OverviewTab({ workflow }: OverviewTabProps) {
+const LABEL: React.CSSProperties = {
+  fontFamily: 'Barlow Condensed, sans-serif',
+  fontWeight: 700,
+  fontSize: '11px',
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  color: 'var(--muted)',
+  marginBottom: '4px',
+  display: 'block',
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '8px 12px',
+  border: '1px solid var(--border)',
+  background: 'var(--bg)',
+  color: 'var(--white)',
+  fontSize: '13px',
+  outline: 'none',
+};
+
+export function OverviewTab({ workflow, onUpdate }: OverviewTabProps) {
+  const enabledReportTypes = Object.entries(workflow.templates)
+    .filter(([, config]) => config.enabled)
+    .map(([key]) => key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()));
+
   return (
-    <div className="space-y-6">
-      <div className="rounded-[12px] border border-[var(--border)] bg-[var(--surface)] p-6">
-        <div className="mb-4 font-['Barlow_Condensed'] text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--faint)]">
-          Workflow Summary
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '24px', alignItems: 'start' }}>
+      {/* Left: editable fields */}
+      <div>
+        <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '16px', letterSpacing: '0.04em', color: 'var(--white)', marginBottom: '16px' }}>
+          Workflow Details
         </div>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[13px] text-[var(--muted)]">Name</span>
-            <span className="font-['Barlow_Condensed'] text-[13px] font-bold tracking-[0.04em] text-[var(--white)]">
-              {workflow.name || 'Untitled Workflow'}
-            </span>
+
+        <div style={{ display: 'grid', gap: '14px' }}>
+          <div>
+            <span style={LABEL}>Workflow Name</span>
+            <input
+              type="text"
+              value={workflow.name}
+              onChange={(e) => onUpdate({ name: e.target.value })}
+              placeholder="Untitled Workflow"
+              style={inputStyle}
+            />
           </div>
-          <div className="h-px bg-[var(--border)]" />
-          <div className="flex items-center justify-between">
-            <span className="text-[13px] text-[var(--muted)]">Default Workflow</span>
-            <span
-              className={`rounded-[4px] px-2 py-[2px] font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] ${
-                workflow.isDefault
-                  ? 'bg-[rgba(91,194,115,0.15)] text-[var(--sage)]'
-                  : 'bg-[var(--bg)] text-[var(--faint)]'
-              }`}
-            >
-              {workflow.isDefault ? 'Yes' : 'No'}
-            </span>
+
+          <div>
+            <span style={LABEL}>Description</span>
+            <textarea
+              placeholder="Describe this workflow's purpose and when it should be used..."
+              style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
+              disabled
+            />
+            <div style={{ fontSize: '10px', color: 'var(--faint)', marginTop: '4px' }}>Coming soon</div>
           </div>
-          <div className="h-px bg-[var(--border)]" />
-          <div className="flex items-center justify-between">
-            <span className="text-[13px] text-[var(--muted)]">Report Types Configured</span>
-            <span className="font-['Barlow_Condensed'] text-[13px] font-bold tracking-[0.04em] text-[var(--white)]">
-              {Object.values(workflow.templates).filter((t) => t.enabled).length} / 5
-            </span>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div>
+              <span style={LABEL}>Status</span>
+              <select style={{ ...inputStyle, opacity: 0.5 }} disabled>
+                <option>Active</option>
+                <option>Draft</option>
+                <option>Archived</option>
+              </select>
+              <div style={{ fontSize: '10px', color: 'var(--faint)', marginTop: '4px' }}>Coming soon</div>
+            </div>
+            <div>
+              <span style={LABEL}>Priority</span>
+              <select style={{ ...inputStyle, opacity: 0.5 }} disabled>
+                <option>1 — Highest</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4 — Lowest</option>
+              </select>
+              <div style={{ fontSize: '10px', color: 'var(--faint)', marginTop: '4px' }}>Coming soon</div>
+            </div>
+          </div>
+
+          <div style={{ height: '1px', background: 'var(--border)', margin: '8px 0' }} />
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', border: '1px solid var(--border)', background: 'var(--surface)' }}>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--white)' }}>Set as Default Workflow</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Used when no other workflow matches a claim</div>
+            </div>
+            <Toggle checked={workflow.isDefault} onToggle={() => onUpdate({ isDefault: !workflow.isDefault })} />
           </div>
         </div>
       </div>
 
-      <div className="rounded-[12px] border border-dashed border-[var(--border)] bg-[var(--surface)] px-6 py-10 text-center">
-        <div className="mb-1 font-['Barlow_Condensed'] text-[14px] font-extrabold tracking-[0.06em] text-[var(--white)]">
-          Overview
+      {/* Right: metadata */}
+      <div>
+        <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '10px' }}>
+          Metadata
         </div>
-        <div className="mb-3 text-[12px] text-[var(--muted)]">
-          General workflow settings — name, default status, and carrier assignment.
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          {[
+            { key: 'Workflow ID', val: workflow.id === 'new' ? '—' : workflow.id.slice(0, 12) },
+            { key: 'Schema', val: 'v1.0' },
+          ].map((m) => (
+            <div key={m.key} style={{ background: 'var(--surface)', padding: '8px 12px', border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: '10px', color: 'var(--muted)', marginBottom: '2px' }}>{m.key}</div>
+              <div style={{ fontSize: '12px', fontWeight: 500, color: 'var(--dim)', fontFamily: 'monospace' }}>{m.val}</div>
+            </div>
+          ))}
         </div>
-        <span className="rounded-[4px] bg-[var(--bg)] px-3 py-1 font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--faint)]">
-          Full controls in Phase 2
-        </span>
+
+        {/* Linked reports */}
+        <div style={{ marginTop: '16px', padding: '14px', background: 'var(--sage-dim)', border: '1px solid rgba(91,194,115,0.15)' }}>
+          <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--sage)', marginBottom: '8px' }}>
+            Linked Report Types
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', color: 'var(--sage)' }}>
+            {enabledReportTypes.length > 0
+              ? enabledReportTypes.map((rt) => <div key={rt}>✓ {rt}</div>)
+              : <div style={{ color: 'var(--muted)' }}>No report types enabled</div>
+            }
+          </div>
+        </div>
       </div>
     </div>
   );

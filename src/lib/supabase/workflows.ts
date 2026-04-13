@@ -9,6 +9,10 @@ export interface WorkflowRow {
   isDefault: boolean;
   updatedAt: string;
   reportTypeCount: number;
+  carrier: string | null;
+  claimType: string | null;
+  lossType: string | null;
+  propertyType: string | null;
 }
 
 interface RawWorkflowRow {
@@ -18,6 +22,7 @@ interface RawWorkflowRow {
   is_default: boolean;
   updated_at: string;
   templates: Record<string, { enabled?: boolean }> | null;
+  matching: { carrier?: string | null; claimType?: string | null; lossType?: string | null; propertyType?: string | null } | null;
 }
 
 const REPORT_TYPE_KEYS = Object.keys(REPORT_TYPES) as string[];
@@ -53,7 +58,7 @@ export async function getWorkflows(firmId: string): Promise<WorkflowRow[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('workflows')
-    .select('id, firm_id, name, is_default, updated_at, templates')
+    .select('id, firm_id, name, is_default, updated_at, templates, matching')
     .eq('firm_id', firmId)
     .order('is_default', { ascending: false })
     .order('name', { ascending: true });
@@ -71,6 +76,10 @@ export async function getWorkflows(firmId: string): Promise<WorkflowRow[]> {
       new Date(row.updated_at),
     ),
     reportTypeCount: deriveReportTypeCount(row.templates),
+    carrier: row.matching?.carrier ?? null,
+    claimType: row.matching?.claimType ?? null,
+    lossType: row.matching?.lossType ?? null,
+    propertyType: row.matching?.propertyType ?? null,
   }));
 }
 

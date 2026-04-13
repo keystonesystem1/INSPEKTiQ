@@ -1,31 +1,96 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import type { WorkflowRow } from '@/lib/supabase/workflows';
+
+type StatusFilter = 'all' | 'active' | 'draft';
 
 interface WorkflowListProps {
   workflows: WorkflowRow[];
 }
 
+function deriveStatus(wf: WorkflowRow): 'active' | 'draft' {
+  return wf.isDefault ? 'active' : 'draft';
+}
+
+function matchSummary(wf: WorkflowRow): string {
+  const parts = [
+    wf.carrier ?? 'Any carrier',
+    wf.lossType ?? 'Any loss',
+    wf.propertyType ?? 'Any property',
+  ];
+  return parts.join(' · ');
+}
+
 export function WorkflowList({ workflows }: WorkflowListProps) {
+  const [filter, setFilter] = useState<StatusFilter>('all');
+
+  const filtered = filter === 'all'
+    ? workflows
+    : workflows.filter((wf) => deriveStatus(wf) === filter);
+
+  const filterButtons: { label: string; value: StatusFilter; count: number }[] = [
+    { label: 'All', value: 'all', count: workflows.length },
+    { label: 'Active', value: 'active', count: workflows.filter((w) => deriveStatus(w) === 'active').length },
+    { label: 'Draft', value: 'draft', count: workflows.filter((w) => deriveStatus(w) === 'draft').length },
+  ];
+
   return (
     <div>
-      <div className="mb-5 flex items-center justify-between">
-        <div className="font-['Barlow_Condensed'] text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
-          {workflows.length} workflow{workflows.length !== 1 ? 's' : ''}
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div>
+          <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '22px', letterSpacing: '0.04em', color: 'var(--white)' }}>
+            Workflow Studio
+          </div>
+          <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
+            Manage inspection and report workflow configurations
+          </div>
         </div>
         <Link href="/workflow-studio/new">
           <Button size="sm">+ New Workflow</Button>
         </Link>
       </div>
 
-      {workflows.length === 0 ? (
-        <div className="rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-8 py-16 text-center">
-          <div className="mb-2 font-['Barlow_Condensed'] text-[16px] font-extrabold tracking-[0.06em] text-[var(--white)]">
-            No workflows configured yet
+      {/* Filter bar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+        <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--faint)' }}>
+          Filter
+        </span>
+        {filterButtons.map((fb) => (
+          <button
+            key={fb.value}
+            type="button"
+            onClick={() => setFilter(fb.value)}
+            style={{
+              padding: '4px 12px',
+              borderRadius: '99px',
+              fontSize: '11px',
+              fontFamily: 'Barlow Condensed, sans-serif',
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              border: filter === fb.value ? '1px solid transparent' : '1px solid var(--border)',
+              background: filter === fb.value ? 'var(--white)' : 'transparent',
+              color: filter === fb.value ? 'var(--bg)' : 'var(--muted)',
+              cursor: 'pointer',
+            }}
+          >
+            {fb.label} ({fb.count})
+          </button>
+        ))}
+      </div>
+
+      {/* Table */}
+      {filtered.length === 0 ? (
+        <div style={{ border: '1px solid var(--border)', background: 'var(--card)', padding: '48px', textAlign: 'center' }}>
+          <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '16px', color: 'var(--white)', marginBottom: '8px' }}>
+            {filter === 'all' ? 'No workflows configured yet' : `No ${filter} workflows`}
           </div>
-          <div className="mb-6 text-[13px] text-[var(--muted)]">
+          <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '16px' }}>
             Create your first workflow to start controlling report templates.
           </div>
           <Link href="/workflow-studio/new">
@@ -33,37 +98,76 @@ export function WorkflowList({ workflows }: WorkflowListProps) {
           </Link>
         </div>
       ) : (
-        <div className="rounded-[12px] border border-[var(--border)] bg-[var(--surface)]">
-          {workflows.map((workflow, index) => (
-            <div
-              key={workflow.id}
-              className={`flex items-center gap-4 px-5 py-4 ${
-                index < workflows.length - 1 ? 'border-b border-[var(--border)]' : ''
-              }`}
-            >
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-['Barlow_Condensed'] text-[15px] font-extrabold tracking-[0.04em] text-[var(--white)]">
-                    {workflow.name}
-                  </span>
-                  {workflow.isDefault && (
-                    <span className="rounded-[4px] bg-[rgba(91,194,115,0.15)] px-2 py-[2px] font-['Barlow_Condensed'] text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--sage)]">
-                      Default
-                    </span>
-                  )}
-                </div>
-                <div className="mt-1 font-['Barlow_Condensed'] text-[11px] tracking-[0.04em] text-[var(--faint)]">
-                  {workflow.reportTypeCount} report type{workflow.reportTypeCount !== 1 ? 's' : ''} · Updated{' '}
-                  {workflow.updatedAt}
-                </div>
-              </div>
-              <Link href={`/workflow-studio/${workflow.id}`}>
-                <Button size="sm" variant="ghost">
-                  Edit
-                </Button>
-              </Link>
-            </div>
-          ))}
+        <div style={{ border: '1px solid var(--border)', background: 'var(--card)', overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                {['Workflow Name', 'Status', 'Match Criteria', 'Claim Type', 'Loss Type', 'Property', 'Updated'].map((col) => (
+                  <th
+                    key={col}
+                    style={{
+                      textAlign: 'left',
+                      padding: '10px 14px',
+                      fontFamily: 'Barlow Condensed, sans-serif',
+                      fontWeight: 700,
+                      fontSize: '10px',
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      color: 'var(--muted)',
+                      borderBottom: '1px solid var(--border)',
+                      background: 'var(--surface)',
+                    }}
+                  >
+                    {col}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((wf) => {
+                const status = deriveStatus(wf);
+                return (
+                  <tr
+                    key={wf.id}
+                    style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                    onClick={() => window.location.href = `/workflow-studio/${wf.id}`}
+                  >
+                    <td style={{ padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--white)' }}>
+                          {wf.name}
+                        </span>
+                        {wf.isDefault && <Badge tone="sage">Default</Badge>}
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--faint)', marginTop: '2px' }}>
+                        {wf.reportTypeCount} report type{wf.reportTypeCount !== 1 ? 's' : ''}
+                      </div>
+                    </td>
+                    <td style={{ padding: '12px 14px' }}>
+                      <Badge tone={status === 'active' ? 'sage' : 'orange'}>
+                        {status}
+                      </Badge>
+                    </td>
+                    <td style={{ padding: '12px 14px', fontSize: '12px', color: 'var(--muted)', maxWidth: '200px' }}>
+                      {matchSummary(wf)}
+                    </td>
+                    <td style={{ padding: '12px 14px', fontSize: '12px', color: 'var(--muted)' }}>
+                      {wf.claimType ?? 'Any'}
+                    </td>
+                    <td style={{ padding: '12px 14px', fontSize: '12px', color: 'var(--muted)' }}>
+                      {wf.lossType ?? 'Any'}
+                    </td>
+                    <td style={{ padding: '12px 14px', fontSize: '12px', color: 'var(--muted)' }}>
+                      {wf.propertyType ?? 'Any'}
+                    </td>
+                    <td style={{ padding: '12px 14px', fontSize: '11px', color: 'var(--faint)' }}>
+                      {wf.updatedAt}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

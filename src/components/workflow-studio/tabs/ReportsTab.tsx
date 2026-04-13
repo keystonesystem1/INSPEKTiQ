@@ -51,20 +51,9 @@ function isMoveDisabled(
   return false;
 }
 
-function isSectionExpandable(sectionKey: string): boolean {
-  const def = getSection(sectionKey);
-  if (!def || def.required) return false;
-  const hasModes = getSelectableModes(sectionKey).length > 0;
-  const hasFieldToggles =
-    def.supports_field_toggles && (def.v1_field_toggle_scope?.length ?? 0) > 0;
-  const hasSubsections =
-    def.supports_subsections && Object.keys(def.subsections ?? {}).length > 0;
-  return def.supports_heading_override || hasModes || hasFieldToggles || hasSubsections;
-}
-
 export function ReportsTab({ templates, onChange }: ReportsTabProps) {
   const [activeType, setActiveType] = useState<ReportType>('initial_report');
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
   const activeConfig = templates[activeType];
 
@@ -113,333 +102,299 @@ export function ReportsTab({ templates, onChange }: ReportsTabProps) {
     });
   }
 
+  const selectedSectionConfig = selectedSection
+    ? activeConfig.sections.find((s) => s.sectionKey === selectedSection)
+    : null;
+  const selectedSectionDef = selectedSection
+    ? getSection(selectedSection)
+    : null;
+
   return (
-    <div>
-      {/* Report type selector */}
-      <div className="mb-6 flex flex-wrap items-center gap-2">
-        <span className="mr-1 font-['Barlow_Condensed'] text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--faint)]">
+    <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr 260px', gap: '16px', alignItems: 'start' }}>
+      {/* Left column: report type list */}
+      <div>
+        <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '8px' }}>
           Report Type
-        </span>
-        <div className="flex gap-[2px] rounded-[6px] border border-[var(--border)] bg-[var(--surface)] p-[3px]">
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
           {REPORT_TYPE_LIST.map((type) => (
             <button
               key={type.key}
               type="button"
-              onClick={() => setActiveType(type.key)}
-              className={`rounded-[4px] px-3 py-[5px] font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] transition-colors ${
-                activeType === type.key
-                  ? 'bg-[var(--sage)] text-[#06120C]'
-                  : templates[type.key].enabled
-                    ? 'text-[var(--muted)] hover:text-[var(--white)]'
-                    : 'text-[var(--faint)] opacity-50 hover:opacity-75'
-              }`}
+              onClick={() => { setActiveType(type.key); setSelectedSection(null); }}
+              style={{
+                padding: '8px 12px',
+                fontSize: '13px',
+                textAlign: 'left',
+                cursor: 'pointer',
+                border: 'none',
+                background: activeType === type.key ? 'var(--sage-dim)' : 'transparent',
+                color: activeType === type.key ? 'var(--sage)' : 'var(--muted)',
+                fontWeight: activeType === type.key ? 600 : 400,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
             >
               {type.shortLabel}
+              {!templates[type.key].enabled && (
+                <span style={{ fontSize: '9px', color: 'var(--faint)' }}>OFF</span>
+              )}
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Report type enable/disable */}
-      <div className="mb-5 flex items-center justify-between rounded-[8px] border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
-        <div>
-          <div className="font-['Barlow_Condensed'] text-[12px] font-bold uppercase tracking-[0.08em] text-[var(--white)]">
-            {REPORT_TYPE_LIST.find((t) => t.key === activeType)?.label}
-          </div>
-          <div className="mt-[2px] text-[11px] text-[var(--faint)]">
-            {REPORT_TYPE_LIST.find((t) => t.key === activeType)?.description}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="font-['Barlow_Condensed'] text-[10px] uppercase tracking-[0.08em] text-[var(--muted)]">
-            {activeConfig.enabled ? 'Active' : 'Disabled'}
+        <div style={{ height: '1px', background: 'var(--border)', margin: '12px 0' }} />
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+            Enabled
           </span>
           <Toggle checked={activeConfig.enabled} onToggle={() => toggleReportType(!activeConfig.enabled)} />
         </div>
       </div>
 
-      {/* Section list */}
-      {activeConfig.enabled ? (
-        <div className="rounded-[12px] border border-[var(--border)] bg-[var(--surface)]">
-          <div className="flex items-center gap-3 border-b border-[var(--border)] px-4 py-2">
-            <span className="font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--faint)]">
-              Report Sections
-            </span>
-            <span className="font-['Barlow_Condensed'] text-[10px] text-[var(--faint)]">·</span>
-            <span className="font-['Barlow_Condensed'] text-[10px] text-[var(--faint)]">
-              {activeConfig.sections.filter((s) => s.enabled).length} of {activeConfig.sections.length} enabled
-            </span>
+      {/* Center: section cards */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '14px', letterSpacing: '0.04em', color: 'var(--white)' }}>
+            {REPORT_TYPE_LIST.find((t) => t.key === activeType)?.label} — Section Order
           </div>
+          <span style={{ fontSize: '11px', color: 'var(--faint)' }}>
+            {activeConfig.sections.filter((s) => s.enabled).length} of {activeConfig.sections.length} enabled
+          </span>
+        </div>
 
-          {activeConfig.sections.map((section, index) => {
-            const def = SECTION_REGISTRY[section.sectionKey as keyof typeof SECTION_REGISTRY];
-            if (!def) return null;
-            const selectableModes = getSelectableModes(section.sectionKey);
-            const isRequired = def.required === true;
-            const expandable = isSectionExpandable(section.sectionKey);
-            const isExpanded = expandedSection === section.sectionKey;
-            const showModeControl = selectableModes.length >= 2;
+        {!activeConfig.enabled ? (
+          <div style={{ border: '1px dashed var(--border)', padding: '48px', textAlign: 'center' }}>
+            <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '13px', color: 'var(--muted)', marginBottom: '4px' }}>
+              Report type disabled
+            </div>
+            <div style={{ fontSize: '12px', color: 'var(--faint)' }}>
+              Enable it from the left panel to configure sections.
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {activeConfig.sections.map((section, index) => {
+              const def = SECTION_REGISTRY[section.sectionKey as keyof typeof SECTION_REGISTRY];
+              if (!def) return null;
+              const isRequired = def.required === true;
+              const isSelected = selectedSection === section.sectionKey;
 
-            return (
-              <div
-                key={section.sectionKey}
-                className={`border-b border-[var(--border)] last:border-b-0 ${
-                  !section.enabled && !isRequired ? 'opacity-60' : ''
-                }`}
-              >
-                {/* Row */}
-                <div className="flex items-center gap-3 px-4 py-3">
-                  {/* Move controls */}
-                  <div className="flex flex-col gap-[1px]">
-                    <button
-                      type="button"
-                      disabled={isMoveDisabled(index, 'up', activeConfig.sections)}
-                      onClick={() => moveSection(index, 'up')}
-                      className="flex h-4 w-4 items-center justify-center rounded-[3px] text-[10px] text-[var(--faint)] disabled:opacity-20 hover:not-disabled:text-[var(--muted)]"
-                    >
-                      ▲
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isMoveDisabled(index, 'down', activeConfig.sections)}
-                      onClick={() => moveSection(index, 'down')}
-                      className="flex h-4 w-4 items-center justify-center rounded-[3px] text-[10px] text-[var(--faint)] disabled:opacity-20 hover:not-disabled:text-[var(--muted)]"
-                    >
-                      ▼
-                    </button>
+              return (
+                <div
+                  key={section.sectionKey}
+                  onClick={() => setSelectedSection(section.sectionKey)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '10px',
+                    padding: '10px 12px',
+                    border: isSelected ? '1px solid var(--sage)' : '1px solid var(--border)',
+                    background: isSelected ? 'var(--sage-dim)' : 'var(--card)',
+                    cursor: 'pointer',
+                    opacity: !section.enabled && !isRequired ? 0.5 : 1,
+                  }}
+                >
+                  {/* Drag handle */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingTop: '4px', opacity: 0.3, flexShrink: 0 }}>
+                    <span style={{ display: 'block', width: '12px', height: '2px', background: 'var(--white)' }} />
+                    <span style={{ display: 'block', width: '12px', height: '2px', background: 'var(--white)' }} />
+                    <span style={{ display: 'block', width: '12px', height: '2px', background: 'var(--white)' }} />
                   </div>
 
-                  {/* Toggle or lock */}
-                  {isRequired ? (
-                    <div className="flex h-[18px] w-[32px] items-center justify-center rounded-[9px] border border-[var(--border)] bg-[var(--bg)]">
-                      <span className="text-[9px] text-[var(--faint)]">🔒</span>
+                  {/* Body */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}>
+                      <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 600, fontSize: '13px', color: 'var(--white)' }}>
+                        {section.headingOverride || def.label}
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        {isRequired && (
+                          <span style={{ fontSize: '9px', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--faint)', background: 'var(--bg)', padding: '2px 6px' }}>
+                            Required
+                          </span>
+                        )}
+                        {section.mode && (
+                          <span style={{ fontSize: '9px', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--muted)', background: 'var(--surface)', padding: '2px 6px' }}>
+                            {MODE_LABELS[section.mode] ?? section.mode}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  ) : (
-                    <Toggle
-                      checked={section.enabled}
-                      onToggle={() => updateSection(section.sectionKey, { enabled: !section.enabled })}
-                    />
-                  )}
-
-                  {/* Label */}
-                  <div className="min-w-0 flex-1">
-                    <span className="font-['Barlow_Condensed'] text-[13px] font-bold tracking-[0.04em] text-[var(--white)]">
-                      {section.headingOverride || def.label}
-                    </span>
-                    {section.headingOverride && (
-                      <span className="ml-2 text-[10px] text-[var(--faint)]">
-                        (overrides: {def.label})
-                      </span>
-                    )}
-                    {isRequired && (
-                      <span className="ml-2 rounded-[3px] bg-[var(--bg)] px-1.5 py-[1px] font-['Barlow_Condensed'] text-[9px] font-bold uppercase tracking-[0.08em] text-[var(--faint)]">
-                        Required
-                      </span>
-                    )}
-                    {section.mode && (
-                      <span className="ml-2 rounded-[3px] bg-[var(--bg)] px-1.5 py-[1px] font-['Barlow_Condensed'] text-[9px] uppercase tracking-[0.06em] text-[var(--faint)]">
-                        {MODE_LABELS[section.mode] ?? section.mode}
-                      </span>
+                    {def.label !== (section.headingOverride || def.label) && (
+                      <div style={{ fontSize: '11px', color: 'var(--faint)', marginTop: '2px' }}>
+                        Default: {def.label}
+                      </div>
                     )}
                   </div>
 
-                  {/* Expand chevron */}
-                  {expandable && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setExpandedSection(isExpanded ? null : section.sectionKey)
-                      }
-                      className="flex h-6 w-6 items-center justify-center rounded-[4px] text-[10px] text-[var(--muted)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--white)]"
-                    >
-                      {isExpanded ? '▼' : '›'}
-                    </button>
-                  )}
+                  {/* Controls */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                    {!isRequired && (
+                      <Toggle
+                        checked={section.enabled}
+                        onToggle={() => updateSection(section.sectionKey, { enabled: !section.enabled })}
+                      />
+                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                      <button
+                        type="button"
+                        disabled={isMoveDisabled(index, 'up', activeConfig.sections)}
+                        onClick={(e) => { e.stopPropagation(); moveSection(index, 'up'); }}
+                        style={{ fontSize: '10px', color: 'var(--faint)', background: 'none', border: 'none', cursor: 'pointer', opacity: isMoveDisabled(index, 'up', activeConfig.sections) ? 0.2 : 1 }}
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isMoveDisabled(index, 'down', activeConfig.sections)}
+                        onClick={(e) => { e.stopPropagation(); moveSection(index, 'down'); }}
+                        style={{ fontSize: '10px', color: 'var(--faint)', background: 'none', border: 'none', cursor: 'pointer', opacity: isMoveDisabled(index, 'down', activeConfig.sections) ? 0.2 : 1 }}
+                      >
+                        ▼
+                      </button>
+                    </div>
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
-                {/* Expanded content */}
-                {expandable && isExpanded && (
-                  <div className="border-t border-[var(--border)] bg-[var(--bg)] px-4 pb-5 pt-4">
-                    <div className="space-y-4 pl-[52px]">
-                      {/* Heading override */}
-                      {def.supports_heading_override && (
-                        <div>
-                          <label className="mb-1 block font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--faint)]">
-                            Heading Override
-                          </label>
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={section.headingOverride ?? ''}
-                              placeholder={def.label}
-                              onChange={(e) =>
-                                updateSection(section.sectionKey, {
-                                  headingOverride: e.target.value || null,
-                                })
-                              }
-                              className="flex-1 rounded-[6px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[12px] text-[var(--white)] placeholder:text-[var(--faint)] focus:border-[var(--border-hi)] focus:outline-none"
-                            />
-                            {section.headingOverride && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateSection(section.sectionKey, { headingOverride: null })
-                                }
-                                className="rounded-[6px] border border-[var(--border)] px-3 py-2 font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)] hover:border-[var(--border-hi)] hover:text-[var(--white)]"
-                              >
-                                Clear
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      )}
+      {/* Right column: section settings */}
+      <div>
+        <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '8px' }}>
+          Section Settings
+        </div>
 
-                      {/* Mode control */}
-                      {showModeControl && (
-                        <div>
-                          <label className="mb-2 block font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--faint)]">
-                            Mode
-                          </label>
-                          <div className="flex gap-[2px] rounded-[6px] border border-[var(--border)] bg-[var(--surface)] p-[2px] w-fit">
-                            {selectableModes.map((m) => (
-                              <button
-                                key={m}
-                                type="button"
-                                onClick={() =>
-                                  updateSection(section.sectionKey, { mode: m as SectionMode })
-                                }
-                                className={`rounded-[4px] px-3 py-[5px] font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.06em] transition-colors ${
-                                  section.mode === m
-                                    ? 'bg-[var(--bg)] text-[var(--white)]'
-                                    : 'text-[var(--faint)] hover:text-[var(--muted)]'
-                                }`}
-                              >
-                                {MODE_LABELS[m] ?? m}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+        {!selectedSectionConfig || !selectedSectionDef ? (
+          <div style={{ fontSize: '12px', color: 'var(--faint)', padding: '16px 0' }}>
+            Select a section to configure it.
+          </div>
+        ) : (
+          <div style={{ border: '1px solid var(--border)', background: 'var(--card)', padding: '14px' }}>
+            <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '14px', color: 'var(--white)', marginBottom: '14px' }}>
+              {selectedSectionDef.label}
+            </div>
 
-                      {/* Field toggles */}
-                      {def.supports_field_toggles && def.v1_field_toggle_scope && (
-                        <div>
-                          <label className="mb-2 block font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--faint)]">
-                            Fields
-                          </label>
-                          <div className="grid grid-cols-2 gap-y-2">
-                            {def.v1_field_toggle_scope.map((fieldKey) => {
-                              const on = section.fieldToggles?.[fieldKey] ?? true;
-                              return (
-                                <div key={fieldKey} className="flex items-center gap-2">
-                                  <Toggle
-                                    checked={on}
-                                    onToggle={() =>
-                                      updateFieldToggle(section.sectionKey, fieldKey, !on)
-                                    }
-                                  />
-                                  <span
-                                    className={`font-['Barlow_Condensed'] text-[11px] tracking-[0.04em] ${
-                                      on ? 'text-[var(--muted)]' : 'text-[var(--faint)] line-through'
-                                    }`}
-                                  >
-                                    {fieldLabel(fieldKey)}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Subsections (V1: Coverage A only) */}
-                      {def.supports_subsections && section.subsections && (
-                        <div>
-                          <label className="mb-2 block font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--faint)]">
-                            Subsections
-                          </label>
-                          <div className="space-y-3">
-                            {section.subsections.map((sub) => {
-                              const subDef = def.subsections?.[sub.subsectionKey];
-                              if (!subDef) return null;
-                              return (
-                                <div
-                                  key={sub.subsectionKey}
-                                  className="rounded-[8px] border border-[var(--border)] bg-[var(--surface)] p-3"
-                                >
-                                  <div className="mb-2 flex items-center gap-2">
-                                    <Toggle
-                                      checked={sub.enabled}
-                                      onToggle={() =>
-                                        updateSubsection(section.sectionKey, sub.subsectionKey, {
-                                          enabled: !sub.enabled,
-                                        })
-                                      }
-                                    />
-                                    <span
-                                      className={`font-['Barlow_Condensed'] text-[12px] font-bold tracking-[0.04em] ${
-                                        sub.enabled ? 'text-[var(--white)]' : 'text-[var(--faint)]'
-                                      }`}
-                                    >
-                                      {subDef.label}
-                                    </span>
-                                  </div>
-                                  {sub.enabled && subDef.supports_heading_override && (
-                                    <div className="flex gap-2 pl-[42px]">
-                                      <input
-                                        type="text"
-                                        value={sub.headingOverride ?? ''}
-                                        placeholder={`Override "${subDef.label}" heading`}
-                                        onChange={(e) =>
-                                          updateSubsection(
-                                            section.sectionKey,
-                                            sub.subsectionKey,
-                                            { headingOverride: e.target.value || null },
-                                          )
-                                        }
-                                        className="flex-1 rounded-[5px] border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[11px] text-[var(--white)] placeholder:text-[var(--faint)] focus:border-[var(--border-hi)] focus:outline-none"
-                                      />
-                                      {sub.headingOverride && (
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            updateSubsection(
-                                              section.sectionKey,
-                                              sub.subsectionKey,
-                                              { headingOverride: null },
-                                            )
-                                          }
-                                          className="rounded-[5px] border border-[var(--border)] px-2 py-1 font-['Barlow_Condensed'] text-[9px] font-bold uppercase tracking-[0.08em] text-[var(--faint)] hover:text-[var(--muted)]"
-                                        >
-                                          Clear
-                                        </button>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+            {/* Heading override */}
+            {selectedSectionDef.supports_heading_override && (
+              <div style={{ marginBottom: '14px' }}>
+                <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>
+                  Heading Override
+                </span>
+                <input
+                  type="text"
+                  value={selectedSectionConfig.headingOverride ?? ''}
+                  placeholder={selectedSectionDef.label}
+                  onChange={(e) => updateSection(selectedSection!, { headingOverride: e.target.value || null })}
+                  style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--white)', fontSize: '12px', outline: 'none' }}
+                />
               </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="rounded-[12px] border border-dashed border-[var(--border)] bg-[var(--surface)] px-6 py-12 text-center">
-          <div className="mb-1 font-['Barlow_Condensed'] text-[13px] font-bold tracking-[0.06em] text-[var(--muted)]">
-            {REPORT_TYPE_LIST.find((t) => t.key === activeType)?.label} disabled
+            )}
+
+            {/* Mode control */}
+            {(() => {
+              const modes = getSelectableModes(selectedSection!);
+              if (modes.length < 2) return null;
+              return (
+                <div style={{ marginBottom: '14px' }}>
+                  <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>
+                    Mode
+                  </span>
+                  <div style={{ display: 'flex', border: '1px solid var(--border)', overflow: 'hidden' }}>
+                    {modes.map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => updateSection(selectedSection!, { mode: m as SectionMode })}
+                        style={{
+                          flex: 1,
+                          padding: '5px 8px',
+                          fontSize: '11px',
+                          fontFamily: 'Barlow Condensed, sans-serif',
+                          fontWeight: 700,
+                          letterSpacing: '0.06em',
+                          textTransform: 'uppercase',
+                          background: selectedSectionConfig.mode === m ? 'var(--white)' : 'var(--surface)',
+                          color: selectedSectionConfig.mode === m ? 'var(--bg)' : 'var(--muted)',
+                          border: 'none',
+                          borderRight: '1px solid var(--border)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {MODE_LABELS[m] ?? m}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Field toggles */}
+            {selectedSectionDef.supports_field_toggles && selectedSectionDef.v1_field_toggle_scope && (
+              <div style={{ marginBottom: '14px' }}>
+                <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>
+                  Fields
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {selectedSectionDef.v1_field_toggle_scope.map((fieldKey) => {
+                    const on = selectedSectionConfig.fieldToggles?.[fieldKey] ?? true;
+                    return (
+                      <div key={fieldKey} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Toggle checked={on} onToggle={() => updateFieldToggle(selectedSection!, fieldKey, !on)} />
+                        <span style={{ fontSize: '11px', color: on ? 'var(--white)' : 'var(--faint)', textDecoration: on ? 'none' : 'line-through' }}>
+                          {fieldLabel(fieldKey)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Subsections */}
+            {selectedSectionDef.supports_subsections && selectedSectionConfig.subsections && (
+              <div>
+                <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>
+                  Subsections
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {selectedSectionConfig.subsections.map((sub) => {
+                    const subDef = selectedSectionDef.subsections?.[sub.subsectionKey];
+                    if (!subDef) return null;
+                    return (
+                      <div key={sub.subsectionKey} style={{ padding: '8px 10px', border: '1px solid var(--border)', background: 'var(--surface)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: sub.enabled && subDef.supports_heading_override ? '8px' : '0' }}>
+                          <Toggle
+                            checked={sub.enabled}
+                            onToggle={() => updateSubsection(selectedSection!, sub.subsectionKey, { enabled: !sub.enabled })}
+                          />
+                          <span style={{ fontSize: '12px', fontWeight: 600, color: sub.enabled ? 'var(--white)' : 'var(--faint)' }}>
+                            {subDef.label}
+                          </span>
+                        </div>
+                        {sub.enabled && subDef.supports_heading_override && (
+                          <input
+                            type="text"
+                            value={sub.headingOverride ?? ''}
+                            placeholder={`Override "${subDef.label}" heading`}
+                            onChange={(e) => updateSubsection(selectedSection!, sub.subsectionKey, { headingOverride: e.target.value || null })}
+                            style={{ width: '100%', padding: '5px 8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--white)', fontSize: '11px', outline: 'none', marginLeft: '40px', maxWidth: 'calc(100% - 40px)' }}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
-          <div className="text-[12px] text-[var(--faint)]">
-            This workflow does not apply to{' '}
-            {REPORT_TYPE_LIST.find((t) => t.key === activeType)?.label.toLowerCase()} reports.
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
