@@ -29,7 +29,7 @@ export function Toggle({
           width: '12px',
           height: '12px',
           borderRadius: '50%',
-          background: checked ? '#fff' : 'var(--muted)',
+          background: checked ? 'var(--on-accent)' : 'var(--muted)',
         }}
       />
     </button>

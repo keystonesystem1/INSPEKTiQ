@@ -42,7 +42,7 @@ export function Pill({
             alignItems: 'center',
             justifyContent: 'center',
             background: dot.tone === 'red' ? 'var(--red)' : 'var(--orange)',
-            color: '#fff',
+            color: 'var(--on-accent)',
             fontSize: '9px',
             fontWeight: 800,
           }}

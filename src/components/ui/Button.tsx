@@ -28,7 +28,7 @@ export function Button({
   const background =
     variant === 'primary' ? 'var(--sage)' : variant === 'danger' ? 'var(--orange)' : 'transparent';
   const color =
-    variant === 'primary' ? '#06120C' : variant === 'danger' ? '#0A0A0A' : 'var(--muted)';
+    variant === 'primary' ? 'var(--on-accent)' : variant === 'danger' ? 'var(--on-accent)' : 'var(--muted)';
 
   return (
     <button

@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Toggle } from '@/components/ui/Toggle';
 import { Button } from '@/components/ui/Button';
 import { FormInput } from '@/components/ui/FormInput';
+import { useTheme } from '@/components/providers/ThemeProvider';
 import type { DEFAULT_SLA } from '@/lib/utils/sla';
 
 type SlaSettings = typeof DEFAULT_SLA;
@@ -56,7 +57,7 @@ const SLA_FIELDS: { key: keyof SlaSettings; label: string; hint: string }[] = [
   { key: 'report_to_approval',     label: 'Report → Approval',       hint: 'Hours from report submission to examiner approval' },
 ];
 
-const sections = ['Firm Profile', 'User Profile', 'SLA Configuration', 'Notifications', 'Activity Log', 'Integrations'] as const;
+const sections = ['Firm Profile', 'User Profile', 'Appearance', 'SLA Configuration', 'Notifications', 'Activity Log', 'Integrations'] as const;
 type Section = (typeof sections)[number];
 
 // ── sub-components ────────────────────────────────────────────────────────────
@@ -95,6 +96,7 @@ export function SettingsLayout({
   firmUserId: string;
 }) {
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
   const [active, setActive] = useState<Section>('Firm Profile');
 
   // ── Firm Profile state ───────────────────────────────────────────────────
@@ -302,6 +304,59 @@ export function SettingsLayout({
               <span style={{ fontSize: '11px', color: 'var(--muted)' }}>Managed by authentication</span>
             </div>
             <SaveRow saving={userSaving} saved={userSaved} error={userError} onSave={() => void saveUserProfile()} />
+          </div>
+        ) : null}
+
+        {/* ── Appearance ── */}
+        {active === 'Appearance' ? (
+          <div style={{ display: 'grid', gap: '14px' }}>
+            <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '0 0 6px' }}>
+              Choose your preferred color scheme.
+            </p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {(['light', 'dark', 'system'] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setTheme(option)}
+                  style={{
+                    flex: 1,
+                    padding: '14px 16px',
+                    borderRadius: '8px',
+                    border: theme === option ? '2px solid var(--sage)' : '1px solid var(--border)',
+                    background: theme === option ? 'var(--sage-dim)' : 'var(--card)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '40px',
+                      height: '28px',
+                      borderRadius: '4px',
+                      border: '1px solid var(--border)',
+                      background:
+                        option === 'light' ? '#f5f4f1' : option === 'dark' ? '#0a0a0a' : 'linear-gradient(135deg, #f5f4f1 50%, #0a0a0a 50%)',
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontFamily: 'Barlow Condensed, sans-serif',
+                      fontWeight: 700,
+                      fontSize: '11px',
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      color: theme === option ? 'var(--sage)' : 'var(--muted)',
+                    }}
+                  >
+                    {option}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         ) : null}
 

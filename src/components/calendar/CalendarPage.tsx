@@ -85,14 +85,14 @@ export function CalendarPage({ firmId, adjusterUserId }: CalendarPageProps) {
                   <button
                     type="button"
                     onClick={() => setView('month')}
-                    className={`rounded-[4px] px-[10px] py-[5px] font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] transition-colors ${view === 'month' ? 'bg-[var(--sage)] text-[#06120C]' : 'text-[var(--muted)] hover:text-[var(--white)]'}`}
+                    className={`rounded-[4px] px-[10px] py-[5px] font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] transition-colors ${view === 'month' ? 'bg-[var(--sage)] text-[var(--on-accent)]' : 'text-[var(--muted)] hover:text-[var(--white)]'}`}
                   >
                     Month
                   </button>
                   <button
                     type="button"
                     onClick={() => setView('week')}
-                    className={`rounded-[4px] px-[10px] py-[5px] font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] transition-colors ${view === 'week' ? 'bg-[var(--sage)] text-[#06120C]' : 'text-[var(--muted)] hover:text-[var(--white)]'}`}
+                    className={`rounded-[4px] px-[10px] py-[5px] font-['Barlow_Condensed'] text-[10px] font-bold uppercase tracking-[0.08em] transition-colors ${view === 'week' ? 'bg-[var(--sage)] text-[var(--on-accent)]' : 'text-[var(--muted)] hover:text-[var(--white)]'}`}
                   >
                     Week
                   </button>
