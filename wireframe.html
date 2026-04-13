@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claim Card Wireframe v3 — INSPEKTiQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111113;
+    --card: #181819;
+    --card-hi: #1e1e21;
+    --border: rgba(255,255,255,0.07);
+    --border-hi: rgba(255,255,255,0.13);
+    --sage: #5bc273;
+    --sage-dim: rgba(91,194,115,0.12);
+    --blue: #4298cc;
+    --blue-dim: rgba(66,152,204,0.12);
+    --orange: #e07b3f;
+    --orange-dim: rgba(224,123,63,0.13);
+    --red: #e05c5c;
+    --red-dim: rgba(224,92,92,0.13);
+    --bronze: #c9a84c;
+    --bronze-dim: rgba(201,168,76,0.12);
+    --white: #f2f2f4;
+    --dim: #c8c8d0;
+    --muted: #a8a8b4;
+    --faint: #3e3e46;
+  }
+
+  @keyframes urgency-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  @keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 40px;
+  }
+
+  h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  .card-list { display: flex; flex-direction: column; gap: 6px; }
+
+  /* ---- Card ---- */
+  .claim-card {
+    position: relative;
+    display: flex;
+    background: var(--card);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .claim-card:hover {
+    background: var(--card-hi);
+    border-color: var(--border-hi);
+  }
+
+  .accent-bar { width: 3px; flex-shrink: 0; }
+
+  .card-sections {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 0.75fr 0.75fr;
+    min-width: 0;
+  }
+
+  .section {
+    padding: 14px 16px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .section:last-child { border-right: none; }
+
+  .field {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .field-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    flex-shrink: 0;
+    min-width: 58px;
+  }
+  .field-value { color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .field-value.primary { color: var(--white); }
+  .field-value.link { color: var(--sage); cursor: pointer; }
+  .field-value.link:hover { color: #6dd882; text-decoration: underline; }
+  .field-value.claim-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--sage);
+  }
+  .field-value.empty { color: var(--faint); }
+
+  /* Assignment type badge (inline in section 1) */
+  .assign-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.05);
+    color: var(--dim);
+    border: 1px solid var(--border);
+  }
+
+  /* Badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .badge-sage { background: var(--sage-dim); color: var(--sage); border: 1px solid rgba(91,194,115,0.2); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(66,152,204,0.2); }
+  .badge-orange { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(224,123,63,0.2); }
+  .badge-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(224,92,92,0.2); }
+  .badge-bronze { background: var(--bronze-dim); color: var(--bronze); border: 1px solid rgba(201,168,76,0.2); }
+
+  /* Status section */
+  .status-section {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .status-action {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--sage);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+  .status-action:hover { text-decoration: underline; }
+
+  /* Urgency dot */
+  .urgency-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    animation: urgency-pulse 1.6s ease-in-out infinite;
+  }
+  .urgency-dot.overdue { background: var(--red); box-shadow: 0 0 6px rgba(224,92,92,0.5); }
+  .urgency-dot.warning { background: var(--orange); box-shadow: 0 0 6px rgba(224,123,63,0.4); }
+
+  /* ---- Live inspection indicator ---- */
+  .live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .live-indicator .live-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .live-indicator.next-stop {
+    color: var(--blue);
+    border-color: rgba(66,152,204,0.3);
+    background: var(--blue-dim);
+  }
+  .live-indicator.next-stop .live-dot {
+    background: var(--blue);
+    animation: live-pulse 2s ease-in-out infinite;
+  }
+
+  .live-indicator.en-route {
+    color: var(--orange);
+    border-color: rgba(224,123,63,0.3);
+    background: var(--orange-dim);
+  }
+  .live-indicator.en-route .live-dot {
+    background: var(--orange);
+    animation: live-pulse 1.4s ease-in-out infinite;
+  }
+
+  .live-indicator.on-site {
+    color: var(--sage);
+    border-color: rgba(91,194,115,0.3);
+    background: var(--sage-dim);
+  }
+  .live-indicator.on-site .live-dot {
+    background: var(--sage);
+    animation: live-pulse 1s ease-in-out infinite;
+  }
+
+  .live-indicator.completed {
+    color: var(--dim);
+    border-color: var(--border);
+    background: rgba(255,255,255,0.03);
+  }
+  .live-indicator.completed .live-dot {
+    background: var(--sage);
+  }
+
+  /* Accept/Decline */
+  .btn-accept {
+    padding: 5px 14px; border: 1px solid var(--sage); background: var(--sage-dim); color: var(--sage);
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 10px;
+    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+  }
+  .btn-decline {
+    padding: 5px 12px; border: 1px solid var(--red); background: transparent; color: var(--red);
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 10px;
+    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+  }
+
+  .date-value { font-size: 13px; color: var(--dim); }
+
+  /* Section divider label */
+  .section-divider {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    padding: 10px 18px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<h1>Claims</h1>
+<p class="subtitle">v3 — Sectioned cards with assignment type + live inspection-day status. Scroll to see all scenarios.</p>
+
+<div class="card-list">
+
+  <!-- ===== CARD 1: Received, overdue, Full Field Inspection ===== -->
+  <div class="claim-card">
+    <div class="accent-bar" style="background: var(--red);"></div>
+    <div class="card-sections">
+
+      <!-- S1: Claim Details -->
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claim #</span>
+          <span class="field-value claim-num">234578802</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Type</span>
+          <span class="field-value">Hail</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Carrier</span>
+          <span class="field-value link">State Farm</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Loss Loc</span>
+          <span class="field-value link">410 Ruby Dell Ln, Waco, TX</span>
+        </div>
+        <div class="field">
+          <span class="field-label">DOL</span>
+          <span class="field-value">4/7/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Assign</span>
+          <span class="assign-badge">Full Field Inspection</span>
+        </div>
+      </div>
+
+      <!-- S2: People -->
+      <div class="section">
+        <div class="field">
+          <span class="field-label">INS</span>
+          <span class="field-value primary">Nathan Nark</span>
+        </div>
+        <div class="field">
+          <span class="field-label">EX</span>
+          <span class="field-value link">Kelly Walton</span>
+        </div>
+        <div class="field">
+          <span class="field-label">SA</span>
+          <span class="field-value link">Brad Honderd</span>
+        </div>
+        <div class="field">
+          <span class="field-label">FA</span>
+          <span class="field-value link">Andrew Owen</span>
+        </div>
+      </div>
+
+      <!-- S3: Activity -->
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claimant(s)</span>
+          <span class="field-value link">0</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Reserve(s)</span>
+          <span class="field-value link">$0.00</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Contacted</span>
+          <span class="field-value">(0): <span class="field-value link">Contact Activity</span></span>
+        </div>
+        <div class="field">
+          <span class="field-label">Inspected</span>
+          <span class="field-value link">Mark Inspected</span>
+        </div>
+      </div>
+
+      <!-- S4: Dates -->
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Rec'd</span>
+          <span class="date-value">4/10/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Due</span>
+          <span class="date-value" style="color: var(--red);">4/11/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Processed</span>
+          <span class="date-value">—</span>
+        </div>
+      </div>
+
+      <!-- S5: Status -->
+      <div class="status-section">
+        <span class="badge badge-red">received</span>
+        <div class="urgency-dot overdue"></div>
+        <button class="status-action">Update Status</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== CARD 2: Scheduled — INSPECTION DAY, adjuster is next stop ===== -->
+  <div class="claim-card">
+    <div class="accent-bar" style="background: var(--orange);"></div>
+    <div class="card-sections">
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claim #</span>
+          <span class="field-value claim-num">MAN-2026-735954</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Type</span>
+          <span class="field-value">Hail</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Carrier</span>
+          <span class="field-value link">State Farm</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Loss Loc</span>
+          <span class="field-value link">2013 Marquita St, Waco, TX</span>
+        </div>
+        <div class="field">
+          <span class="field-label">DOL</span>
+          <span class="field-value">4/1/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Assign</span>
+          <span class="assign-badge">Full Field Inspection</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">INS</span>
+          <span class="field-value primary">Mark Matthew</span>
+        </div>
+        <div class="field">
+          <span class="field-label">EX</span>
+          <span class="field-value empty">—</span>
+        </div>
+        <div class="field">
+          <span class="field-label">SA</span>
+          <span class="field-value empty">—</span>
+        </div>
+        <div class="field">
+          <span class="field-label">FA</span>
+          <span class="field-value link">Andrew Owen</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claimant(s)</span>
+          <span class="field-value link">2</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Reserve(s)</span>
+          <span class="field-value link">$2,450.00</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Contacted</span>
+          <span class="field-value">(2): <span class="field-value link">4/5/2026</span></span>
+        </div>
+        <div class="field">
+          <span class="field-label">Inspected</span>
+          <span class="field-value link">Mark Inspected</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Rec'd</span>
+          <span class="date-value">4/3/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Due</span>
+          <span class="date-value">4/17/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Processed</span>
+          <span class="date-value">—</span>
+        </div>
+      </div>
+
+      <div class="status-section">
+        <span class="badge badge-orange">scheduled</span>
+        <div class="live-indicator next-stop">
+          <span class="live-dot"></span>
+          Next Stop
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== CARD 3: Scheduled — INSPECTION DAY, adjuster 3 stops away ===== -->
+  <div class="claim-card">
+    <div class="accent-bar" style="background: var(--orange);"></div>
+    <div class="card-sections">
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claim #</span>
+          <span class="field-value claim-num">MAN-2026-818918</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Type</span>
+          <span class="field-value">Wind/Hail</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Carrier</span>
+          <span class="field-value link">State Farm</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Loss Loc</span>
+          <span class="field-value link">404 Ruby Dell Ln, Waco, TX</span>
+        </div>
+        <div class="field">
+          <span class="field-label">DOL</span>
+          <span class="field-value">3/28/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Assign</span>
+          <span class="assign-badge">Inspection Only</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">INS</span>
+          <span class="field-value primary">Jake Jacob</span>
+        </div>
+        <div class="field">
+          <span class="field-label">EX</span>
+          <span class="field-value link">Angie Mattingly</span>
+        </div>
+        <div class="field">
+          <span class="field-label">SA</span>
+          <span class="field-value link">Melanie Roland</span>
+        </div>
+        <div class="field">
+          <span class="field-label">FA</span>
+          <span class="field-value link">Andrew Owen</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claimant(s)</span>
+          <span class="field-value link">1</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Reserve(s)</span>
+          <span class="field-value link">$8,200.00</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Contacted</span>
+          <span class="field-value">(3): <span class="field-value link">3/30/2026</span></span>
+        </div>
+        <div class="field">
+          <span class="field-label">Inspected</span>
+          <span class="field-value link">Mark Inspected</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Rec'd</span>
+          <span class="date-value">3/29/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Due</span>
+          <span class="date-value">4/15/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Processed</span>
+          <span class="date-value">—</span>
+        </div>
+      </div>
+
+      <div class="status-section">
+        <span class="badge badge-orange">scheduled</span>
+        <div class="live-indicator en-route">
+          <span class="live-dot"></span>
+          3 Stops Away
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== CARD 4: Scheduled — INSPECTION DAY, adjuster ON SITE ===== -->
+  <div class="claim-card">
+    <div class="accent-bar" style="background: var(--orange);"></div>
+    <div class="card-sections">
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claim #</span>
+          <span class="field-value claim-num">MAN-2026-892341</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Type</span>
+          <span class="field-value">Fire</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Carrier</span>
+          <span class="field-value link">Chubb Agribusiness</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Loss Loc</span>
+          <span class="field-value link">502 W Morgan St, Franklin, TX</span>
+        </div>
+        <div class="field">
+          <span class="field-label">DOL</span>
+          <span class="field-value">3/15/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Assign</span>
+          <span class="assign-badge">Full Field Inspection</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">INS</span>
+          <span class="field-value primary">Sarah Williams</span>
+        </div>
+        <div class="field">
+          <span class="field-label">EX</span>
+          <span class="field-value link">Angie Mattingly</span>
+        </div>
+        <div class="field">
+          <span class="field-label">SA</span>
+          <span class="field-value link">Brad Honderd</span>
+        </div>
+        <div class="field">
+          <span class="field-label">FA</span>
+          <span class="field-value link">Andrew Owen</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claimant(s)</span>
+          <span class="field-value link">0</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Reserve(s)</span>
+          <span class="field-value link">$0.00</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Contacted</span>
+          <span class="field-value">(1): <span class="field-value link">4/10/2026</span></span>
+        </div>
+        <div class="field">
+          <span class="field-label">Inspected</span>
+          <span class="field-value link">Mark Inspected</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Rec'd</span>
+          <span class="date-value">3/20/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Due</span>
+          <span class="date-value">4/17/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Processed</span>
+          <span class="date-value">—</span>
+        </div>
+      </div>
+
+      <div class="status-section">
+        <span class="badge badge-orange">scheduled</span>
+        <div class="live-indicator on-site">
+          <span class="live-dot"></span>
+          On Site
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== CARD 5: Inspected — inspection completed today ===== -->
+  <div class="claim-card">
+    <div class="accent-bar" style="background: var(--blue);"></div>
+    <div class="card-sections">
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claim #</span>
+          <span class="field-value claim-num">MAN-2026-445520</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Type</span>
+          <span class="field-value">Wind</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Carrier</span>
+          <span class="field-value link">USAA</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Loss Loc</span>
+          <span class="field-value link">1200 Lake Air Dr, Waco, TX</span>
+        </div>
+        <div class="field">
+          <span class="field-label">DOL</span>
+          <span class="field-value">4/5/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Assign</span>
+          <span class="assign-badge">Full Field Inspection</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">INS</span>
+          <span class="field-value primary">James Rodriguez</span>
+        </div>
+        <div class="field">
+          <span class="field-label">EX</span>
+          <span class="field-value link">Kelly Walton</span>
+        </div>
+        <div class="field">
+          <span class="field-label">SA</span>
+          <span class="field-value empty">—</span>
+        </div>
+        <div class="field">
+          <span class="field-label">FA</span>
+          <span class="field-value link">Andrew Owen</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claimant(s)</span>
+          <span class="field-value link">1</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Reserve(s)</span>
+          <span class="field-value link">$4,100.00</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Contacted</span>
+          <span class="field-value">(2): <span class="field-value link">4/8/2026</span></span>
+        </div>
+        <div class="field">
+          <span class="field-label">Inspected</span>
+          <span class="field-value">4/12/2026</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Rec'd</span>
+          <span class="date-value">4/7/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Due</span>
+          <span class="date-value">4/20/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Processed</span>
+          <span class="date-value">—</span>
+        </div>
+      </div>
+
+      <div class="status-section">
+        <span class="badge badge-blue">inspected</span>
+        <div class="live-indicator completed">
+          <span class="live-dot"></span>
+          Completed
+        </div>
+        <button class="status-action">Mark Reviewed</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== CARD 6: Approved — desk review, no live status ===== -->
+  <div class="claim-card">
+    <div class="accent-bar" style="background: var(--sage);"></div>
+    <div class="card-sections">
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claim #</span>
+          <span class="field-value claim-num">344084C/041026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Type</span>
+          <span class="field-value">Farm Ranch Policy</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Carrier</span>
+          <span class="field-value link">Chubb Agribusiness</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Loss Loc</span>
+          <span class="field-value link">502 W Morgan St, Franklin, TX</span>
+        </div>
+        <div class="field">
+          <span class="field-label">DOL</span>
+          <span class="field-value">5/6/2025</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Assign</span>
+          <span class="assign-badge">Desk Review</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">INS</span>
+          <span class="field-value primary">Norma Jean Payne</span>
+        </div>
+        <div class="field">
+          <span class="field-label">EX</span>
+          <span class="field-value link">Kelly Walton</span>
+        </div>
+        <div class="field">
+          <span class="field-label">SA</span>
+          <span class="field-value link">Brad Honderd</span>
+        </div>
+        <div class="field">
+          <span class="field-label">FA</span>
+          <span class="field-value link">Andrew Owen</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claimant(s)</span>
+          <span class="field-value link">0</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Reserve(s)</span>
+          <span class="field-value link">$14,750.00</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Contacted</span>
+          <span class="field-value">(4): <span class="field-value link">4/1/2026</span></span>
+        </div>
+        <div class="field">
+          <span class="field-label">Inspected</span>
+          <span class="field-value">4/5/2026</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Rec'd</span>
+          <span class="date-value">4/10/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Due</span>
+          <span class="date-value">4/17/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Processed</span>
+          <span class="date-value">4/10/2026</span>
+        </div>
+      </div>
+
+      <div class="status-section">
+        <span class="badge badge-sage">approved</span>
+        <button class="status-action">Submit to Carrier</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== CARD 7: Pending Acceptance — virtual inspection ===== -->
+  <div class="claim-card">
+    <div class="accent-bar" style="background: var(--bronze);"></div>
+    <div class="card-sections">
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claim #</span>
+          <span class="field-value claim-num">UNPARSED</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Type</span>
+          <span class="field-value">Wind/Hail</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Carrier</span>
+          <span class="field-value link">Wacowen Insurance</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Loss Loc</span>
+          <span class="field-value link">408 Ruby Dell Ln, Waco, TX</span>
+        </div>
+        <div class="field">
+          <span class="field-label">DOL</span>
+          <span class="field-value">4/2/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Assign</span>
+          <span class="assign-badge">Virtual Inspection</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">INS</span>
+          <span class="field-value primary">Kim Kathy</span>
+        </div>
+        <div class="field">
+          <span class="field-label">EX</span>
+          <span class="field-value empty">—</span>
+        </div>
+        <div class="field">
+          <span class="field-label">SA</span>
+          <span class="field-value empty">—</span>
+        </div>
+        <div class="field">
+          <span class="field-label">FA</span>
+          <span class="field-value empty">Unassigned</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claimant(s)</span>
+          <span class="field-value">0</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Reserve(s)</span>
+          <span class="field-value">$0.00</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Contacted</span>
+          <span class="field-value">(0)</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Inspected</span>
+          <span class="field-value empty">—</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Rec'd</span>
+          <span class="date-value">4/11/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Due</span>
+          <span class="date-value">4/12/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Processed</span>
+          <span class="date-value">—</span>
+        </div>
+      </div>
+
+      <div class="status-section">
+        <span class="badge badge-bronze">pending</span>
+        <div style="display: flex; gap: 6px; margin-top: 4px;">
+          <button class="btn-accept">Accept</button>
+          <button class="btn-decline">Decline</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== CARD 8: On Hold — overdue ===== -->
+  <div class="claim-card">
+    <div class="accent-bar" style="background: var(--red);"></div>
+    <div class="card-sections">
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claim #</span>
+          <span class="field-value claim-num">344227D/040926</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Type</span>
+          <span class="field-value">HubOne - Property</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Carrier</span>
+          <span class="field-value link">Penn National Insurance</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Loss Loc</span>
+          <span class="field-value link">10913 London Dr, Glen Allen, VA</span>
+        </div>
+        <div class="field">
+          <span class="field-label">DOL</span>
+          <span class="field-value">3/23/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Assign</span>
+          <span class="assign-badge">Full Field Inspection</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">INS</span>
+          <span class="field-value primary">London Drive LLC</span>
+        </div>
+        <div class="field">
+          <span class="field-label">EX</span>
+          <span class="field-value link">Angie Mattingly</span>
+        </div>
+        <div class="field">
+          <span class="field-label">SA</span>
+          <span class="field-value link">Melanie Roland</span>
+        </div>
+        <div class="field">
+          <span class="field-label">FA</span>
+          <span class="field-value link">Andrew Owen</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Claimant(s)</span>
+          <span class="field-value link">1</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Reserve(s)</span>
+          <span class="field-value link">$0.00</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Contacted</span>
+          <span class="field-value">(2): <span class="field-value link">4/10/2026</span></span>
+        </div>
+        <div class="field">
+          <span class="field-label">Inspected</span>
+          <span class="field-value link">Mark Inspected</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="field">
+          <span class="field-label">Rec'd</span>
+          <span class="date-value">4/9/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Due</span>
+          <span class="date-value" style="color: var(--red);">4/10/2026</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Processed</span>
+          <span class="date-value">—</span>
+        </div>
+      </div>
+
+      <div class="status-section">
+        <span class="badge badge-red">on hold</span>
+        <div class="urgency-dot overdue"></div>
+        <button class="status-action">Resume Claim</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Legend -->
+<div style="margin-top: 40px; padding: 20px; border: 1px solid var(--border); background: var(--surface);">
+  <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px;">What's New in v3</div>
+  <div style="font-size: 12px; color: var(--dim); line-height: 2.4;">
+
+    <div style="font-family: 'Barlow Condensed'; font-weight: 700; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--white); margin-top: 8px;">Assignment Type</div>
+    <div style="display: flex; gap: 8px; margin: 4px 0 8px;">
+      <span class="assign-badge">Full Field Inspection</span>
+      <span class="assign-badge">Inspection Only</span>
+      <span class="assign-badge">Desk Review</span>
+      <span class="assign-badge">Virtual Inspection</span>
+    </div>
+    <div>Shown in Claim Details section (S1). Describes the type of work assigned to the adjuster.</div>
+
+    <div style="font-family: 'Barlow Condensed'; font-weight: 700; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--white); margin-top: 16px;">Live Inspection-Day Status</div>
+    <div style="display: flex; gap: 8px; margin: 4px 0 8px; flex-wrap: wrap;">
+      <div class="live-indicator next-stop"><span class="live-dot"></span> Next Stop</div>
+      <div class="live-indicator en-route"><span class="live-dot"></span> 3 Stops Away</div>
+      <div class="live-indicator on-site"><span class="live-dot"></span> On Site</div>
+      <div class="live-indicator completed"><span class="live-dot"></span> Completed</div>
+    </div>
+    <div>Only shows on inspection day for scheduled claims. Derived from appointments table position + auto-triggered by status updates:</div>
+    <div style="padding-left: 16px; color: var(--muted); line-height: 2;">
+      <div>&bull; <strong style="color:var(--blue)">Next Stop</strong> — adjuster's current inspection is the one before this claim</div>
+      <div>&bull; <strong style="color:var(--orange)">N Stops Away</strong> — calculated from remaining appointments ahead in today's route</div>
+      <div>&bull; <strong style="color:var(--sage)">On Site</strong> — triggered by GPS geofence arrival or first photo upload</div>
+      <div>&bull; <strong style="color:var(--dim)">Completed</strong> — triggered when adjuster marks inspection complete (status &rarr; inspected)</div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
