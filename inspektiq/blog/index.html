@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Why Your CMS Isn't a Claims Platform — INSPEKTiQ Blog</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=Orbitron:wght@900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --black:#090909;--surf:#111113;--surf2:#181819;--surf3:#1e1e21;
+  --border:rgba(255,255,255,.07);--border-hi:rgba(255,255,255,.13);
+  --white:#f2f2f4;--dim:#c8c8d0;--muted:#a8a8b4;--muted2:#3e3e46;
+  --green:#5BC273;--green-lo:rgba(91,194,115,.08);--green-mid:rgba(91,194,115,.18);--green-hi:rgba(91,194,115,.35);
+  --bronze:#C9A84C;--blue:#4298CC;--rose:#E05C8A;
+}
+html{scroll-behavior:smooth;}
+body{background:#0a0a0a;background-image:radial-gradient(rgba(255,255,255,.045) 1px,transparent 1px);background-size:30px 30px;color:var(--white);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 20% 0%,rgba(91,194,115,.04) 0%,transparent 55%),radial-gradient(ellipse at 80% 100%,rgba(91,194,115,.03) 0%,transparent 55%);}
+.z1{position:relative;z-index:1;}
+a{text-decoration:none;color:inherit;}
+button{cursor:pointer;font-family:inherit;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(9,9,9,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 6%;height:72px;}
+.nav-brand{display:flex;align-items:center;text-decoration:none;}
+.nav-wm{font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;letter-spacing:.04em;color:var(--white);line-height:1;}
+.nav-wm .acc{color:var(--green);}
+.nav-links{display:flex;align-items:center;gap:36px;}
+.nav-link{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--white);text-decoration:none;transition:color .2s;}
+.nav-link:hover{color:var(--white);}
+.nav-link.active-page{color:var(--green);}
+.nav-right{display:flex;align-items:center;gap:14px;}
+.nav-cta{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--green);border:1px solid var(--green-hi);padding:10px 24px;background:none;cursor:pointer;transition:all .2s;}
+.nav-cta:hover{background:var(--green);color:var(--black);}
+.nav-hamburger{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;background:none;border:none;padding:8px;width:44px;height:44px;cursor:pointer;z-index:101;}
+.nav-hamburger span{display:block;width:22px;height:2px;background:var(--white);transition:all .25s;}
+.nav-hamburger.is-open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.nav-hamburger.is-open span:nth-child(2){opacity:0;}
+.nav-hamburger.is-open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+.nav-drawer{display:none;position:fixed;top:72px;left:0;right:0;bottom:0;z-index:99;background:#111113;overflow-y:auto;padding:0 0 32px;border-top:1px solid rgba(255,255,255,.07);}
+.nav-drawer.open{display:block;}
+.nav-drawer a{display:block;padding:14px 24px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8a8a96;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.07);transition:color .15s;}
+.nav-drawer a:hover{color:#f2f2f4;}
+@media(max-width:960px){.nav-drawer{top:64px;}}
+
+.iq{font-family:'Orbitron',sans-serif;font-weight:900;font-size:.88em;letter-spacing:.04em;color:var(--white);white-space:nowrap;}
+.iq i{font-style:normal;color:var(--green);}
+.it-inline{font-family:'Orbitron',sans-serif;font-weight:900;font-size:.88em;letter-spacing:.04em;color:var(--white);white-space:nowrap;display:inline-flex;align-items:center;line-height:1;}
+.it-inline .bk{position:relative;display:inline-flex;align-items:center;padding:1px 5px;margin-left:2px;}
+.it-inline .bk .c{position:absolute;width:5px;height:5px;border-style:solid;border-width:0;border-color:var(--blue);}
+.it-inline .bk .c.tl{top:0;left:0;border-top-width:1.2px;border-left-width:1.2px;}
+.it-inline .bk .c.tr{top:0;right:0;border-top-width:1.2px;border-right-width:1.2px;}
+.it-inline .bk .c.bl{bottom:0;left:0;border-bottom-width:1.2px;border-left-width:1.2px;}
+.it-inline .bk .c.br{bottom:0;right:0;border-bottom-width:1.2px;border-right-width:1.2px;}
+.iv-inline{font-family:'Orbitron',sans-serif;font-weight:900;font-size:.88em;letter-spacing:.04em;color:var(--white);white-space:nowrap;}
+.iv-inline i{font-style:normal;color:var(--rose);}
+.bk{position:relative;display:inline-flex;align-items:center;padding:2px 6px;margin-left:3px;}
+.bk .c{position:absolute;width:6px;height:6px;border-style:solid;border-width:0;border-color:var(--blue);}
+.bk .c.tl{top:0;left:0;border-top-width:1.5px;border-left-width:1.5px;}
+.bk .c.tr{top:0;right:0;border-top-width:1.5px;border-right-width:1.5px;}
+.bk .c.bl{bottom:0;left:0;border-bottom-width:1.5px;border-left-width:1.5px;}
+.bk .c.br{bottom:0;right:0;border-bottom-width:1.5px;border-right-width:1.5px;}
+
+.article{max-width:740px;margin:0 auto;padding:120px 24px 80px;}
+.art-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--green);opacity:.7;margin-bottom:16px;}
+.art-meta{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:28px;}
+.art-headline{font-family:'Barlow Condensed',sans-serif;font-size:clamp(32px,5vw,52px);font-weight:700;letter-spacing:.02em;line-height:1.02;color:var(--white);margin-bottom:16px;}
+.art-headline em{font-style:normal;color:var(--green);}
+.art-intro{font-size:17px;font-weight:300;color:var(--dim);line-height:1.8;margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border);}
+.art-h2{font-family:'Barlow Condensed',sans-serif;font-size:clamp(22px,3vw,30px);font-weight:700;color:var(--dim);line-height:1.1;margin:48px 0 16px;}
+.art-h2 em{font-style:normal;color:var(--green);}
+.art-p{font-size:15px;font-weight:300;color:var(--muted);line-height:1.8;margin-bottom:20px;}
+.art-p strong{color:var(--dim);font-weight:500;}
+.art-callout{background:var(--surf);border:1px solid var(--border);border-left:3px solid var(--green);padding:24px 28px;margin:32px 0;font-size:14px;color:var(--dim);line-height:1.7;}
+.art-callout strong{color:var(--green);font-weight:700;}
+.art-list{margin:16px 0 20px 20px;font-size:14px;color:var(--muted);line-height:1.7;}
+.art-list li{margin-bottom:6px;}
+.art-list li strong{color:var(--dim);font-weight:500;}
+.art-divider{border-top:1px solid var(--border);margin:48px 0;}
+.art-cta{text-align:center;padding:48px 0;margin-top:48px;border-top:1px solid var(--border);}
+.art-cta-headline{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--dim);margin-bottom:12px;}
+.art-cta-headline em{font-style:normal;color:var(--green);}
+.art-cta-sub{font-size:14px;color:var(--muted);margin-bottom:24px;}
+.btn-primary{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:var(--green);color:#fff;padding:15px 36px;border:none;cursor:pointer;transition:opacity .2s;text-decoration:none;display:inline-block;}
+.btn-primary:hover{opacity:.85;}
+
+.ks-footer{background:var(--surf);border-top:1px solid var(--border);padding:48px 6% 32px;width:100%;}
+.ks-footer-inner{max-width:1200px;margin:0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:40px;}
+.ks-footer-wm{font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;letter-spacing:.04em;color:var(--white);margin-bottom:6px;}
+.ks-footer-wm span{color:var(--bronze);}
+.ks-footer-tagline{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:400;letter-spacing:.04em;color:var(--white);}
+.ks-footer-products{display:flex;gap:24px;}
+.ks-prod-link{display:flex;flex-direction:column;gap:3px;text-decoration:none;padding:10px 16px;border:1px solid var(--border);transition:border-color .2s;}
+.ks-prod-link:hover{border-color:var(--border-hi);}
+.ks-prod-wm{font-family:'Orbitron',sans-serif;font-weight:900;font-size:11px;letter-spacing:.04em;color:var(--white);}
+.ks-prod-desc{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);}
+.ks-footer-legal{text-align:right;}
+.ks-footer-links{display:flex;gap:20px;margin-bottom:8px;justify-content:flex-end;}
+.ks-footer-links a{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);text-decoration:none;transition:color .2s;}
+.ks-footer-links a:hover{color:var(--white);}
+.ks-footer-copy{font-size:11px;color:var(--muted2);}
+@media(max-width:960px){.nav-links,.nav-right{display:none;}.nav-hamburger{display:flex;}nav{height:64px;padding:0 24px;}.article{padding:100px 24px 60px;overflow-x:hidden;}.ks-footer{padding:36px 24px 28px;}.ks-footer-inner{flex-direction:column;align-items:center;text-align:center;gap:28px;}.ks-footer-products{flex-direction:column;gap:8px;}.ks-footer-legal{text-align:center;}.ks-footer-links{justify-content:center;}}
+@media(max-width:640px){.article{padding:88px 16px 48px;}.art-headline{font-size:clamp(26px,6vw,36px)!important;}.art-callout{padding:18px 16px;}.ks-footer{padding:28px 16px 24px;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="/"><span class="nav-wm">INSPEKT<span class="acc">iQ</span></span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link" href="/features">Platform</a>
+    <a class="nav-link" href="/carriers">Carriers</a>
+    <a class="nav-link" href="/blog" style="color:var(--green);">Blog</a>
+    <a class="nav-link" href="/pricing">Pricing</a>
+    <a class="nav-link" href="/contact">Contact</a>
+  </div>
+  <div class="nav-right"><a href="https://keystonestack.com" class="nav-signin" style="text-decoration:none;"  style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);background:none;border:none;cursor:pointer;padding:10px 4px;">Sign In</a><button class="nav-cta">Schedule a Demo</button></div>
+  <button class="nav-hamburger" id="ham" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-drawer" id="navDrawer">
+  <a href="/">Home</a>
+  <a href="/features">Platform</a>
+  <a href="/carriers">Carriers</a>
+  <a href="/blog">Blog</a>
+  <a href="/pricing">Pricing</a>
+  <a href="/contact">Contact</a>
+</div>
+
+<article class="article z1">
+  <div class="art-eyebrow">Platform Strategy</div>
+  <h1 class="art-headline">Why Your CMS Isn't a <em>Claims Platform</em></h1>
+  <div class="art-meta">April 2026 · 6 Min Read</div>
+  <p class="art-intro">Most IA firms run their operations on a claims management system. They track files, log expenses, generate invoices, and call it managed. But the firms that are winning volume right now aren't running a CMS — they're running a claims platform. The difference isn't semantic. It's structural. And it's costing firms that don't see it.</p>
+
+  <h2 class="art-h2">The CMS was built for <em>a different era.</em></h2>
+  <p class="art-p">Traditional claims management systems were built to solve a filing problem. They digitized what used to be paper — the claim file, the diary notes, the expense log. And they did that well. For a decade, having a CMS was enough to run a competitive IA firm.</p>
+  <p class="art-p">But the requirements have changed. Clients aren't asking whether you can track a file. They're asking whether you can <strong>prove your cycle time is under five days</strong>. They want to see first-contact metrics, documentation completeness rates, and SLA compliance — in real time, not in a quarterly PDF pulled together by your ops manager at midnight.</p>
+  <p class="art-p">The CMS wasn't built for this. It was built to store data, not to surface it. And that's the first gap.</p>
+
+  <h2 class="art-h2">Gap 1: Your field documentation <em>doesn't connect.</em></h2>
+  <p class="art-p">Ask any firm how inspection documentation gets into their CMS and the answer is some version of the same workflow: the adjuster takes photos on their phone, writes notes in a separate app or on paper, compiles everything at a desk later, and uploads it into the file. Maybe they email it. Maybe they use a shared drive. Maybe they use the CMS's mobile app — if it has one — which is usually a stripped-down afterthought.</p>
+  <p class="art-p">The result is a gap between the inspection and the file. That gap is measured in hours — sometimes days. It's where photos go missing, notes get reconstructed from memory, and GLRs are written after the fact instead of on-site. Every hour in that gap is cycle time your client is tracking.</p>
+  <div class="art-callout"><strong>The platform approach:</strong> Field documentation happens inside the ecosystem. The adjuster inspects using a purpose-built app that guides the documentation process, generates reports on-site, and feeds everything directly into the claim file — no upload, no re-entry, no gap. The inspection is done when the adjuster leaves the property.</div>
+
+  <h2 class="art-h2">Gap 2: Your adjuster roster is <em>a spreadsheet.</em></h2>
+  <p class="art-p">Most CMS platforms have a personnel module. You can add adjusters, assign them to files, and track their activity. But the roster itself — the list of who's available, what they're licensed for, where they are, and whether they're any good — lives outside the system.</p>
+  <p class="art-p">Firms manage this in spreadsheets, phone calls, and tribal knowledge. When a CAT event hits and you need to deploy 40 adjusters by Friday, you're calling down a list. The CMS can tell you who's in the system, but it can't tell you who's available, verified, and ready to deploy right now.</p>
+  <div class="art-callout"><strong>The platform approach:</strong> The roster is live. Availability updated in real time. Credentials verified against national registries — not self-reported. And when you need coverage in a new territory, a connected adjuster network helps you discover verified adjusters in that area — so you can expand your footprint and accept the work.</div>
+
+  <h2 class="art-h2">Gap 3: Your clients <em>can't see anything.</em></h2>
+  <p class="art-p">This is the gap that's actually costing firms volume — and most don't realize it until it's too late.</p>
+  <p class="art-p">Clients need to justify their LAE. They need to show their leadership that outsourcing claims to your firm produces better outcomes than handling them in-house. That requires data: cycle times, SLA compliance, first-pass submission rates, revision trends, pipeline visibility.</p>
+  <p class="art-p">Your CMS produces reports. But it doesn't produce <strong>client-facing, real-time, always-available performance dashboards</strong>. The difference matters. A report is something you send. A dashboard is something they check. One is reactive. The other is proof — available the moment your client's VP asks "how is that firm performing?"</p>
+  <div class="art-callout"><strong>The platform approach:</strong> A live reporting portal your client bookmarks and checks at their discretion. Every claim tracked at every stage. Cycle time measured from intake through submission. SLA compliance, revision rates, and pipeline status — updated live. The client sees your firm performing in real time. They don't have to ask. They don't have to wait.</div>
+
+  <h2 class="art-h2">Gap 4: Your tools <em>don't talk to each other.</em></h2>
+  <p class="art-p">The typical firm tech stack looks something like this: a CMS for file tracking, a separate tool for scheduling, email for adjuster communication, a shared drive for photos, a spreadsheet for roster management, QuickBooks for invoicing, and a phone for everything else.</p>
+  <p class="art-p">Each tool does its job. But they don't share data. When a file moves from inspection to review, someone has to manually update the status. When an adjuster completes a field report, someone has to upload it. When a client asks for a cycle time report, someone has to pull data from three systems and assemble it by hand.</p>
+  <p class="art-p"><strong>Every manual handoff is where cycle time expands.</strong> Every re-entry is where errors appear. Every disconnected tool is a gap your client's metrics are measuring — even if yours aren't.</p>
+
+  <h2 class="art-h2">The platform is the <em>competitive advantage.</em></h2>
+  <p class="art-p">The firms winning volume in 2026 aren't winning because they have better adjusters or lower fees. They're winning because their operations are faster, cleaner, and more transparent than what a client can produce in-house.</p>
+  <p class="art-p">That requires more than a CMS. It requires an ecosystem where:</p>
+  <ul class="art-list">
+    <li><strong>Intake is automated</strong> — claims are parsed, structured, and visible the moment they arrive</li>
+    <li><strong>Field documentation is connected</strong> — inspection data flows directly into the claim file without upload or re-entry</li>
+    <li><strong>The roster is live</strong> — verified credentials, real-time availability, and a connected network to discover adjusters in new coverage areas</li>
+    <li><strong>Reporting is real-time</strong> — client-facing dashboards that prove performance at every stage</li>
+    <li><strong>Every handoff is tracked</strong> — cycle time measured at every stage of every claim, automatically</li>
+  </ul>
+  <p class="art-p">This isn't a feature list. It's a fundamentally different architecture — one where the CMS, the field app, and the adjuster network are a single connected platform instead of three separate purchases bolted together with email and spreadsheets.</p>
+
+  <div class="art-divider"></div>
+
+  <p class="art-p">The question isn't whether your CMS can track files. It can. The question is whether it can prove to your clients — in real time, with data they can see — that your firm delivers faster cycle times, cleaner files, and better outcomes than what they can produce internally.</p>
+  <p class="art-p">If the answer is no, the CMS isn't the problem. <strong>The architecture is.</strong></p>
+
+  <div class="art-cta">
+    <div class="art-cta-headline">See what a claims platform <em>actually looks like.</em></div>
+    <div class="art-cta-sub">Schedule a live walkthrough of <span class="iq">INSPEKT<i>iQ</i></span> and see how the platform handles your workflow — intake through client submission.</div>
+    <a class="btn-primary" href="/#hero">Schedule a Demo</a>
+  </div>
+</article>
+
+<div class="ks-footer z1">
+  <div class="ks-footer-inner">
+    <div><div class="ks-footer-wm">KEYSTONE<span>SYSTEMS</span></div><div class="ks-footer-tagline">A claims technology company</div></div>
+    <div class="ks-footer-products">
+      <a href="https://inspektit.com" class="ks-prod-link"><span class="ks-prod-wm" style="display:inline-flex;align-items:center;">INSPEKT<span class="bk" style="padding:1px 4px;margin-left:2px;"><span class="c tl" style="width:4px;height:4px;border-top-width:1px;border-left-width:1px;"></span><span class="c tr" style="width:4px;height:4px;border-top-width:1px;border-right-width:1px;"></span><span class="c bl" style="width:4px;height:4px;border-bottom-width:1px;border-left-width:1px;"></span><span class="c br" style="width:4px;height:4px;border-bottom-width:1px;border-right-width:1px;"></span>iT</span></span><span class="ks-prod-desc">Field Documentation</span></a>
+      <a href="https://inspektiv.io" class="ks-prod-link"><span class="ks-prod-wm">INSPEKT<span style="color:var(--rose);">iV</span></span><span class="ks-prod-desc">Adjuster Network</span></a>
+      <a href="https://inspektiq.io" class="ks-prod-link" style="border-color:rgba(91,194,115,.25);"><span class="ks-prod-wm">INSPEKT<span style="color:var(--green);">iQ</span></span><span class="ks-prod-desc">Firm Operations</span></a>
+    </div>
+    <div class="ks-footer-legal"><div class="ks-footer-links"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/contact">Contact</a></div><div class="ks-footer-copy">© 2026 Keystone Systems LLC · Waco, TX</div></div>
+  </div>
+</div>
+<script>
+var ham=document.getElementById('ham'),drawer=document.getElementById('navDrawer');
+if(ham&&drawer){ham.addEventListener('click',function(){ham.classList.toggle('is-open');drawer.classList.toggle('open');document.body.style.overflow=drawer.classList.contains('open')?'hidden':'';});}
+</script>
+</body>
+</html>

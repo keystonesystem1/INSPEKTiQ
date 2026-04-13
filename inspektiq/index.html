@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INSPEKTiQ — The Firm Operations Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=Orbitron:wght@900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --black:#090909;--surf:#111113;--surf2:#181819;--surf3:#1e1e21;
+  --border:rgba(255,255,255,.07);--border-hi:rgba(255,255,255,.13);
+  --white:#f2f2f4;--dim:#c8c8d0;--muted:#a8a8b4;--muted2:#3e3e46;
+  --green:#5BC273;--green-lo:rgba(91,194,115,.08);--green-mid:rgba(91,194,115,.18);--green-hi:rgba(91,194,115,.35);
+  --bronze:#C9A84C;--bronze-lo:rgba(201,168,76,.08);
+  --blue:#4298CC;--blue-lo:rgba(66,152,204,.08);--blue-mid:rgba(66,152,204,.18);--blue-hi:rgba(66,152,204,.35);
+  --rose:#E05C8A;--rose-lo:rgba(224,92,138,.08);--rose-mid:rgba(224,92,138,.18);
+  --amber:#E8A838;--amber-lo:rgba(232,168,56,.08);
+}
+html{scroll-behavior:smooth;scroll-snap-type:y mandatory;scroll-padding-top:72px;}
+@media(max-width:960px){html{scroll-snap-type:none;scroll-padding-top:64px;}}
+body{background:#0a0a0a;background-image:radial-gradient(rgba(255,255,255,.045) 1px,transparent 1px);background-size:30px 30px;color:var(--white);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden;max-width:100vw;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 20% 0%,rgba(91,194,115,.04) 0%,transparent 55%),radial-gradient(ellipse at 80% 100%,rgba(91,194,115,.03) 0%,transparent 55%);}
+.z1{position:relative;z-index:1;}
+a{text-decoration:none;color:inherit;}
+button{cursor:pointer;font-family:inherit;}
+#hero,.snap-section{scroll-snap-align:start;}
+
+/* ═══ NAV ═══ */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(9,9,9,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 6%;height:72px;}
+.nav-brand{display:flex;align-items:center;text-decoration:none;}
+.nav-wm{font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;letter-spacing:.04em;color:var(--white);line-height:1;display:inline-flex;align-items:center;}
+.nav-wm .acc{color:var(--green);}
+.nav-links{display:flex;align-items:center;gap:36px;}
+.nav-link{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--white);text-decoration:none;transition:color .2s;}
+.nav-link:hover{color:var(--white);}
+.nav-right{display:flex;align-items:center;gap:14px;}
+.nav-signin{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);background:none;border:none;cursor:pointer;transition:color .15s;padding:10px 4px;}
+.nav-signin:hover{color:var(--white);}
+.nav-cta{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--green);border:1px solid var(--green-hi);padding:10px 24px;background:none;cursor:pointer;transition:all .2s;}
+.nav-cta:hover{background:var(--green);color:var(--black);}
+
+/* Nav dropdown */
+.nav-dd{position:relative;}
+.nav-dd-trigger{background:none;border:none;display:flex;align-items:center;gap:4px;}
+.dd-arrow{font-size:8px;transition:transform .2s;display:inline-block;}
+.nav-dd-trigger[aria-expanded="true"] .dd-arrow{transform:rotate(180deg);}
+.nav-dd-menu{display:none;position:absolute;top:calc(100% + 14px);left:-12px;background:var(--surf);border:1px solid var(--border-hi);min-width:220px;padding:6px 0;z-index:200;box-shadow:0 12px 40px rgba(0,0,0,.5);}
+.nav-dd-menu.open{display:block;}
+.nav-dd-menu a{display:block;padding:10px 18px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:all .15s;}
+.nav-dd-menu a:hover{color:var(--white);background:var(--green-lo);}
+
+/* Hamburger */
+.nav-hamburger{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;background:none;border:none;padding:8px;width:44px;height:44px;cursor:pointer;position:relative;z-index:101;}
+.nav-hamburger span{display:block;width:22px;height:2px;background:var(--white);transition:all .25s;}
+.nav-hamburger.is-open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.nav-hamburger.is-open span:nth-child(2){opacity:0;transform:scaleX(0);}
+.nav-hamburger.is-open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+/* Mobile drawer */
+.nav-drawer{display:none;position:fixed;top:72px;left:0;right:0;bottom:0;z-index:99;background:var(--surf);overflow-y:auto;padding:0 0 32px;border-top:1px solid var(--border);}
+.nav-drawer.open{display:block;}
+.nav-drawer a{display:block;padding:14px 24px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none;border-bottom:1px solid var(--border);transition:color .15s;}
+.nav-drawer a:hover{color:var(--white);}
+.nav-drawer .drawer-sub{padding-left:40px;font-size:11px;color:var(--muted2);font-weight:600;}
+.nav-drawer .drawer-sub:hover{color:var(--green);}
+.drawer-group-label{padding:14px 24px 6px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--green);opacity:.6;border-bottom:none;}
+.drawer-cta-row{display:flex;gap:8px;padding:20px 24px 0;}
+
+/* Dot nav */
+.dot-nav{position:fixed;right:24px;top:50%;transform:translateY(-50%);z-index:90;display:flex;flex-direction:column;gap:14px;align-items:center;}
+.dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--muted2);background:none;cursor:pointer;padding:0;position:relative;transition:all .25s;}
+.dot:hover{border-color:var(--muted);transform:scale(1.3);}
+.dot.active{border-color:var(--green);background:var(--green);box-shadow:0 0 8px rgba(91,194,115,.4);}
+.dot-tip{position:absolute;right:22px;top:50%;transform:translateY(-50%);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;transform:translateY(-50%) translateX(6px);}
+.dot:hover .dot-tip{opacity:1;transform:translateY(-50%) translateX(0);}
+@media(max-width:960px){.dot-nav{display:none;}}
+
+/* ═══ COMMON ═══ */
+.btn-primary{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:var(--green);color:#fff;padding:15px 36px;border:none;cursor:pointer;transition:opacity .2s;text-decoration:none;}
+.btn-primary:hover{opacity:.85;}
+.btn-ghost{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;border:1px solid var(--border-hi);color:#a8a8b4;padding:15px 36px;background:none;cursor:pointer;transition:all .2s;text-decoration:none;}
+.btn-ghost:hover{border-color:var(--white);color:var(--white);}
+section{padding:80px 6%;max-width:1200px;margin:0 auto;}
+.sec-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--green);opacity:.7;margin-bottom:12px;}
+.sec-heading{font-family:'Barlow Condensed',sans-serif;font-size:clamp(28px,3.5vw,44px);font-weight:700;letter-spacing:.01em;line-height:1.1;color:var(--dim);margin-bottom:16px;}
+.sec-heading em{font-style:normal;color:var(--green);}
+.sec-sub{font-size:15px;font-weight:300;color:#a8a8b4;line-height:1.7;max-width:640px;margin-bottom:40px;}
+.divider{max-width:1200px;margin:0 auto;padding:0 6%;}
+.divider-line{border-top:1px solid var(--border);}
+
+/* Wordmark utilities */
+.iq{font-family:'Orbitron',sans-serif;font-weight:900;font-size:.88em;letter-spacing:.04em;color:var(--white);white-space:nowrap;}
+.iq i{font-style:normal;color:var(--green);}
+.it-inline{font-family:'Orbitron',sans-serif;font-weight:900;font-size:.88em;letter-spacing:.04em;color:var(--white);white-space:nowrap;display:inline-flex;align-items:center;line-height:1;}
+.it-inline .bk{position:relative;display:inline-flex;align-items:center;padding:1px 5px;margin-left:2px;}
+.it-inline .bk .c{position:absolute;width:5px;height:5px;border-style:solid;border-width:0;border-color:var(--blue);}
+.it-inline .bk .c.tl{top:0;left:0;border-top-width:1.2px;border-left-width:1.2px;}
+.it-inline .bk .c.tr{top:0;right:0;border-top-width:1.2px;border-right-width:1.2px;}
+.it-inline .bk .c.bl{bottom:0;left:0;border-bottom-width:1.2px;border-left-width:1.2px;}
+.it-inline .bk .c.br{bottom:0;right:0;border-bottom-width:1.2px;border-right-width:1.2px;}
+.iv-inline{font-family:'Orbitron',sans-serif;font-weight:900;font-size:.88em;letter-spacing:.04em;color:var(--white);white-space:nowrap;}
+.iv-inline i{font-style:normal;color:var(--rose);}
+/* Full bracket for nav/footer iT */
+.bk{position:relative;display:inline-flex;align-items:center;padding:2px 6px;margin-left:3px;}
+.bk .c{position:absolute;width:6px;height:6px;border-style:solid;border-width:0;border-color:var(--blue);}
+.bk .c.tl{top:0;left:0;border-top-width:1.5px;border-left-width:1.5px;}
+.bk .c.tr{top:0;right:0;border-top-width:1.5px;border-right-width:1.5px;}
+.bk .c.bl{bottom:0;left:0;border-bottom-width:1.5px;border-left-width:1.5px;}
+.bk .c.br{bottom:0;right:0;border-bottom-width:1.5px;border-right-width:1.5px;}
+
+/* ═══ HERO ═══ */
+.hero{padding:100px 6% 80px;display:grid;grid-template-columns:1fr 1.15fr;gap:48px;align-items:start;max-width:1400px;margin:0 auto;position:relative;}
+.hero::before{content:'';position:absolute;top:0;left:30%;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(91,194,115,.06) 0%,transparent 65%);pointer-events:none;}
+.hero-copy{position:relative;}
+.hero-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--green);opacity:.7;margin-bottom:20px;animation:fadeUp .5s ease .1s both;}
+.hero-headline{font-family:'Barlow Condensed',sans-serif;font-size:clamp(32px,4.2vw,56px);font-weight:700;line-height:1.02;letter-spacing:.02em;color:var(--white);margin-bottom:24px;animation:fadeUp .6s ease .2s both;}
+.hero-headline em{font-style:normal;color:var(--green);}
+.hero-sub{font-size:15px;font-weight:300;color:#a8a8b4;line-height:1.75;margin-bottom:32px;max-width:500px;animation:fadeUp .5s ease .4s both;}
+.hero-sub strong{color:var(--dim);font-weight:500;}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;animation:fadeUp .5s ease .6s both;}
+.hero-note{margin-top:20px;font-size:13px;color:var(--muted);animation:fadeUp .4s ease .8s both;}
+.hero-note a{color:var(--bronze);text-decoration:none;transition:color .15s;}
+.hero-note a:hover{color:var(--white);}
+.hero-visual{position:relative;animation:fadeUp .7s ease .5s both;margin-top:20px;}
+
+/* Dashboard frame */
+.dash-frame{background:var(--surf);border:1px solid var(--border-hi);overflow:hidden;}
+.dash-chrome{display:flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border);}
+.dash-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.08);}
+.dash-url{flex:1;margin-left:8px;background:rgba(255,255,255,.04);border:1px solid var(--border);padding:4px 10px;font-family:'Barlow',sans-serif;font-size:10px;color:var(--muted2);}
+.dash-url em{font-style:normal;color:var(--green);}
+.dash-body{padding:14px 16px;}
+.db-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.db-greeting{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--white);}
+.db-live{display:flex;align-items:center;gap:5px;}
+.db-live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s ease infinite;}
+.db-live-text{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green);}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(91,194,115,.4);}50%{opacity:.6;box-shadow:0 0 0 4px rgba(91,194,115,0);}}
+.db-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:12px;}
+.db-metric{background:rgba(255,255,255,.02);border:1px solid var(--border);padding:8px 8px 6px;text-align:center;}
+.db-metric-val{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:var(--green);line-height:1;margin-bottom:1px;}
+.db-metric-val.white{color:var(--white);}
+.db-metric-lbl{font-family:'Barlow Condensed',sans-serif;font-size:6px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);}
+.db-section-head{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;display:flex;justify-content:space-between;}
+.db-list{display:flex;flex-direction:column;gap:3px;}
+.db-row{display:grid;grid-template-columns:2fr 1fr .8fr;gap:4px;align-items:center;padding:5px 6px;background:rgba(255,255,255,.015);border:1px solid var(--border);font-size:9px;}
+.db-claim{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--white);font-size:10px;}
+.db-claim-sub{font-size:7px;color:var(--muted2);margin-top:1px;}
+.db-status{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 5px;text-align:center;border:1px solid;}
+.st-i{color:var(--blue);border-color:rgba(66,152,204,.3);background:var(--blue-lo);}
+.st-r{color:var(--amber);border-color:rgba(232,168,56,.3);background:var(--amber-lo);}
+.st-g{color:var(--green);border-color:rgba(91,194,115,.3);background:var(--green-lo);}
+.st-p{color:var(--rose);border-color:rgba(224,92,138,.3);background:var(--rose-lo);}
+.db-cycle{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:600;color:var(--muted);text-align:right;}
+
+/* Dashboard bar chart */
+.db-bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+.db-bar-inner{width:100%;height:0;background:rgba(91,194,115,.15);border-top:1px solid rgba(91,194,115,.3);transition:height 1s ease;}
+.db-bar.active .db-bar-inner{background:var(--green);border-top-color:var(--green);}
+.db-bar-lbl{font-family:'Barlow Condensed',sans-serif;font-size:6px;font-weight:700;color:var(--muted2);margin-top:1px;}
+.db-bar.active .db-bar-lbl{color:var(--green);}
+.donut-seg{stroke-dasharray:0 138.2;transition:stroke-dasharray 1.2s ease;}
+
+/* Compact metrics under dashboard */
+.dash-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-top:6px;}
+.dm{background:var(--surf);border:1px solid var(--border);padding:10px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.dm-visual{min-height:36px;display:flex;align-items:center;justify-content:center;width:100%;}
+.dm-val{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;line-height:1;}
+.dm-lbl{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);}
+/* Mini bars */
+.mini-bars{display:flex;align-items:flex-end;gap:2px;height:28px;}
+.mini-bar{width:6px;background:rgba(66,152,204,.12);border-top:1px solid rgba(66,152,204,.25);transition:height 1.2s ease;}
+.mini-bar.accent{background:var(--blue);border-top-color:var(--blue);}
+/* Ring */
+.ring-wrap{position:relative;width:40px;height:40px;}
+.ring-svg{transform:rotate(-90deg);}
+.ring-fill{fill:none;stroke:var(--white);stroke-width:4;stroke-linecap:round;stroke-dasharray:100.5;stroke-dashoffset:100.5;transition:stroke-dashoffset 2s ease;}
+.ring-fill.animated{stroke-dashoffset:0;}
+/* Sparkline */
+.sparkline-wrap{width:100%;max-width:60px;height:24px;}
+.sparkline-path{fill:none;stroke:var(--amber);stroke-width:1.5;stroke-linecap:round;stroke-dasharray:200;stroke-dashoffset:200;transition:stroke-dashoffset 2s ease;}
+.sparkline-path.animated{stroke-dashoffset:0;}
+/* Pulse */
+.pulse-wrap{width:70px;height:22px;overflow:hidden;position:relative;}
+.pulse-wrap::after{content:'';position:absolute;right:0;top:0;bottom:0;width:16px;background:linear-gradient(to right,transparent,var(--surf));}
+.pulse-svg-anim{width:200%;height:100%;animation:pulseScan 3s linear infinite;}
+@keyframes pulseScan{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* ═══ PROBLEM CARDS ═══ */
+.problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;}
+.p-card{background:var(--surf);border:1px solid var(--border);padding:28px 24px;position:relative;overflow:hidden;transition:border-color .25s;}
+.p-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:#e05c5c;}
+.p-card:hover{border-color:var(--border-hi);}
+.p-num{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#e05c5c;opacity:.6;margin-bottom:12px;}
+.p-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--white);margin-bottom:10px;line-height:1.1;}
+.p-body{font-size:13px;color:#a8a8b4;line-height:1.65;}
+
+/* ═══ MODULE TABS ═══ */
+.mod-tabs{display:flex;gap:3px;margin-bottom:3px;}
+.mod-tab{flex:1;padding:16px 18px;background:var(--surf);border:1px solid var(--border);cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
+.mod-tab::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--green);opacity:0;transition:opacity .25s;}
+.mod-tab:hover{border-color:var(--border-hi);}
+.mod-tab.active{border-color:var(--green-hi);background:rgba(91,194,115,.03);}
+.mod-tab.active::before{opacity:1;}
+.mod-tab-num{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:4px;transition:color .25s;}
+.mod-tab.active .mod-tab-num{color:var(--green);}
+.mod-tab-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:var(--muted2);line-height:1.1;transition:color .25s;}
+.mod-tab.active .mod-tab-title{color:var(--white);}
+.mod-panel{display:none;background:var(--surf);border:1px solid var(--border);border-top:none;padding:36px 32px;}
+.mod-panel.active{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start;}
+.mod-panel-headline{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--white);line-height:1.1;margin-bottom:12px;}
+.mod-panel-headline em{font-style:normal;color:var(--green);}
+.mod-panel-body{font-size:14px;color:#a8a8b4;line-height:1.7;margin-bottom:20px;}
+.mf{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.mf-icon{width:26px;height:26px;flex-shrink:0;background:var(--green-lo);border:1px solid var(--green-mid);display:flex;align-items:center;justify-content:center;font-size:11px;margin-top:1px;}
+.mf-name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--white);margin-bottom:1px;}
+.mf-sub{font-size:10px;color:var(--muted);line-height:1.5;}
+/* Module process flow */
+.mv{display:flex;flex-direction:column;gap:4px;}
+.mv-step{display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,.015);border:1px solid var(--border);opacity:0;animation:mvIn .4s ease forwards;transition:border-color .2s;}
+.mv-step:hover{border-color:var(--green-hi);}
+.mv-num{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--green);width:16px;flex-shrink:0;}
+.mv-bar{flex:1;height:3px;background:rgba(91,194,115,.1);position:relative;overflow:hidden;}
+.mv-bar-fill{position:absolute;top:0;left:0;height:100%;background:var(--green);animation:barFill 1.2s ease forwards;}
+.mv-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:600;color:var(--muted);min-width:76px;text-align:right;}
+.mv-conn{width:16px;height:8px;display:flex;justify-content:center;align-items:center;}
+.mv-conn-line{width:1px;height:100%;background:rgba(91,194,115,.2);}
+@keyframes mvIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:none;}}
+@keyframes barFill{from{width:0;}to{width:var(--fill);}}
+
+/* ═══ ECOSYSTEM FLOW ═══ */
+.eco-section{border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--black);padding:80px 6%;overflow:hidden;}
+.eco-inner{max-width:1200px;margin:0 auto;overflow:hidden;}
+.eco-flow{display:flex;align-items:stretch;gap:0;max-width:900px;margin:40px auto 24px;}
+.eco-node{flex:1;background:var(--surf);border:1px solid var(--border);padding:20px 14px;text-align:center;position:relative;overflow:hidden;transition:border-color .3s,background .3s;}
+.eco-node.hl{border-color:var(--green-hi);background:rgba(91,194,115,.03);}
+.eco-node-bar{position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity .3s;}
+.eco-node.hl .eco-node-bar{opacity:1;}
+.eco-node-wm{font-family:'Orbitron',sans-serif;font-weight:900;font-size:11px;letter-spacing:.04em;color:var(--white);margin-bottom:3px;}
+.eco-node-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);}
+.eco-node-action{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--muted);margin-top:3px;}
+.eco-arrow{display:flex;align-items:center;padding:0 3px;}
+.eco-arrow svg{flex-shrink:0;}
+.eco-iv-callout{margin-top:20px;max-width:900px;margin-left:auto;margin-right:auto;background:var(--surf);border:1px solid rgba(224,92,138,.15);padding:16px 20px;position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;}
+.eco-iv-callout::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--rose);}
+
+/* ═══ RESULTS GRID ═══ */
+.results-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;}
+.r-card{background:var(--surf);border:1px solid var(--border);padding:24px 20px;position:relative;overflow:hidden;transition:border-color .25s;display:flex;gap:14px;align-items:flex-start;}
+.r-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--green);}
+.r-card:hover{border-color:var(--green-hi);}
+.r-icon{width:32px;height:32px;flex-shrink:0;background:var(--green-lo);border:1px solid var(--green-mid);display:flex;align-items:center;justify-content:center;font-size:14px;}
+.r-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;color:var(--white);margin-bottom:5px;}
+.r-body{font-size:12px;color:#a8a8b4;line-height:1.6;}
+
+/* ═══ LIFECYCLE BAR (carrier preview) ═══ */
+.lc-bar-wrap{display:flex;height:40px;gap:0;margin-bottom:4px;}
+.lc-seg{display:flex;align-items:center;justify-content:center;flex-direction:column;transition:width 1.4s ease;overflow:hidden;}
+.lc-seg-time{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;color:rgba(255,255,255,.85);line-height:1;}
+.lc-seg-label{font-family:'Barlow Condensed',sans-serif;font-size:6px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-top:1px;}
+.lc-detail-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin-top:3px;}
+.lc-detail{background:var(--surf2);border:1px solid var(--border);padding:10px 8px;text-align:center;}
+.lc-detail-from{font-family:'Barlow Condensed',sans-serif;font-size:6px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin-bottom:4px;}
+.lc-detail-time{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;line-height:1;}
+.lc-detail-unit{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:600;color:var(--muted);margin-top:2px;}
+.lc-detail-trend{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:600;color:var(--green);margin-top:3px;}
+.lc-total{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding:12px 16px;background:var(--surf2);border:1px solid var(--border);}
+.lc-total-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);}
+.lc-total-val{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--green);}
+.lc-total-trend{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;color:var(--green);margin-left:10px;}
+.lc-total-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+
+/* ═══ SCALE CARDS ═══ */
+.scale-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;}
+.s-card{background:var(--surf);border:1px solid var(--border);padding:24px 20px;position:relative;overflow:hidden;transition:border-color .25s;}
+.s-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--green);}
+.s-card:hover{border-color:var(--green-hi);}
+.s-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--green);margin-bottom:8px;}
+.s-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--white);margin-bottom:6px;line-height:1.1;}
+.s-body{font-size:12px;color:#a8a8b4;line-height:1.6;}
+
+/* ═══ SIGNALS ═══ */
+.signals{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;}
+.sig{background:var(--surf);border:1px solid var(--border);padding:20px 16px;text-align:center;transition:border-color .25s;}
+.sig:hover{border-color:var(--border-hi);}
+.sig-icon{font-size:20px;margin-bottom:8px;}
+.sig-title{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--white);margin-bottom:3px;}
+.sig-sub{font-size:10px;color:var(--muted);line-height:1.5;}
+
+/* ═══ CTA BAND ═══ */
+.cta-band{padding:80px 6%;text-align:center;position:relative;overflow:hidden;border-top:1px solid var(--border);}
+.cta-band::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(91,194,115,.05) 0%,transparent 65%);pointer-events:none;}
+.cta-inner{max-width:600px;margin:0 auto;position:relative;}
+.cta-headline{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:.04em;font-size:clamp(24px,3.5vw,38px);color:var(--white);line-height:1;margin-bottom:8px;}
+.cta-tagline{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:20px;}
+.cta-sub{font-size:14px;color:#a8a8b4;line-height:1.7;margin-bottom:32px;}
+.cta-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+
+/* ═══ FOOTER ═══ */
+.ks-footer{background:var(--surf);border-top:1px solid var(--border);padding:48px 6% 32px;width:100%;}
+.ks-footer-inner{max-width:1200px;margin:0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:40px;}
+.ks-footer-wm{font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;letter-spacing:.04em;color:var(--white);margin-bottom:6px;}
+.ks-footer-wm span{color:var(--bronze);}
+.ks-footer-tagline{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:400;letter-spacing:.04em;color:var(--white);}
+.ks-footer-products{display:flex;gap:24px;}
+.ks-prod-link{display:flex;flex-direction:column;gap:3px;text-decoration:none;padding:10px 16px;border:1px solid var(--border);transition:border-color .2s;}
+.ks-prod-link:hover{border-color:var(--border-hi);}
+.ks-prod-wm{font-family:'Orbitron',sans-serif;font-weight:900;font-size:11px;letter-spacing:.04em;color:var(--white);}
+.ks-prod-desc{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);}
+.ks-footer-legal{text-align:right;}
+.ks-footer-links{display:flex;gap:20px;margin-bottom:8px;justify-content:flex-end;}
+.ks-footer-links a{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);text-decoration:none;transition:color .2s;}
+.ks-footer-links a:hover{color:var(--white);}
+.ks-footer-copy{font-size:11px;color:var(--muted2);}
+
+/* ═══ MODAL ═══ */
+.ia-overlay{position:fixed;inset:0;background:rgba(5,5,7,.92);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding-top:24px;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .25s;}
+.ia-overlay.open{opacity:1;pointer-events:all;}
+.ia-modal{background:#0d0d10;border:1px solid rgba(255,255,255,.1);width:100%;max-width:460px;margin:16px;position:relative;display:flex;flex-direction:column;max-height:calc(100vh - 48px);animation:iaIn .22s ease;}
+@keyframes iaIn{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.ia-close{position:absolute;top:14px;right:16px;background:none;border:none;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#5a5a6a;cursor:pointer;transition:color .15s;}
+.ia-close:hover{color:#f2f2f4;}
+.ia-header{padding:28px 32px 20px;border-bottom:1px solid rgba(255,255,255,.06);}
+.ia-logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:11px;letter-spacing:.04em;color:#f2f2f4;margin-bottom:10px;}
+.ia-logo span{color:var(--bronze);}
+.ia-title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#f2f2f4;margin-bottom:4px;}
+.ia-sub-text{font-size:12px;color:#a8a8b4;line-height:1.5;}
+.ia-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.06);}
+.ia-tab{flex:1;padding:12px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#5a5a6a;background:none;border:none;cursor:pointer;transition:all .15s;border-bottom:2px solid transparent;}
+.ia-tab:hover{color:var(--white);}
+.ia-tab.active{color:var(--bronze);border-bottom-color:var(--bronze);}
+.ia-body{padding:24px 32px 28px;overflow-y:auto;flex:1;}
+.ia-field{margin-bottom:14px;}
+.ia-label{display:block;font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#5a5a6a;margin-bottom:5px;}
+.ia-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:#f2f2f4;font-family:'Barlow',sans-serif;font-size:13px;padding:10px 12px;outline:none;transition:border-color .15s;}
+.ia-input:focus{border-color:rgba(201,168,76,.5);}
+.ia-input::placeholder{color:#3a3a46;}
+.ia-btn{width:100%;padding:12px;margin-top:6px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;background:var(--bronze);color:#000;border:none;cursor:pointer;transition:background .15s;}
+.ia-btn:hover{background:#d4b55a;}
+.ia-note{margin-top:10px;font-size:10px;color:#a8a8b4;line-height:1.5;text-align:center;}
+.ia-note a{color:#C9A84C;text-decoration:none;}
+.ia-roles{display:flex;gap:6px;margin-bottom:16px;}
+.ia-role{flex:1;padding:9px 8px;text-align:center;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);cursor:pointer;transition:all .15s;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#5a5a6a;}
+.ia-role:hover{border-color:rgba(255,255,255,.16);color:var(--white);}
+.ia-role.selected{border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.06);color:var(--bronze);}
+.ia-products{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.ia-product{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);cursor:pointer;transition:all .15s;}
+.ia-product:hover{border-color:rgba(255,255,255,.16);}
+.ia-product.selected{border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.05);}
+.ia-product input[type=checkbox]{accent-color:var(--bronze);width:14px;height:14px;flex-shrink:0;}
+.ia-pname{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.06em;color:#f2f2f4;margin-bottom:1px;}
+.ia-psub{font-size:10px;color:#5a5a6a;line-height:1.4;}
+.ia-badge{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border:1px solid;flex-shrink:0;}
+.badge-sub{color:var(--bronze);border-color:rgba(201,168,76,.3);background:rgba(201,168,76,.06);}
+.hidden{display:none!important;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:1080px){.hero{grid-template-columns:1fr;gap:32px;padding:96px 6% 48px;}.hero-visual{max-width:600px;}}
+@media(max-width:960px){
+  .nav-links,.nav-right{display:none;}.nav-hamburger{display:flex;}
+  nav{height:64px;padding:0 24px;}.nav-drawer{top:64px;}
+  .hero{padding:96px 24px 48px;}
+  section{padding:56px 24px;}.eco-section{padding:56px 24px;}.cta-band{padding:56px 24px;}
+  .divider{padding:0 24px;}
+  .ks-footer{padding:36px 24px 28px;}.ks-footer-inner{flex-direction:column;align-items:center;text-align:center;gap:28px;}.ks-footer-products{flex-direction:column;gap:8px;}.ks-footer-legal{text-align:center;}.ks-footer-links{justify-content:center;}
+  .problem-grid,.scale-grid{grid-template-columns:1fr;}.mod-tabs{flex-direction:column;}.mod-panel.active{grid-template-columns:1fr;}.mod-panel{padding:28px 24px;}.results-grid{grid-template-columns:1fr;}.signals{grid-template-columns:repeat(2,1fr);}.lc-detail-grid{grid-template-columns:repeat(3,1fr);}
+  section,.eco-section,.cta-band,.hero{overflow-x:hidden;}
+  .eco-flow{flex-direction:column;align-items:center;}.eco-flow>div{width:100%;}.eco-arrow{padding:6px 0;justify-content:center;}.eco-arrow svg{transform:rotate(90deg);}
+}
+@media(max-width:640px){.hero{padding:88px 16px 36px;}.hero-ctas{flex-direction:column;align-items:stretch;}.btn-primary,.btn-ghost{text-align:center;}.db-metrics{grid-template-columns:repeat(2,1fr);}.dash-metrics{grid-template-columns:repeat(2,1fr);}.signals{grid-template-columns:1fr;}.lc-detail-grid{grid-template-columns:1fr;}.hero-headline{font-size:clamp(26px,6vw,36px)!important;}section{padding:40px 16px;}.eco-section{padding:40px 16px;}.cta-band{padding:40px 16px;}.divider{padding:0 16px;}.ks-footer{padding:28px 16px 24px;}.mod-panel{padding:24px 16px;}}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+  <a class="nav-brand" href="/"><span class="nav-wm">INSPEKT<span class="acc">iQ</span></span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="/" style="color:var(--green);">Home</a>
+    <a class="nav-link" href="/features">Platform</a>
+    <a class="nav-link" href="/carriers">Carriers</a>
+    <a class="nav-link" href="/blog">Blog</a>
+    <a class="nav-link" href="/pricing">Pricing</a>
+    <a class="nav-link" href="/contact">Contact</a>
+  </div>
+  <div class="nav-right">
+    <a href="https://keystonestack.com" class="nav-signin" style="text-decoration:none;">Sign In</a>
+    <button class="nav-cta" onclick="openIA('create')">Schedule a Demo</button>
+  </div>
+  <button class="nav-hamburger" id="navHamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
+</nav>
+
+<!-- Mobile Drawer -->
+<div class="nav-drawer" id="navDrawer">
+  <a href="/" onclick="closeDrawer()">Home</a>
+  <a href="/features" onclick="closeDrawer()">Platform</a>
+  <a href="/carriers" onclick="closeDrawer()">Carriers</a>
+  <a href="/blog" onclick="closeDrawer()">Blog</a>
+  <a href="/pricing" onclick="closeDrawer()">Pricing</a>
+  <a href="/contact" onclick="closeDrawer()">Contact</a>
+  <div class="drawer-cta-row">
+    <button class="btn-primary" style="flex:1;padding:12px;font-size:10px;" onclick="closeDrawer();openIA('create')">Schedule Demo</button>
+  </div>
+</div>
+
+<!-- Dot Nav -->
+<div class="dot-nav" id="dotNav">
+  <button class="dot active" data-section="hero"><span class="dot-tip">Top</span></button>
+  <button class="dot" data-section="the-problem"><span class="dot-tip">The Problem</span></button>
+  <button class="dot" data-section="the-platform"><span class="dot-tip">Platform</span></button>
+  <button class="dot" data-section="the-ecosystem"><span class="dot-tip">Ecosystem</span></button>
+  <button class="dot" data-section="carrier-reporting"><span class="dot-tip">Reporting</span></button>
+  <button class="dot" data-section="built-to-scale"><span class="dot-tip">Scale</span></button>
+  <button class="dot" data-section="about"><span class="dot-tip">About</span></button>
+  <button class="dot" data-section="footer"><span class="dot-tip">Footer</span></button>
+</div>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero z1" id="hero">
+  <div class="hero-copy">
+    <div class="hero-eyebrow">Firm Operations Platform — Built for Claims</div>
+    <h1 class="hero-headline">Silo'd operations out.<br><em>Frictionless</em> claim handling in.</h1>
+    <p class="hero-sub">Clients are demanding reduced cycle times and lower LAE — and the firms still running on disconnected tools can't deliver. <span class="iq">INSPEKT<i>iQ</i></span> is the operational upgrade: a single platform covering every stage of the claim cycle, <strong>intake through client submission.</strong></p>
+    <div class="hero-ctas">
+      <button class="btn-primary" onclick="openIA('create')">Schedule a Demo</button>
+      <a class="btn-ghost" href="/InspektIQ_CarrierPortal_v6.html" target="_blank">Explore the Platform</a>
+    </div>
+    <div class="hero-note">Already have an <span style="color:var(--bronze);font-weight:600;">Inspekt</span> account? <a href="#" onclick="openIA('signin');return false;">Sign in →</a></div>
+  </div>
+  <div class="hero-visual">
+    <div class="dash-frame" id="hero-dash">
+      <div class="dash-chrome"><div class="dash-dot"></div><div class="dash-dot"></div><div class="dash-dot"></div><div class="dash-url">inspektiq.io/firm/<em>analytics</em></div></div>
+      <div class="dash-body">
+        <div class="db-topbar"><div class="db-greeting">Gulf Coast Adjusting</div><div class="db-live"><div class="db-live-dot"></div><div class="db-live-text">Live</div></div></div>
+        <div class="db-metrics">
+          <div class="db-metric"><div class="db-metric-val db-count" data-to="47" data-spd="40">0</div><div class="db-metric-lbl">Active Files</div></div>
+          <div class="db-metric"><div class="db-metric-val white db-count" data-to="4.2" data-dec="1" data-spd="60" data-sfx="d">0</div><div class="db-metric-lbl">Avg Cycle</div></div>
+          <div class="db-metric"><div class="db-metric-val db-count" data-to="92" data-spd="30" data-sfx="%">0</div><div class="db-metric-lbl">First-Pass</div></div>
+          <div class="db-metric"><div class="db-metric-val db-count" data-to="3" data-spd="80">0</div><div class="db-metric-lbl">Submit Ready</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:6px;margin-bottom:8px;">
+          <div style="background:rgba(255,255,255,.015);border:1px solid var(--border);padding:8px 10px;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:6px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;">Cycle Time Trend <span style="color:var(--green);margin-left:3px;">↓</span></div>
+            <div style="display:flex;align-items:flex-end;gap:3px;height:50px;" id="db-bars">
+              <div class="db-bar" style="--bh:85%"><div class="db-bar-inner"></div><div class="db-bar-lbl">W1</div></div>
+              <div class="db-bar" style="--bh:72%"><div class="db-bar-inner"></div><div class="db-bar-lbl">W2</div></div>
+              <div class="db-bar" style="--bh:62%"><div class="db-bar-inner"></div><div class="db-bar-lbl">W3</div></div>
+              <div class="db-bar" style="--bh:52%"><div class="db-bar-inner"></div><div class="db-bar-lbl">W4</div></div>
+              <div class="db-bar" style="--bh:48%"><div class="db-bar-inner"></div><div class="db-bar-lbl">W5</div></div>
+              <div class="db-bar active" style="--bh:44%"><div class="db-bar-inner"></div><div class="db-bar-lbl">Now</div></div>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,.015);border:1px solid var(--border);padding:8px 10px;display:flex;flex-direction:column;align-items:center;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:6px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:4px;align-self:flex-start;">File Status</div>
+            <div style="position:relative;width:48px;height:48px;">
+              <svg viewBox="0 0 48 48" width="48" height="48" style="transform:rotate(-90deg);"><circle cx="24" cy="24" r="18" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="5"/><circle class="donut-seg" cx="24" cy="24" r="18" fill="none" stroke="var(--blue)" stroke-width="5" data-dash="45.2 68" stroke-dashoffset="0"/><circle class="donut-seg" cx="24" cy="24" r="18" fill="none" stroke="var(--amber)" stroke-width="5" data-dash="22.6 90.5" stroke-dashoffset="-45.2"/><circle class="donut-seg" cx="24" cy="24" r="18" fill="none" stroke="var(--green)" stroke-width="5" data-dash="22.6 90.5" stroke-dashoffset="-67.8"/><circle class="donut-seg" cx="24" cy="24" r="18" fill="none" stroke="var(--rose)" stroke-width="5" data-dash="22.6 90.5" stroke-dashoffset="-90.5"/></svg>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:900;color:var(--white);">47</div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:4px;">
+              <div style="display:flex;align-items:center;gap:2px;"><div style="width:4px;height:4px;background:var(--blue);"></div><span style="font-size:6px;color:var(--muted2);">19</span></div>
+              <div style="display:flex;align-items:center;gap:2px;"><div style="width:4px;height:4px;background:var(--amber);"></div><span style="font-size:6px;color:var(--muted2);">12</span></div>
+              <div style="display:flex;align-items:center;gap:2px;"><div style="width:4px;height:4px;background:var(--green);"></div><span style="font-size:6px;color:var(--muted2);">10</span></div>
+              <div style="display:flex;align-items:center;gap:2px;"><div style="width:4px;height:4px;background:var(--rose);"></div><span style="font-size:6px;color:var(--muted2);">6</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="db-section-head"><span>Recent Activity</span><span style="color:var(--green);cursor:pointer;">View All →</span></div>
+        <div class="db-list">
+          <div class="db-row"><div><div class="db-claim">CLM-04892</div><div class="db-claim-sub">Wind/Hail · Waco, TX</div></div><div><div class="db-status st-i">Inspecting</div></div><div class="db-cycle">Day 2</div></div>
+          <div class="db-row"><div><div class="db-claim">CLM-04891</div><div class="db-claim-sub">Water · Austin, TX</div></div><div><div class="db-status st-r">Review</div></div><div class="db-cycle">Day 3</div></div>
+          <div class="db-row"><div><div class="db-claim">CLM-04887</div><div class="db-claim-sub">Fire · Dallas, TX</div></div><div><div class="db-status st-g">Ready</div></div><div class="db-cycle">Day 4</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="dash-metrics" id="dash-metrics">
+      <div class="dm"><div class="dm-visual"><div class="mini-bars" id="mini-bars"><div class="mini-bar" data-h="90%"></div><div class="mini-bar" data-h="78%"></div><div class="mini-bar" data-h="65%"></div><div class="mini-bar" data-h="52%"></div><div class="mini-bar" data-h="42%"></div><div class="mini-bar accent" data-h="36%"></div></div></div><div class="dm-val" style="color:var(--blue);"><span class="cu" data-to="65" data-s="%">0</span></div><div class="dm-lbl">Cycle Reduction</div></div>
+      <div class="dm"><div class="dm-visual"><div class="ring-wrap"><svg class="ring-svg" viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="3"/><circle class="ring-fill" id="ring-fill" cx="20" cy="20" r="16" style="stroke-dasharray:100.5;stroke-dashoffset:100.5;"/></svg></div></div><div class="dm-val" style="color:var(--white);"><span class="cu" data-to="100" data-s="%">0</span></div><div class="dm-lbl">File Visibility</div></div>
+      <div class="dm"><div class="dm-visual"><div class="sparkline-wrap"><svg viewBox="0 0 60 24" width="100%" height="100%" preserveAspectRatio="none"><path class="sparkline-path" id="spark-line" d="M0,4 Q8,5 14,8 T28,12 T42,16 T56,20 T60,22"/></svg></div></div><div class="dm-val" style="color:var(--amber);"><span class="cu" data-to="42" data-s="%">0</span><span style="font-size:.5em;color:var(--muted);margin-left:2px;">↓</span></div><div class="dm-lbl">Fewer Revisions</div></div>
+      <div class="dm"><div class="dm-visual"><div class="pulse-wrap"><svg class="pulse-svg-anim" viewBox="0 0 140 22" preserveAspectRatio="none"><polyline points="0,11 4,11 7,11 10,4 13,18 16,8 19,14 22,11 36,11 39,11 42,4 45,18 48,8 51,14 54,11 68,11 71,11 74,4 77,18 80,8 83,14 86,11 100,11 103,11 106,4 109,18 112,8 115,14 118,11 132,11 135,11 138,4 140,11" fill="none" stroke="var(--rose)" stroke-width="1" opacity=".7"/></svg></div></div><div class="dm-val" style="color:var(--rose);"><span class="cu" data-to="99.9" data-d="1" data-s="%">0</span></div><div class="dm-lbl">Uptime</div></div>
+    </div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:500;letter-spacing:.04em;color:var(--muted2);margin-top:6px;text-align:center;font-style:italic;">Simulated data · Functionality accurate</div>
+  </div>
+</div>
+
+<!-- ═══ THE PROBLEM ═══ -->
+<div class="divider"><div class="divider-line"></div></div>
+<section id="the-problem" class="z1 snap-section">
+  <div class="sec-eyebrow">The Industry Problem</div>
+  <h2 class="sec-heading">Clients are tightening requirements — and firms running on <em>outdated systems can't keep up.</em></h2>
+  <p class="sec-sub">The pressure is clear: reduce cycle times, lower loss adjustment expenses, and back it up with real-time reporting and analytics. Firms still operating on spreadsheets, shared drives, and disconnected tools aren't losing because of their adjusters — they're losing because their systems weren't built for what clients are demanding today.</p>
+  <div class="problem-grid">
+    <div class="p-card"><div class="p-num">Problem 01</div><div class="p-title">Piecemeal Technology</div><div class="p-body">Intake in one system. Assignments over email. File tracking in spreadsheets. Reporting pulled manually. Firms have bolted together tools that were never designed to work together — and every seam is a gap where cycle time expands and LAE climbs.</div></div>
+    <div class="p-card"><div class="p-num">Problem 02</div><div class="p-title">Operational Misguidance</div><div class="p-body">Firms spend the majority of their operational overhead behind closed doors — managing files, chasing status updates, and putting out internal fires. <span class="iq">INSPEKT<i>iQ</i></span> frees your operations and sales teams to focus where it matters: growing client relationships and expanding your book of business.</div></div>
+    <div class="p-card"><div class="p-num">Problem 03</div><div class="p-title">No Proof of Performance</div><div class="p-body">Your client needs to justify your LAE. They need cycle time data, file status visibility, and submission tracking — and your current systems can't produce any of it. Without proof of efficiency, you're just another line item to cut.</div></div>
+  </div>
+</section>
+
+<!-- ═══ THE PLATFORM ═══ -->
+<div class="divider"><div class="divider-line"></div></div>
+<section id="the-platform" class="z1 snap-section" style="padding-top:40px;">
+  <div class="sec-eyebrow">The Platform</div>
+  <h2 class="sec-heading">Three stages. One connected workflow.<br><em>No gaps between them.</em></h2>
+  <p class="sec-sub">Every claim moves through three operational phases. <span class="iq">INSPEKT<i>iQ</i></span> handles all three — and the handoffs between them are where the real advantage lives.</p>
+  <div class="mod-tabs">
+    <div class="mod-tab active" onclick="showModule(0)"><div class="mod-tab-num">01</div><div class="mod-tab-title">Claims Intake</div></div>
+    <div class="mod-tab" onclick="showModule(1)"><div class="mod-tab-num">02</div><div class="mod-tab-title">Dispatch & Inspect</div></div>
+    <div class="mod-tab" onclick="showModule(2)"><div class="mod-tab-num">03</div><div class="mod-tab-title">Reporting & Submission</div></div>
+  </div>
+  <div class="mod-panel active" id="mod-0">
+    <div>
+      <div class="mod-panel-headline">Zero lag between receipt <em>and action.</em></div>
+      <div class="mod-panel-body">Today, claims sit in inboxes. Someone has to manually create the file, categorize the loss, and notify the team. That's hours — sometimes a full day — before anyone even looks at a new assignment. With <span class="iq">INSPEKT<i>iQ</i></span>, the file exists the moment the client sends it. Parsed, structured, visible, and ready to assign.</div>
+      <div class="mf"><div class="mf-icon">⏱</div><div><div class="mf-name">Before: Hours to File Creation</div><div class="mf-sub">Manual entry, email parsing, copy-paste into your CMS — every new claim starts with overhead</div></div></div>
+      <div class="mf"><div class="mf-icon">⚡</div><div><div class="mf-name">After: Seconds to File Creation</div><div class="mf-sub">Client feed hits iQ → file created → team notified → SLA clock starts. No human touches intake.</div></div></div>
+      <div class="mf"><div class="mf-icon">📊</div><div><div class="mf-name">The Impact</div><div class="mf-sub">Faster assignment. Earlier first contact. The cycle time advantage starts before anyone picks up the phone.</div></div></div>
+      <div style="margin-top:16px;"><a href="/features#intake" style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);text-decoration:none;transition:color .15s;">See All Intake Features →</a></div>
+    </div>
+    <div class="mv"><div class="mv-step" style="animation-delay:.1s;"><div class="mv-num">01</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:100%;animation-delay:.3s;"></div></div><div class="mv-label">Client Feed</div></div><div class="mv-conn"><div class="mv-conn-line"></div></div><div class="mv-step" style="animation-delay:.2s;"><div class="mv-num">02</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:100%;animation-delay:.5s;"></div></div><div class="mv-label">Loss Notice Parse</div></div><div class="mv-conn"><div class="mv-conn-line"></div></div><div class="mv-step" style="animation-delay:.3s;"><div class="mv-num">03</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:100%;animation-delay:.7s;"></div></div><div class="mv-label">File Created</div></div><div class="mv-conn"><div class="mv-conn-line"></div></div><div class="mv-step" style="animation-delay:.4s;"><div class="mv-num">04</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:100%;animation-delay:.9s;"></div></div><div class="mv-label">Team Notified</div></div><div class="mv-conn"><div class="mv-conn-line"></div></div><div class="mv-step" style="animation-delay:.5s;"><div class="mv-num">05</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:65%;animation-delay:1.1s;"></div></div><div class="mv-label">Ready to Assign</div></div></div>
+  </div>
+  <div class="mod-panel" id="mod-1">
+    <div>
+      <div class="mod-panel-headline">The gap between assignment and inspection <em>disappears.</em></div>
+      <div class="mod-panel-body">Your dispatcher sees the roster in real time — who's available, who's licensed, who's closest. One click assigns the claim. The adjuster gets every detail on their device. And when they inspect, the documentation flows directly back into the file through <span class="it-inline">INSPEKT<span class="bk"><span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>iT</span></span> — no upload, no reconstruction, no delay.</div>
+      <div class="mf"><div class="mf-icon">📞</div><div><div class="mf-name">Before: Calling Down a List</div><div class="mf-sub">Phone calls, voicemails, emails, waiting for confirmation — assignment takes hours, field docs come back days later</div></div></div>
+      <div class="mf"><div class="mf-icon">📲</div><div><div class="mf-name">After: One Click to Deployed</div><div class="mf-sub">Assign → Accepted → Inspected → File updated. The entire handoff is tracked and timestamped inside iQ.</div></div></div>
+      <div class="mf"><div class="mf-icon">📱</div><div><div class="mf-name">The Difference</div><div class="mf-sub">No other CMS has its own field inspection app. Your adjuster inspects with iT — and the documentation is in the claim file before they leave the property.</div></div></div>
+      <div style="margin-top:16px;"><a href="/features#dispatch" style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);text-decoration:none;transition:color .15s;">See All Dispatch Features →</a></div>
+    </div>
+    <div class="mv"><div class="mv-step" style="animation-delay:.1s;"><div class="mv-num">01</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:100%;animation-delay:.3s;"></div></div><div class="mv-label">View Roster</div></div><div class="mv-conn"><div class="mv-conn-line"></div></div><div class="mv-step" style="animation-delay:.2s;"><div class="mv-num">02</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:100%;animation-delay:.5s;"></div></div><div class="mv-label">Assign Claim</div></div><div class="mv-conn"><div class="mv-conn-line"></div></div><div class="mv-step" style="animation-delay:.3s;"><div class="mv-num">03</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:100%;animation-delay:.7s;"></div></div><div class="mv-label">Accepted</div></div><div class="mv-conn"><div class="mv-conn-line"></div></div><div class="mv-step" style="animation-delay:.4s;"><div class="mv-num">04</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:80%;animation-delay:.9s;"></div></div><div class="mv-label">iT Inspection</div></div><div class="mv-conn"><div class="mv-conn-line"></div></div><div class="mv-step" style="animation-delay:.5s;"><div class="mv-num">05</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:50%;animation-delay:1.1s;"></div></div><div class="mv-label">File Updated</div></div></div>
+  </div>
+  <div class="mod-panel" id="mod-2">
+    <div>
+      <div class="mod-panel-headline">Your client sees the proof <em>without asking for it.</em></div>
+      <div class="mod-panel-body">The file is packaged to your client's specifications. Cycle times are logged automatically. And your client has a live reporting portal showing every metric they use to justify your LAE — without a single phone call or end-of-month spreadsheet from your team.</div>
+      <div class="mf"><div class="mf-icon">📧</div><div><div class="mf-name">Before: Reports Nobody Trusts</div><div class="mf-sub">Manual spreadsheets, delayed data, cherry-picked metrics — your client knows the numbers are stale</div></div></div>
+      <div class="mf"><div class="mf-icon">📊</div><div><div class="mf-name">After: Live Data They Can See</div><div class="mf-sub">Your client bookmarks a link. Cycle times, SLA compliance, pipeline status — updated in real time, every time they check.</div></div></div>
+      <div class="mf"><div class="mf-icon">🔒</div><div><div class="mf-name">Why It Matters</div><div class="mf-sub">The carrier's VP asks "how is that firm performing?" Your client already knows — because they checked this morning. That's how you protect volume.</div></div></div>
+      <div style="margin-top:16px;"><a href="/features#reporting" style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);text-decoration:none;transition:color .15s;">See All Reporting Features →</a></div>
+    </div>
+    <div class="mv"><div class="mv-step" style="animation-delay:.1s;"><div class="mv-num">01</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:100%;animation-delay:.3s;"></div></div><div class="mv-label">File Complete</div></div><div class="mv-conn"><div class="mv-conn-line"></div></div><div class="mv-step" style="animation-delay:.2s;"><div class="mv-num">02</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:100%;animation-delay:.5s;"></div></div><div class="mv-label">QA Review</div></div><div class="mv-conn"><div class="mv-conn-line"></div></div><div class="mv-step" style="animation-delay:.3s;"><div class="mv-num">03</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:100%;animation-delay:.7s;"></div></div><div class="mv-label">Package Built</div></div><div class="mv-conn"><div class="mv-conn-line"></div></div><div class="mv-step" style="animation-delay:.4s;"><div class="mv-num">04</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:100%;animation-delay:.9s;"></div></div><div class="mv-label">Submitted</div></div><div class="mv-conn"><div class="mv-conn-line"></div></div><div class="mv-step" style="animation-delay:.5s;"><div class="mv-num">05</div><div class="mv-bar"><div class="mv-bar-fill" style="--fill:100%;animation-delay:1.1s;"></div></div><div class="mv-label">Cycle Logged</div></div></div>
+  </div>
+</section>
+
+<!-- ═══ ECOSYSTEM ═══ -->
+<div class="eco-section z1 snap-section" id="the-ecosystem">
+  <div class="eco-inner">
+    <div class="sec-eyebrow">The Ecosystem</div>
+    <h2 class="sec-heading">The keystone of the <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:.85em;letter-spacing:.04em;">INSPEKT</span> ecosystem. <em>Everything connects here.</em></h2>
+    <p style="font-size:15px;color:#a8a8b4;line-height:1.8;max-width:700px;margin-bottom:8px;"><span class="iq">INSPEKT<i>iQ</i></span> is the command center. The <span class="iv-inline">INSPEKT<i>iV</i></span> network helps you find verified adjusters in areas where you need coverage — expanding your geographic footprint so you can accept more claims. Field documentation from <span class="it-inline">INSPEKT<span class="bk"><span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>iT</span></span> flows directly into your claim files. One account. One ecosystem. Every function covered.</p>
+    <div class="eco-flow" id="eco-flow">
+      <div class="eco-node" id="eco-0"><div class="eco-node-bar" style="background:var(--muted2);"></div><div class="eco-node-label">Client</div><div class="eco-node-action">Assigns claim</div></div>
+      <div class="eco-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>
+      <div class="eco-node" id="eco-1"><div class="eco-node-bar" style="background:var(--green);"></div><div class="eco-node-wm">INSPEKT<span style="color:var(--green);">iQ</span></div><div class="eco-node-action" style="color:var(--green);">Firm deploys</div></div>
+      <div class="eco-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>
+      <div class="eco-node" id="eco-2"><div class="eco-node-bar" style="background:var(--blue);"></div><div class="eco-node-wm" style="display:inline-flex;align-items:center;">INSPEKT<span class="bk" style="padding:1px 4px;margin-left:2px;"><span class="c tl" style="width:4px;height:4px;border-top-width:1px;border-left-width:1px;"></span><span class="c tr" style="width:4px;height:4px;border-top-width:1px;border-right-width:1px;"></span><span class="c bl" style="width:4px;height:4px;border-bottom-width:1px;border-left-width:1px;"></span><span class="c br" style="width:4px;height:4px;border-bottom-width:1px;border-right-width:1px;"></span>iT</span></div><div class="eco-node-action" style="color:var(--blue);">Adjuster inspects</div></div>
+      <div class="eco-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>
+      <div class="eco-node" id="eco-3"><div class="eco-node-bar" style="background:var(--green);"></div><div class="eco-node-wm">INSPEKT<span style="color:var(--green);">iQ</span></div><div class="eco-node-action" style="color:var(--green);">Firm reviews</div></div>
+      <div class="eco-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>
+      <div class="eco-node" id="eco-4"><div class="eco-node-bar" style="background:var(--muted2);"></div><div class="eco-node-label">Client</div><div class="eco-node-action">Receives file</div></div>
+    </div>
+    <div class="eco-iv-callout">
+      <div><div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;letter-spacing:.04em;color:var(--white);">INSPEKT<span style="color:var(--rose);">iV</span></div><div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--rose);margin-top:3px;">Network Integration</div></div>
+      <div style="font-size:12px;color:#a8a8b4;line-height:1.6;">Need adjusters in a new territory? The <span class="iv-inline">INSPEKT<i>iV</i></span> network helps you discover verified adjusters in areas where you need coverage — NIPR-checked licenses, real-time availability. Expand your footprint and accept more claims.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CARRIER REPORTING ═══ -->
+<section id="carrier-reporting" class="z1 snap-section">
+  <div class="sec-eyebrow">Carrier Reporting</div>
+  <h2 class="sec-heading">The features your competitors <em>can't offer.</em></h2>
+  <p class="sec-sub">No other CMS gives your clients a live, bookmarkable window into your operation. This is the reporting portal that makes a carrier never want to use a firm that doesn't have it.</p>
+  <div class="panel" style="background:var(--surf);border:1px solid var(--border);padding:24px;margin-bottom:16px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--white);margin-bottom:16px;letter-spacing:.02em;">Claim Lifecycle — Average Time by Stage</div>
+    <div class="lc-bar-wrap" id="lc-bar">
+      <div class="lc-seg" data-w="7%" style="width:0;background:var(--rose);"><div class="lc-seg-time">0.3d</div><div class="lc-seg-label">Intake</div></div>
+      <div class="lc-seg" data-w="5%" style="width:0;background:rgba(224,92,138,.6);"><div class="lc-seg-time">0.2d</div><div class="lc-seg-label">Assign</div></div>
+      <div class="lc-seg" data-w="10%" style="width:0;background:var(--amber);"><div class="lc-seg-time">2.1h</div><div class="lc-seg-label">Contact</div></div>
+      <div class="lc-seg" data-w="43%" style="width:0;background:var(--blue);"><div class="lc-seg-time">1.8d</div><div class="lc-seg-label">Inspect</div></div>
+      <div class="lc-seg" data-w="26%" style="width:0;background:rgba(232,168,56,.7);"><div class="lc-seg-time">1.1d</div><div class="lc-seg-label">Review</div></div>
+      <div class="lc-seg" data-w="9%" style="width:0;background:var(--green);"><div class="lc-seg-time">0.3d</div><div class="lc-seg-label">Submit</div></div>
+    </div>
+    <div class="lc-detail-grid">
+      <div class="lc-detail"><div class="lc-detail-from">Intake → Assigned</div><div class="lc-detail-time" style="color:var(--rose);"><span class="cu" data-to="0.3" data-d="1" data-s="d">0</span></div><div class="lc-detail-unit">~7.2 hours</div><div class="lc-detail-trend">↓ 0.1d</div></div>
+      <div class="lc-detail"><div class="lc-detail-from">Assigned → Contacted</div><div class="lc-detail-time" style="color:var(--amber);"><span class="cu" data-to="2.1" data-d="1" data-s="h">0</span></div><div class="lc-detail-unit">first contact</div><div class="lc-detail-trend">↓ 0.4h</div></div>
+      <div class="lc-detail"><div class="lc-detail-from">Contacted → Inspected</div><div class="lc-detail-time" style="color:var(--blue);"><span class="cu" data-to="1.8" data-d="1" data-s="d">0</span></div><div class="lc-detail-unit">~43.2 hours</div><div class="lc-detail-trend">↓ 0.6d</div></div>
+      <div class="lc-detail"><div class="lc-detail-from">Inspected → Reviewed</div><div class="lc-detail-time" style="color:var(--amber);"><span class="cu" data-to="1.1" data-d="1" data-s="d">0</span></div><div class="lc-detail-unit">~26.4 hours</div><div class="lc-detail-trend">↓ 0.3d</div></div>
+      <div class="lc-detail"><div class="lc-detail-from">Reviewed → Submitted</div><div class="lc-detail-time" style="color:var(--green);"><span class="cu" data-to="0.3" data-d="1" data-s="d">0</span></div><div class="lc-detail-unit">~7.2 hours</div><div class="lc-detail-trend">↓ 0.1d</div></div>
+    </div>
+    <div class="lc-total"><div><div class="lc-total-label">Average Total Cycle Time</div><div class="lc-total-sub">Based on 41 closed claims this period</div></div><div style="display:flex;align-items:baseline;"><div class="lc-total-val"><span class="cu" data-to="4.2" data-d="1" data-s="d">0</span></div><div class="lc-total-trend">↓ 1.3d vs prior</div></div></div>
+  </div>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:500;letter-spacing:.04em;color:var(--muted2);margin-top:6px;margin-bottom:16px;text-align:center;font-style:italic;">Simulated data · Functionality accurate</div>
+  <div style="text-align:center;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"><a href="/InspektIQ_CarrierPortal_v6.html" target="_blank" class="btn-primary" style="font-size:10px;padding:12px 28px;">Preview INSPEKTiQ</a><a href="/InspektIQ_ComparisonGuide.pdf" target="_blank" class="btn-ghost" style="font-size:10px;padding:12px 28px;">Download Full Feature Comparison (PDF)</a></div>
+</section>
+
+<!-- ═══ WHAT CHANGES ═══ -->
+<div class="divider"><div class="divider-line"></div></div>
+<section class="z1 snap-section">
+  <div class="sec-eyebrow">What Changes</div>
+  <h2 class="sec-heading">Measurable results. <em>From day one.</em></h2>
+  <p class="sec-sub">Firms running <span class="iq">INSPEKT<i>iQ</i></span> see the impact in the numbers their clients are already tracking. These aren't projections — they're the direct result of removing manual handoffs from every stage of the claim cycle.</p>
+  <div class="results-grid">
+    <div class="r-card"><div class="r-icon">⏱</div><div><div class="r-title">Cycle Time Drops Immediately</div><div class="r-body">When intake is automated, assignment is one-click, and field docs flow directly into the file — the hours and days that used to disappear between stages simply stop accumulating.</div></div></div>
+    <div class="r-card"><div class="r-icon">📉</div><div><div class="r-title">Revisions Decline Over Time</div><div class="r-body">Standardized documentation from <span class="it-inline">INSPEKT<span class="bk"><span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>iT</span></span> means the same output quality on every file. Revision patterns surface in the data so your team can address root causes — not just individual files.</div></div></div>
+    <div class="r-card"><div class="r-icon">💼</div><div><div class="r-title">Ops Overhead Shrinks</div><div class="r-body">Your operations team stops managing the process manually — status calls, email follow-ups, spreadsheet updates. That time goes back to growing client relationships and expanding your book.</div></div></div>
+    <div class="r-card"><div class="r-icon">🔒</div><div><div class="r-title">Client Volume Gets Protected</div><div class="r-body">When your client can see your performance in real time — and it's trending in the right direction — you stop being a line item to evaluate and start being a partner they can't replace.</div></div></div>
+  </div>
+</section>
+
+<!-- ═══ BUILT TO SCALE ═══ -->
+<div class="divider"><div class="divider-line"></div></div>
+<section id="built-to-scale" class="z1 snap-section">
+  <div class="sec-eyebrow">Built to Scale</div>
+  <h2 class="sec-heading">Whether you're running 50 claims or <em>5,000 — the platform scales with you.</em></h2>
+  <p class="sec-sub"><span class="iq">INSPEKT<i>iQ</i></span> is built for firms at every stage — from lean operations managing a focused book of business to enterprise firms handling nationwide deployments.</p>
+  <div class="scale-grid">
+    <div class="s-card"><div class="s-label">Lean Operations</div><div class="s-title">5–15 Adjusters</div><div class="s-body">Eliminate the spreadsheets, email chains, and manual tracking. Get every claim into one system with visibility from intake to submission — without adding headcount.</div></div>
+    <div class="s-card"><div class="s-label">Regional Firms</div><div class="s-title">15–75 Adjusters</div><div class="s-body">Role-based access at every level of operations. Client-specific reporting. The operational backbone to grow volume without growing overhead.</div></div>
+    <div class="s-card"><div class="s-label">Enterprise</div><div class="s-title">75+ Adjusters</div><div class="s-body">Aggregate performance dashboards. Multi-client reporting. Full ecosystem connectivity with <span class="iv-inline" style="font-size:11px;">INSPEKT<i>iV</i></span> and <span class="it-inline" style="font-size:11px;">INSPEKT<span class="bk"><span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>iT</span></span>. The intelligence layer that makes a large operation feel small and fast.</div></div>
+  </div>
+</section>
+
+<!-- ═══ ABOUT + PLATFORM STANDARDS ═══ -->
+<div class="divider"><div class="divider-line"></div></div>
+<section id="about" class="z1 snap-section">
+  <div style="max-width:800px;margin:0 auto;text-align:center;">
+    <div class="sec-eyebrow">Who Built This</div>
+    <h2 class="sec-heading" style="text-align:center;">Built by adjusters and firm operators <em>who still run claims.</em></h2>
+    <p style="font-size:15px;color:#a8a8b4;line-height:1.8;margin-bottom:24px;"><span class="iq">INSPEKT<i>iQ</i></span> wasn't designed by a software team that interviewed firms. It was built by people who have managed rosters, dispatched adjusters, fought with spreadsheets, and submitted files to carriers under SLA pressure — for over two decades.</p>
+    <p style="font-size:15px;color:#a8a8b4;line-height:1.8;margin-bottom:40px;">We built this because we've lived every operational bottleneck it solves. Every late-night status update. Every file sitting in review too long. Every carrier call asking why the cycle time is climbing. We're not building for firms. <strong style="color:var(--dim);">We are firm operators.</strong></p>
+  </div>
+  <div class="signals">
+    <div class="sig"><div class="sig-icon">🔄</div><div class="sig-title">Works With Your Stack</div><div class="sig-sub">Designed to enhance your existing workflow — not force you to rip and replace everything on day one</div></div>
+    <div class="sig"><div class="sig-icon">🔐</div><div class="sig-title">Enterprise Security</div><div class="sig-sub">Role-scoped access at every level — your adjusters, reviewers, and managers see only what their function requires</div></div>
+    <div class="sig"><div class="sig-icon">📈</div><div class="sig-title">Always Current</div><div class="sig-sub">Live dashboards — not end-of-month exports. Your team and your clients see the same data at the same time.</div></div>
+    <div class="sig"><div class="sig-icon">🔗</div><div class="sig-title">One Ecosystem</div><div class="sig-sub"><span class="iv-inline" style="font-size:9px;">INSPEKT<i>iV</i></span> for discovery · <span class="it-inline" style="font-size:9px;">INSPEKT<span class="bk"><span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>iT</span></span> for field docs · All connected through iQ</div></div>
+  </div>
+</section>
+
+<!-- ═══ CTA + FOOTER (single snap target) ═══ -->
+<div class="snap-section" id="footer" style="min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;">
+<div class="cta-band z1" style="flex:1;display:flex;align-items:center;">
+  <div class="cta-inner">
+    <div class="cta-headline">INSPEKT<span style="color:var(--green);">iQ</span></div>
+    <div class="cta-tagline">Your operation. Under control.</div>
+    <p class="cta-sub">See how <span class="iq">INSPEKT<i>iQ</i></span> transforms firm operations — from intake through client submission. Schedule a live walkthrough with our team.</p>
+    <div class="cta-buttons">
+      <button class="btn-primary" onclick="openIA('create')">Schedule a Demo</button>
+      <a class="btn-ghost" href="/InspektIQ_CarrierPortal_v6.html" target="_blank">Explore the Platform</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<div class="ks-footer z1">
+  <div class="ks-footer-inner">
+    <div>
+      <div class="ks-footer-wm">KEYSTONE<span>SYSTEMS</span></div>
+      <div class="ks-footer-tagline">A claims technology company</div>
+    </div>
+    <div class="ks-footer-products">
+      <a href="https://inspektit.com" class="ks-prod-link"><span class="ks-prod-wm" style="display:inline-flex;align-items:center;">INSPEKT<span class="bk" style="padding:1px 4px;margin-left:2px;"><span class="c tl" style="width:4px;height:4px;border-top-width:1px;border-left-width:1px;"></span><span class="c tr" style="width:4px;height:4px;border-top-width:1px;border-right-width:1px;"></span><span class="c bl" style="width:4px;height:4px;border-bottom-width:1px;border-left-width:1px;"></span><span class="c br" style="width:4px;height:4px;border-bottom-width:1px;border-right-width:1px;"></span>iT</span></span><span class="ks-prod-desc">Field Documentation</span></a>
+      <a href="https://inspektiv.io" class="ks-prod-link"><span class="ks-prod-wm">INSPEKT<span style="color:var(--rose);">iV</span></span><span class="ks-prod-desc">Adjuster Network</span></a>
+      <a href="https://inspektiq.io" class="ks-prod-link" style="border-color:rgba(91,194,115,.25);"><span class="ks-prod-wm">INSPEKT<span style="color:var(--green);">iQ</span></span><span class="ks-prod-desc">Firm Operations</span></a>
+    </div>
+    <div class="ks-footer-legal">
+      <div class="ks-footer-links"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/contact">Contact</a></div>
+      <div class="ks-footer-copy">© 2026 Keystone Systems LLC · Waco, TX</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ MODAL ═══ -->
+<div class="ia-overlay" id="ia-overlay">
+  <div class="ia-modal">
+    <button class="ia-close" onclick="closeIA()">✕ Close</button>
+    <div class="ia-header"><div class="ia-logo">KEYSTONE<span>SYSTEMS</span></div><div class="ia-title">Inspekt Account</div><div class="ia-sub-text">One login. Every Inspekt product.</div></div>
+    <div class="ia-tabs"><button class="ia-tab active" id="tab-signin-btn" onclick="switchIA('signin')">Sign In</a><button class="ia-tab" id="tab-create-btn" onclick="switchIA('create')">Schedule Demo</button></div>
+    <div class="ia-body ia-panel" id="panel-signin">
+      <div class="ia-field"><label class="ia-label">Email Address</label><input class="ia-input" type="email" placeholder="you@firm.com" autocomplete="email"></div>
+      <div class="ia-field"><label class="ia-label">Password</label><input class="ia-input" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="ia-btn">Sign In →</button>
+      <div class="ia-note" style="margin-top:10px;"><a href="#">Forgot password?</a></div>
+    </div>
+    <div class="ia-body ia-panel hidden" id="panel-create">
+      <div class="ia-field"><label class="ia-label">Company Name</label><input class="ia-input" type="text" placeholder="Gulf Coast Adjusting LLC" autocomplete="organization"></div>
+      <div class="ia-field"><label class="ia-label">Primary Contact</label><input class="ia-input" type="text" placeholder="Jane Smith" autocomplete="name"></div>
+      <div class="ia-field"><label class="ia-label">Email</label><input class="ia-input" type="email" placeholder="you@firm.com" autocomplete="email"></div>
+      <div class="ia-field"><label class="ia-label">Phone</label><input class="ia-input" type="tel" placeholder="(555) 555-5555" autocomplete="tel"></div>
+      <div class="ia-field"><label class="ia-label">Roster Size</label><div class="ia-roles"><div class="ia-role selected" onclick="selSize(this)">1–15</div><div class="ia-role" onclick="selSize(this)">15–50</div><div class="ia-role" onclick="selSize(this)">50–150</div><div class="ia-role" onclick="selSize(this)">150+</div></div></div>
+      <div class="ia-field"><label class="ia-label">Products of Interest</label>
+        <div class="ia-products">
+          <label class="ia-product selected"><input type="checkbox" checked onchange="this.closest('.ia-product').classList.toggle('selected',this.checked)"><div><div class="ia-pname">INSPEKT<span style="color:#5BC273;">iQ</span></div><div class="ia-psub">Firm CMS · intake · roster · file tracking · client reporting</div></div><span class="ia-badge badge-sub">Subscription</span></label>
+          <label class="ia-product"><input type="checkbox" onchange="this.closest('.ia-product').classList.toggle('selected',this.checked)"><div><div class="ia-pname">INSPEKT<span style="color:#4298CC;">iT</span></div><div class="ia-psub">Field documentation · GLR · photos · scope only</div></div><span class="ia-badge badge-sub">Subscription</span></label>
+          <label class="ia-product"><input type="checkbox" onchange="this.closest('.ia-product').classList.toggle('selected',this.checked)"><div><div class="ia-pname">INSPEKT<span style="color:#E05C8A;">iV</span></div><div class="ia-psub">Adjuster discovery · verified network · expand coverage areas</div></div><span class="ia-badge badge-sub">Subscription</span></label>
+        </div>
+      </div>
+      <button class="ia-btn">Request Demo →</button>
+      <div class="ia-note">We'll reach out within one business day.<br>Your Inspekt Account is free. Subscriptions billed separately.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Module tabs
+function showModule(i){document.querySelectorAll('.mod-tab').forEach(function(t,j){t.classList.toggle('active',j===i);});document.querySelectorAll('.mod-panel').forEach(function(p,j){p.classList.toggle('active',j===i);});var pnl=document.getElementById('mod-'+i);if(pnl){pnl.querySelectorAll('.mv-step').forEach(function(s){s.style.animation='none';s.offsetHeight;s.style.animation='';});pnl.querySelectorAll('.mv-bar-fill').forEach(function(b){b.style.animation='none';b.offsetHeight;b.style.animation='';});}}
+
+// Ecosystem pulse
+function runEcoPulse(){var nodes=[].slice.call(document.querySelectorAll('#eco-flow .eco-node'));var step=0;function tick(){nodes.forEach(function(n){n.classList.remove('hl');});if(step<nodes.length)nodes[step].classList.add('hl');step=(step+1)%(nodes.length+1);setTimeout(tick,1200);}tick();}
+
+// Count-up
+function cu(){document.querySelectorAll('.cu').forEach(function(e){var t=parseFloat(e.dataset.to),d=parseInt(e.dataset.d)||0,s=e.dataset.s||'',st=performance.now();function k(n){var p=Math.min((n-st)/1600,1),v=1-Math.pow(1-p,3);e.textContent=(t*v).toFixed(d)+s;if(p<1)requestAnimationFrame(k);}requestAnimationFrame(k);});}
+
+// Dashboard animations
+function animDash(){var t=false;var o=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting&&!t){t=true;document.querySelectorAll('.db-count').forEach(function(e){var tgt=parseFloat(e.dataset.to),dec=parseInt(e.dataset.dec)||0,sfx=e.dataset.sfx||'',dur=1800,st=performance.now();function tick(n){var p=Math.min((n-st)/dur,1),v=1-Math.pow(1-p,3);e.textContent=(tgt*v).toFixed(dec)+sfx;if(p<1)requestAnimationFrame(tick);}setTimeout(function(){requestAnimationFrame(tick);},parseInt(e.dataset.spd)||40);});document.querySelectorAll('.db-bar').forEach(function(b,i){setTimeout(function(){b.querySelector('.db-bar-inner').style.height=b.style.getPropertyValue('--bh');},200+i*100);});document.querySelectorAll('.donut-seg').forEach(function(s,i){setTimeout(function(){s.style.strokeDasharray=s.dataset.dash;},400+i*180);});}});},{threshold:.2});var d=document.getElementById('hero-dash');if(d)o.observe(d);}
+
+// Metrics under dashboard
+function animMetrics(){var t=false;var o=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting&&!t){t=true;document.querySelectorAll('.mini-bar').forEach(function(b,i){setTimeout(function(){b.style.height=b.dataset.h;},100+i*60);});var r=document.getElementById('ring-fill');if(r)setTimeout(function(){r.classList.add('animated');},200);var s=document.getElementById('spark-line');if(s)setTimeout(function(){s.classList.add('animated');},300);}});},{threshold:.3});var m=document.getElementById('dash-metrics');if(m)o.observe(m);document.querySelectorAll('.mini-bar').forEach(function(b){b.style.height='0';});}
+
+// Lifecycle bar
+function animLC(){var t=false;var o=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting&&!t){t=true;document.querySelectorAll('#lc-bar .lc-seg').forEach(function(s,i){setTimeout(function(){s.style.width=s.dataset.w;},200+i*120);});}});},{threshold:.3});var lc=document.getElementById('lc-bar');if(lc)o.observe(lc);}
+
+// Modal
+function openIA(tab){document.getElementById('ia-overlay').classList.add('open');document.body.style.overflow='hidden';if(tab)switchIA(tab);}
+function closeIA(){document.getElementById('ia-overlay').classList.remove('open');document.body.style.overflow='';}
+function switchIA(tab){document.getElementById('tab-signin-btn').classList.toggle('active',tab==='signin');document.getElementById('tab-create-btn').classList.toggle('active',tab==='create');document.getElementById('panel-signin').classList.toggle('hidden',tab!=='signin');document.getElementById('panel-create').classList.toggle('hidden',tab!=='create');}
+function selSize(el){el.parentElement.querySelectorAll('.ia-role').forEach(function(r){r.classList.remove('selected');});el.classList.add('selected');}
+
+// Nav dropdown
+document.addEventListener('click',function(e){var trigger=e.target.closest('.nav-dd-trigger');var allMenus=document.querySelectorAll('.nav-dd-menu');var allTriggers=document.querySelectorAll('.nav-dd-trigger');if(trigger){e.preventDefault();var menu=trigger.nextElementSibling;var isOpen=menu.classList.contains('open');allMenus.forEach(function(m){m.classList.remove('open');});allTriggers.forEach(function(t){t.setAttribute('aria-expanded','false');});if(!isOpen){menu.classList.add('open');trigger.setAttribute('aria-expanded','true');}}else if(!e.target.closest('.nav-dd-menu')){allMenus.forEach(function(m){m.classList.remove('open');});allTriggers.forEach(function(t){t.setAttribute('aria-expanded','false');});}});
+
+// Hamburger
+var ham=document.getElementById('navHamburger'),drawer=document.getElementById('navDrawer');
+if(ham&&drawer){ham.addEventListener('click',function(){ham.classList.toggle('is-open');drawer.classList.toggle('open');document.body.style.overflow=drawer.classList.contains('open')?'hidden':'';});}
+function closeDrawer(){if(ham&&drawer){ham.classList.remove('is-open');drawer.classList.remove('open');document.body.style.overflow='';}}
+
+// Dot nav
+(function(){var dn=document.getElementById('dotNav');if(!dn)return;var dots=dn.querySelectorAll('.dot');var ids=[];dots.forEach(function(d){ids.push(d.getAttribute('data-section'));});function upActive(){var sp=window.scrollY+window.innerHeight*.4;var active=ids[0];var atBottom=(window.innerHeight+window.scrollY)>=(document.body.scrollHeight-60);if(atBottom){active=ids[ids.length-1];}else{for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&el.getBoundingClientRect().top+window.scrollY<=sp)active=ids[i];}}dots.forEach(function(d){d.classList.toggle('active',d.getAttribute('data-section')===active);});}dots.forEach(function(d){d.addEventListener('click',function(){var t=document.getElementById(d.getAttribute('data-section'));if(t){window.scrollTo({top:t.getBoundingClientRect().top+window.scrollY-80,behavior:'smooth'});}});});var ticking=false;window.addEventListener('scroll',function(){if(!ticking){requestAnimationFrame(function(){upActive();ticking=false;});ticking=true;}});upActive();})();
+
+// Init
+document.addEventListener('DOMContentLoaded',function(){
+  cu();animDash();animMetrics();animLC();runEcoPulse();
+  document.getElementById('ia-overlay').addEventListener('click',function(e){if(e.target===document.getElementById('ia-overlay'))closeIA();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeIA();});
+});
+</script>
+</body>
+</html>

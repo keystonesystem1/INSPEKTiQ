@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INSPEKTiQ — The New Benchmark in Firm Operations</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=Orbitron:wght@900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --black:#090909;--surf:#111113;--surf2:#181819;
+  --border:rgba(255,255,255,.07);--border-hi:rgba(255,255,255,.13);
+  --white:#f2f2f4;--dim:#c8c8d0;--muted:#a8a8b4;--muted2:#3e3e46;
+  --green:#5BC273;--green-lo:rgba(91,194,115,.08);--green-hi:rgba(91,194,115,.35);
+  --bronze:#C9A84C;
+  --blue:#4298CC;--blue-lo:rgba(66,152,204,.08);--blue-hi:rgba(66,152,204,.35);
+  --rose:#E05C8A;--rose-lo:rgba(224,92,138,.08);--rose-hi:rgba(224,92,138,.35);
+  --amber:#E8A838;--amber-lo:rgba(232,168,56,.08);--amber-hi:rgba(232,168,56,.35);
+}
+html{scroll-behavior:smooth;scroll-snap-type:y mandatory;scroll-padding-top:72px;}
+@media(max-width:960px){html{scroll-snap-type:none;scroll-padding-top:64px;}}
+body{background:#0a0a0a;background-image:radial-gradient(rgba(255,255,255,.045) 1px,transparent 1px);background-size:30px 30px;color:var(--white);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 20% 0%,rgba(91,194,115,.04) 0%,transparent 55%),radial-gradient(ellipse at 80% 100%,rgba(91,194,115,.03) 0%,transparent 55%);}
+.z1{position:relative;z-index:1;}
+a{text-decoration:none;color:inherit;}button{cursor:pointer;font-family:inherit;}
+.snap{scroll-snap-align:start;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(9,9,9,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 6%;height:72px;}
+.nav-wm{font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;letter-spacing:.04em;color:var(--white);line-height:1;}.nav-wm .acc{color:var(--green);}
+.nav-links{display:flex;align-items:center;gap:36px;}.nav-link{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--white);text-decoration:none;transition:color .2s;}.nav-link:hover{color:var(--white);}
+.nav-right{display:flex;align-items:center;gap:14px;}
+.nav-signin{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);background:none;border:none;cursor:pointer;transition:color .15s;padding:10px 4px;}.nav-signin:hover{color:var(--white);}
+.nav-cta{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--green);border:1px solid var(--green-hi);padding:10px 24px;background:none;cursor:pointer;transition:all .2s;}.nav-cta:hover{background:var(--green);color:var(--black);}
+.nav-hamburger{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;background:none;border:none;padding:8px;width:44px;height:44px;cursor:pointer;z-index:101;}.nav-hamburger span{display:block;width:22px;height:2px;background:var(--white);transition:all .25s;}.nav-hamburger.is-open span:nth-child(1){transform:translateY(7px) rotate(45deg);}.nav-hamburger.is-open span:nth-child(2){opacity:0;}.nav-hamburger.is-open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+.nav-drawer{display:none;position:fixed;top:72px;left:0;right:0;bottom:0;z-index:99;background:var(--surf);overflow-y:auto;padding:0 0 32px;border-top:1px solid var(--border);}.nav-drawer.open{display:block;}.nav-drawer a{display:block;padding:14px 24px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none;border-bottom:1px solid var(--border);}.drawer-cta-row{display:flex;gap:8px;padding:20px 24px 0;}
+
+/* DOT NAV */
+.dot-nav{position:fixed;right:24px;top:50%;transform:translateY(-50%);z-index:90;display:flex;flex-direction:column;gap:14px;align-items:center;}
+.dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--muted2);background:none;cursor:pointer;padding:0;position:relative;transition:all .25s;}.dot:hover{border-color:var(--muted);transform:scale(1.3);}.dot.active{border-color:var(--green);background:var(--green);box-shadow:0 0 8px rgba(91,194,115,.4);}
+.dot-tip{position:absolute;right:22px;top:50%;transform:translateY(-50%);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s;}.dot:hover .dot-tip{opacity:1;}
+@media(max-width:960px){.dot-nav{display:none;}}
+
+/* WORDMARKS */
+.bk{position:relative;display:inline-flex;align-items:center;padding:2px 6px;margin-left:3px;}.bk .c{position:absolute;width:6px;height:6px;border-style:solid;border-width:0;border-color:var(--blue);}.bk .c.tl{top:0;left:0;border-top-width:1.5px;border-left-width:1.5px;}.bk .c.tr{top:0;right:0;border-top-width:1.5px;border-right-width:1.5px;}.bk .c.bl{bottom:0;left:0;border-bottom-width:1.5px;border-left-width:1.5px;}.bk .c.br{bottom:0;right:0;border-bottom-width:1.5px;border-right-width:1.5px;}
+.iq{font-family:'Orbitron',sans-serif;font-weight:900;font-size:.88em;letter-spacing:.04em;color:var(--white);white-space:nowrap;}.iq i{font-style:normal;color:var(--green);}
+.it-inline{font-family:'Orbitron',sans-serif;font-weight:900;font-size:.88em;letter-spacing:.04em;color:var(--white);white-space:nowrap;display:inline-flex;align-items:center;line-height:1;}.it-inline .bk{padding:1px 5px;margin-left:2px;}.it-inline .bk .c{width:5px;height:5px;}.it-inline .bk .c.tl{border-top-width:1.2px;border-left-width:1.2px;}.it-inline .bk .c.tr{border-top-width:1.2px;border-right-width:1.2px;}.it-inline .bk .c.bl{border-bottom-width:1.2px;border-left-width:1.2px;}.it-inline .bk .c.br{border-bottom-width:1.2px;border-right-width:1.2px;}
+
+/* BUTTONS */
+.btn-primary{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:var(--green);color:#fff;padding:15px 36px;border:none;cursor:pointer;transition:opacity .2s;text-decoration:none;display:inline-block;}.btn-primary:hover{opacity:.85;}
+.btn-ghost{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;border:1px solid var(--border-hi);color:var(--muted);padding:15px 36px;background:none;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block;}.btn-ghost:hover{border-color:var(--white);color:var(--white);}
+
+/* ═══ EDITORIAL LAYOUT ═══ */
+.col{max-width:740px;margin:0 auto;padding:0 24px;}
+
+/* HERO */
+.hero{padding:96px 24px 80px;text-align:center;position:relative;}
+.hero::before{content:'';position:absolute;top:80px;left:50%;transform:translateX(-50%);width:800px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(91,194,115,.06) 0%,transparent 60%);pointer-events:none;}
+.hero-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--green);opacity:.7;margin-bottom:20px;}
+.hero h1{font-family:'Barlow Condensed',sans-serif;font-size:clamp(36px,5.5vw,64px);font-weight:700;line-height:.98;letter-spacing:.02em;color:var(--white);max-width:800px;margin:0 auto 14px;}.hero h1 em{font-style:normal;color:var(--green);}.hero h1 .iq{font-size:1em;}.hero h1 .iq i{color:var(--green);}
+.hero-contrast{font-family:'Barlow Condensed',sans-serif;font-size:clamp(14px,1.8vw,20px);font-weight:400;color:var(--white);letter-spacing:.06em;margin-bottom:32px;}.hero-contrast span{color:var(--green);font-weight:500;}
+.hero-sub{font-size:16px;font-weight:300;color:var(--muted);line-height:1.75;max-width:620px;margin:0 auto 40px;}.hero-sub strong{color:var(--dim);font-weight:500;}
+.hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+
+/* PHASE SECTIONS */
+.phase{padding:20px 24px 80px;position:relative;}
+.phase-accent{position:absolute;top:0;left:50%;transform:translateX(-50%);width:740px;max-width:calc(100% - 48px);height:2px;}
+.phase-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;margin-bottom:20px;}
+.phase-headline{font-family:'Barlow Condensed',sans-serif;font-size:clamp(28px,4vw,46px);font-weight:700;line-height:1.02;color:var(--white);margin-bottom:24px;}.phase-headline em{font-style:normal;}
+.phase p{font-size:16px;font-weight:300;color:var(--muted);line-height:1.8;margin-bottom:24px;}
+.phase p strong{color:var(--dim);font-weight:500;}
+
+/* PROOF POINTS — capabilities woven into narrative */
+.proof{border-left:3px solid;padding:20px 28px;margin:36px 0;background:var(--surf);}
+.proof-name{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;color:var(--white);margin-bottom:4px;letter-spacing:.02em;}
+.proof-body{font-size:14px;font-weight:300;color:var(--muted);line-height:1.7;}
+
+/* PULL QUOTES */
+.pull{font-family:'Barlow Condensed',sans-serif;font-size:clamp(20px,2.8vw,32px);font-weight:700;line-height:1.15;margin:48px 0;padding:0 0 0 24px;border-left:3px solid;}.pull em{font-style:normal;}
+
+/* MID CTA */
+.mid-cta{text-align:center;padding:48px 0;margin:48px 0 0;border-top:1px solid var(--border);}
+
+/* DOWNLOAD CTA */
+.dl-section{padding:48px 24px;}.dl-card{max-width:740px;margin:0 auto;background:var(--surf);border:1px solid var(--border-hi);padding:36px 40px;display:flex;align-items:center;justify-content:space-between;gap:32px;}.dl-copy{flex:1;}.dl-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--green);opacity:.6;margin-bottom:6px;}.dl-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:var(--white);margin-bottom:6px;}.dl-body{font-size:12px;color:var(--muted);line-height:1.6;}.dl-actions{display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
+
+/* BOTTOM CTA */
+.bottom-cta{padding:80px 24px;text-align:center;border-top:1px solid var(--border);position:relative;overflow:hidden;}.bottom-cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(91,194,115,.05) 0%,transparent 60%);pointer-events:none;}.bc-inner{max-width:600px;margin:0 auto;position:relative;}.bc-wm{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:.04em;font-size:clamp(24px,3.5vw,38px);color:var(--white);line-height:1;margin-bottom:8px;}.bc-tagline{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:20px;}.bc-sub{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:32px;}.bc-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+
+/* FOOTER */
+.ks-footer{background:var(--surf);border-top:1px solid var(--border);padding:48px 6% 32px;width:100%;}.ks-footer-inner{max-width:1200px;margin:0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:40px;}.ks-footer-wm{font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;letter-spacing:.04em;color:var(--white);margin-bottom:6px;}.ks-footer-wm span{color:var(--bronze);}.ks-footer-tagline{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:400;letter-spacing:.04em;color:var(--white);}.ks-footer-products{display:flex;gap:24px;}.ks-prod-link{display:flex;flex-direction:column;gap:3px;text-decoration:none;padding:10px 16px;border:1px solid var(--border);transition:border-color .2s;}.ks-prod-link:hover{border-color:var(--border-hi);}.ks-prod-wm{font-family:'Orbitron',sans-serif;font-weight:900;font-size:11px;letter-spacing:.04em;color:var(--white);}.ks-prod-desc{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);}.ks-footer-legal{text-align:right;}.ks-footer-links{display:flex;gap:20px;margin-bottom:8px;justify-content:flex-end;}.ks-footer-links a{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);text-decoration:none;transition:color .2s;}.ks-footer-links a:hover{color:var(--white);}.ks-footer-copy{font-size:11px;color:var(--muted2);}
+
+/* MODAL */
+.ia-overlay{position:fixed;inset:0;background:rgba(5,5,7,.92);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding-top:24px;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .25s;}.ia-overlay.open{opacity:1;pointer-events:all;}.ia-modal{background:#0d0d10;border:1px solid rgba(255,255,255,.1);width:100%;max-width:460px;margin:16px;position:relative;display:flex;flex-direction:column;max-height:calc(100vh - 48px);animation:iaIn .22s ease;}@keyframes iaIn{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.ia-close{position:absolute;top:14px;right:16px;background:none;border:none;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#5a5a6a;cursor:pointer;transition:color .15s;}.ia-close:hover{color:var(--white);}.ia-header{padding:28px 32px 20px;border-bottom:1px solid rgba(255,255,255,.06);}.ia-logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:11px;letter-spacing:.04em;color:var(--white);margin-bottom:10px;}.ia-logo span{color:var(--bronze);}.ia-title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--white);margin-bottom:4px;}.ia-sub-text{font-size:12px;color:var(--muted);line-height:1.5;}.ia-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.06);}.ia-tab{flex:1;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:12px;text-align:center;cursor:pointer;color:#5a5a6a;border:none;border-bottom:2px solid transparent;background:none;transition:all .15s;}.ia-tab.active{color:var(--bronze);border-bottom-color:var(--bronze);}.ia-body{padding:24px 32px 28px;overflow-y:auto;flex:1;}.ia-field{margin-bottom:14px;}.ia-label{display:block;font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#5a5a6a;margin-bottom:5px;}.ia-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:'Barlow',sans-serif;font-size:13px;padding:10px 12px;outline:none;transition:border-color .15s;}.ia-input:focus{border-color:rgba(201,168,76,.5);}.ia-input::placeholder{color:#3a3a46;}.ia-btn{width:100%;padding:12px;margin-top:6px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;background:var(--bronze);color:#000;border:none;cursor:pointer;transition:background .15s;}.ia-btn:hover{background:#d4b55a;}.ia-roles{display:flex;gap:6px;margin-bottom:16px;}.ia-role{flex:1;padding:9px 8px;text-align:center;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);cursor:pointer;transition:all .15s;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#5a5a6a;}.ia-role:hover{border-color:rgba(255,255,255,.16);color:var(--white);}.ia-role.selected{border-color:rgba(201,168,76,.4);color:var(--bronze);background:rgba(201,168,76,.05);}.ia-products{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}.ia-product{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);cursor:pointer;transition:all .15s;}.ia-product:hover{border-color:rgba(255,255,255,.16);}.ia-product.selected{border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.05);}.ia-product input[type=checkbox]{accent-color:var(--bronze);width:14px;height:14px;flex-shrink:0;}.ia-pname{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--white);margin-bottom:1px;}.ia-psub{font-size:10px;color:#5a5a6a;line-height:1.4;}.ia-badge{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border:1px solid;flex-shrink:0;color:var(--bronze);border-color:rgba(201,168,76,.3);background:rgba(201,168,76,.06);}.ia-note{margin-top:10px;font-size:10px;color:var(--muted);line-height:1.5;text-align:center;}.ia-note a{color:var(--bronze);text-decoration:none;}.hidden{display:none!important;}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease;}.reveal.visible{opacity:1;transform:none;}
+
+/* RESPONSIVE */
+@media(max-width:960px){.nav-links,.nav-right{display:none;}.nav-hamburger{display:flex;}nav{height:64px;padding:0 24px;}.nav-drawer{top:64px;}.hero{padding:84px 24px 60px;}.phase{padding:16px 24px 60px;}.dl-card{flex-direction:column;text-align:center;padding:28px 24px;}.bottom-cta{padding:48px 24px;}.ks-footer{padding:36px 24px 28px;}.ks-footer-inner{flex-direction:column;align-items:center;text-align:center;gap:28px;}.ks-footer-products{flex-direction:column;gap:8px;}.ks-footer-legal{text-align:center;}.ks-footer-links{justify-content:center;}}
+@media(max-width:640px){.hero{padding:78px 16px 48px;}.hero h1{font-size:clamp(30px,8vw,42px);}.phase{padding:12px 16px 48px;}.proof{padding:16px 20px;}.pull{font-size:clamp(18px,5vw,26px);padding-left:16px;}.dl-section{padding:28px 16px;}.bottom-cta{padding:36px 16px;}.ks-footer{padding:28px 16px 24px;}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav><a href="/"><span class="nav-wm">INSPEKT<span class="acc">iQ</span></span></a><div class="nav-links"><a class="nav-link" href="/">Home</a><a class="nav-link" href="/features" style="color:var(--green);">Platform</a><a class="nav-link" href="/carriers">Carriers</a><a class="nav-link" href="/blog">Blog</a><a class="nav-link" href="/pricing">Pricing</a><a class="nav-link" href="/contact">Contact</a></div><div class="nav-right"><a href="https://keystonestack.com" class="nav-signin" style="text-decoration:none;">Sign In</a><button class="nav-cta" onclick="openIA('create')">Schedule a Demo</button></div><button class="nav-hamburger" id="navHamburger" aria-label="Menu"><span></span><span></span><span></span></button></nav>
+<div class="nav-drawer" id="navDrawer">
+  <a href="/" onclick="closeDrawer()">Home</a>
+  <a href="/features" onclick="closeDrawer()">Platform</a>
+  <a href="/carriers" onclick="closeDrawer()">Carriers</a>
+  <a href="/blog" onclick="closeDrawer()">Blog</a>
+  <a href="/pricing" onclick="closeDrawer()">Pricing</a>
+  <a href="/contact" onclick="closeDrawer()">Contact</a>
+  <div class="drawer-cta-row"><button class="btn-primary" style="flex:1;padding:12px;font-size:10px;" onclick="openIA('create');closeDrawer();">Schedule Demo</button></div>
+</div>
+
+<!-- DOT NAV -->
+<div class="dot-nav" id="dotNav"><button class="dot active" data-section="hero"><span class="dot-tip">Top</span></button><button class="dot" data-section="intake"><span class="dot-tip">Intake</span></button><button class="dot" data-section="dispatch"><span class="dot-tip">Dispatch</span></button><button class="dot" data-section="field"><span class="dot-tip">Field</span></button><button class="dot" data-section="claims"><span class="dot-tip">Claims</span></button><button class="dot" data-section="carrier"><span class="dot-tip">Carrier</span></button><button class="dot" data-section="feat-footer"><span class="dot-tip">Footer</span></button></div>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero z1 snap" id="hero">
+  <div class="hero-eyebrow">The New Benchmark</div>
+  <h1>Your CMS tracks files.<br><span class="iq">INSPEKT<i>iQ</i></span> <em>runs your operation.</em></h1>
+  <div class="hero-contrast">Feature lists don't win contracts. <span>Frictionless operation does.</span></div>
+  <p class="hero-sub"><span class="iq">INSPEKT<i>iQ</i></span> was built to be the operational standard for independent adjusting firms. Not an improvement on what came before — the platform this industry has never had. Intake, dispatch, field documentation, file management, QA, and live client reporting — engineered as one connected system. No bolting. No workarounds.</p>
+  <p class="hero-sub" style="margin-bottom:40px;"><strong>Request a demo and see why firms don't go back.</strong></p>
+  <div class="hero-ctas"><a class="btn-primary" href="#intake">See What's Built In</a><button class="btn-ghost" onclick="openIA('create')">Schedule a Demo</button></div>
+</div>
+
+<!-- ═══ PHASE 1: INTAKE ═══ -->
+<div class="phase z1 snap reveal" id="intake">
+  <div class="phase-accent" style="background:var(--green);"></div>
+  <div class="col">
+    <div class="phase-eyebrow" style="color:var(--green);">Phase 01 — Claims Intake</div>
+    <h2 class="phase-headline">A claim arrives. The file <em style="color:var(--green);">already exists.</em></h2>
+    <p style="color:var(--green);font-weight:400;font-size:17px;margin-bottom:28px;">Imagine this. A file exists in the system before anyone has the chance to read it.</p>
+    <p>A loss notice hits your intake address. Before your team opens the email, <span class="iq">INSPEKT<i>iQ</i></span> has already parsed it, created the file, structured the fields, and started the SLA clock. The timer has started and the carrier holds the stopwatch. No sweat.</p>
+    <div class="proof" style="border-color:var(--green);">
+      <div class="proof-name">Email-to-Intake Auto-Parsing</div>
+      <div class="proof-body">Forward a loss notice — the claim is auto-created, parsed into structured fields, and immediately visible across the pipeline. No human touches intake. The SLA clock starts on receipt, not on the moment someone gets around to entering it.</div>
+    </div>
+    <p>The file is structured. The team is notified. The SLA clock is running. And your operations staff didn't lift a finger. That's how a claim should enter your system — not through a manual process that adds half a day of cycle time before anyone even picks up the phone.</p>
+    <div class="pull" style="border-color:var(--green);color:var(--dim);">The cycle time advantage starts <em style="color:var(--green);">before anyone picks up the phone.</em></div>
+  </div>
+</div>
+
+<!-- ═══ PHASE 2: DISPATCH ═══ -->
+<div class="phase z1 snap reveal" id="dispatch">
+  <div class="phase-accent" style="background:var(--green);"></div>
+  <div class="col">
+    <div class="phase-eyebrow" style="color:var(--green);">Phase 02 — Dispatch & Assignment</div>
+    <h2 class="phase-headline">The right adjuster. <em style="color:var(--green);">Immediately.</em></h2>
+    <p>Now you need to find your adjuster. It's right in front of you. Or better yet, circle the claim and filter for the adjuster that has the right credentials. Send the assignment. All done within minutes of the claim hitting your system — and the carrier just pushed the send button.</p>
+    <p><span class="iq">INSPEKT<i>iQ</i></span> feeds the system with enough information to make real-time decisions — claims color-coded by urgency, adjusters plotted by location, capacity calculated from live file data. You don't ask who's available. You see it.</p>
+    <div class="proof" style="border-color:var(--green);">
+      <div class="proof-name">Lasso Dispatch with Filtering</div>
+      <div class="proof-body">Draw a boundary on the map. Filter by loss type, claim category, and certification requirements. Set a max claims threshold. The platform shows you only the adjusters who qualify. Assign in seconds, not hours.</div>
+    </div>
+    <div class="proof" style="border-color:var(--green);">
+      <div class="proof-name">Live Adjuster Capacity</div>
+      <div class="proof-body">Capacity isn't self-reported — it's calculated from active file assignments in the system. You know who actually has room before you assign, not after they decline.</div>
+    </div>
+    <p>Every claim pin on the map is color-coded to its SLA status — <strong>green means new, orange means at risk, red means overdue.</strong> Adjuster pins show current file count. Certifications — TWIA, Flood, Commercial, Drone, Xactimate — are visible and filterable before you assign any file.</p>
+    <div class="pull" style="border-color:var(--green);color:var(--dim);">One click deploys. The adjuster gets <em style="color:var(--green);">everything on their device.</em></div>
+  </div>
+</div>
+
+<!-- ═══ PHASE 3: FIELD ═══ -->
+<div class="phase z1 snap reveal" id="field">
+  <div class="phase-accent" style="background:var(--blue);"></div>
+  <div class="col">
+    <div class="phase-eyebrow" style="color:var(--blue);">Phase 03 — Field Documentation</div>
+    <h2 class="phase-headline">The inspection feeds <em style="color:var(--blue);">the file.</em></h2>
+    <p>This is where the entire architecture proves itself. Your adjuster arrives at the property. In every other workflow, what happens next is disconnected from you — photos taken on a phone, notes scribbled in a separate app, a GLR reconstructed from memory hours later at a desk, then everything uploaded manually into whatever system you're running.</p>
+    <p><span class="iq">INSPEKT<i>iQ</i></span> doesn't work that way. The adjuster inspects with <span class="it-inline">INSPEKT<span class="bk"><span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>iT</span></span> — and the documentation is in the claim file before they leave the property.</p>
+    <div class="proof" style="border-color:var(--blue);">
+      <div class="proof-name">Connected Field Inspection App</div>
+      <div class="proof-body"><span class="it-inline">INSPEKT<span class="bk"><span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>iT</span></span> is a purpose-built field app with guided documentation, auto-labeled photo sections, and structured data collection. Not a mobile web view. Not a stripped-down afterthought. The only firm platform with its own connected inspection app.</div>
+    </div>
+    <div class="proof" style="border-color:var(--blue);">
+      <div class="proof-name">Real-Time Photo Streaming</div>
+      <div class="proof-body">Photos upload into the claim file as they're taken — organized by elevation and section, labeled automatically. You watch the inspection happen live. No batch upload. No waiting.</div>
+    </div>
+    <p>The general loss report doesn't get written after the fact. It gets generated on-site, during the inspection, with the data the adjuster is collecting in real time.</p>
+    <div class="proof" style="border-color:var(--blue);">
+      <div class="proof-name">On-Site GLR Generation</div>
+      <div class="proof-body">The GLR is completed during the inspection — not reconstructed at a desk hours later. The report is done before the adjuster leaves the property.</div>
+    </div>
+    <div class="proof" style="border-color:var(--blue);">
+      <div class="proof-name">Live Inspection Progress</div>
+      <div class="proof-body">Status changes, photo uploads, and documentation updates are visible in the CMS in real time. You don't wait for a callback or an upload — you see the inspection happening.</div>
+    </div>
+    <div class="pull" style="border-color:var(--blue);color:var(--dim);">The gap between the inspection and the file <em style="color:var(--blue);">doesn't exist.</em></div>
+  </div>
+</div>
+
+<!-- ═══ PHASE 4: CLAIMS ENGINE ═══ -->
+<div class="phase z1 snap reveal" id="claims">
+  <div class="phase-accent" style="background:var(--amber);"></div>
+  <div class="col">
+    <div class="phase-eyebrow" style="color:var(--amber);">Phase 04 — File Management & QA</div>
+    <h2 class="phase-headline">The file is the <em style="color:var(--amber);">operating record.</em></h2>
+    <p>Your documentation is in the file. Now the file needs to be managed, reviewed, and submitted. This is where most systems start showing their seams — limited statuses that don't match how claims actually move, no QA workflow, no structured tabs for the data that matters to you or your client.</p>
+    <p>The claim file in <span class="iq">INSPEKT<i>iQ</i></span> isn't a folder with attachments. It's your complete operating record.</p>
+    <div class="proof" style="border-color:var(--amber);">
+      <div class="proof-name">15 Native Claim Statuses</div>
+      <div class="proof-body">Including real-time updates and uploads — photos, claim-related documents, timestamps, and statuses. Real operational states that match how claims actually move through your firm. Not generic labels forced into software that wasn't built for claim mechanics.</div>
+    </div>
+    <div class="proof" style="border-color:var(--amber);">
+      <div class="proof-name">10-Stage Visual Lifecycle</div>
+      <div class="proof-body">Received, Assigned, Accepted, Contacted, Scheduled, Inspected, In Review, Approved, Submitted, Closed. Every transition timestamped. Every stage visible to you, your reviewer, and your client.</div>
+    </div>
+    <div class="pull" style="border-color:var(--amber);color:var(--dim);">Nothing is bolted on. <em style="color:var(--amber);">Nothing is missing.</em></div>
+  </div>
+</div>
+
+<!-- ═══ PHASE 5: CARRIER REPORTING ═══ -->
+<div class="phase z1 snap reveal" id="carrier">
+  <div class="phase-accent" style="background:var(--green);"></div>
+  <div class="col">
+    <div class="phase-eyebrow" style="color:var(--green);">Phase 05 — Client Reporting</div>
+    <h2 class="phase-headline">Your client sees the proof <em style="color:var(--green);">without asking.</em></h2>
+    <p>The file is submitted. The claim is closed. But the client relationship doesn't end at submission — it depends on what happens after. Your client needs to justify your LAE to their leadership. They need cycle time data, SLA compliance, first-pass rates, and revision trends. And they need it now, not in a quarterly PDF assembled at midnight by your ops manager.</p>
+    <p><span class="iq">INSPEKT<i>iQ</i></span> gives your client a live window into your operation — always current, always available.</p>
+    <div class="proof" style="border-color:var(--green);">
+      <div class="proof-name">Live Carrier Reporting Portal</div>
+      <div class="proof-body">Cycle time, SLA compliance, first-pass rate, revision trends, pipeline distribution, and claim-level drill-down. Ten firm-level KPIs updated in real time. Every metric calculated from every claim — no sampling, no estimates.</div>
+    </div>
+    <div class="proof" style="border-color:var(--green);">
+      <div class="proof-name">Bookmarkable Carrier Access</div>
+      <div class="proof-body">Your client bookmarks a link and checks your firm's performance data anytime. No scheduled reports. No phone calls. No spreadsheets. The carrier's VP asks "how is that firm performing?" — your client already knows.</div>
+    </div>
+    <div class="pull" style="border-color:var(--green);color:var(--dim);">This is the feature that makes a carrier <em style="color:var(--green);">never want to use a firm that doesn't have it.</em></div>
+    <div class="mid-cta">
+      <a class="btn-primary" href="/InspektIQ_CarrierPortal_v6.html" target="_blank">Preview INSPEKTiQ</a>
+      <button class="btn-ghost" onclick="openIA('create')" style="margin-left:12px;">Schedule a Demo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DOWNLOAD CTA ═══ -->
+<div class="dl-section z1 snap reveal" id="download">
+  <div class="dl-card"><div class="dl-copy"><div class="dl-label">Free Download</div><div class="dl-title">Platform Comparison Guide</div><div class="dl-body"><span class="iq">INSPEKT<i>iQ</i></span> mapped against the industry's established platforms — 47 capabilities compared across 7 categories. Based on publicly available feature documentation.</div></div><div class="dl-actions"><a class="btn-primary" href="/InspektIQ_ComparisonGuide.pdf" target="_blank" style="text-align:center;">Download PDF</a><button class="btn-ghost" onclick="openIA('create')" style="text-align:center;">Schedule a Demo</button></div></div>
+</div>
+
+<!-- ═══ BOTTOM CTA + FOOTER ═══ -->
+<div class="snap" id="feat-footer" style="min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;">
+<div class="bottom-cta z1" style="flex:1;display:flex;align-items:center;"><div class="bc-inner"><div class="bc-wm">INSPEKT<span style="color:var(--green);">iQ</span></div><div class="bc-tagline">Your operation. Under control.</div><p class="bc-sub">Schedule a live walkthrough. Bring your current workflow — we'll show you what changes when every stage of the claim cycle is connected by design.</p><div class="bc-buttons"><button class="btn-primary" onclick="openIA('create')">Schedule a Demo</button><a class="btn-ghost" href="/">Back to Homepage</a></div></div></div>
+<div class="ks-footer z1"><div class="ks-footer-inner"><div><div class="ks-footer-wm">KEYSTONE<span>SYSTEMS</span></div><div class="ks-footer-tagline">A claims technology company</div></div><div class="ks-footer-products"><a href="https://inspektit.com" class="ks-prod-link"><span class="ks-prod-wm" style="display:inline-flex;align-items:center;">INSPEKT<span class="bk" style="padding:1px 4px;margin-left:2px;"><span class="c tl" style="width:4px;height:4px;border-top-width:1px;border-left-width:1px;"></span><span class="c tr" style="width:4px;height:4px;border-top-width:1px;border-right-width:1px;"></span><span class="c bl" style="width:4px;height:4px;border-bottom-width:1px;border-left-width:1px;"></span><span class="c br" style="width:4px;height:4px;border-bottom-width:1px;border-right-width:1px;"></span>iT</span></span><span class="ks-prod-desc">Field Documentation</span></a><a href="https://inspektiv.io" class="ks-prod-link"><span class="ks-prod-wm">INSPEKT<span style="color:var(--rose);">iV</span></span><span class="ks-prod-desc">Adjuster Network</span></a><a href="https://inspektiq.io" class="ks-prod-link" style="border-color:rgba(91,194,115,.25);"><span class="ks-prod-wm">INSPEKT<span style="color:var(--green);">iQ</span></span><span class="ks-prod-desc">Firm Operations</span></a></div><div class="ks-footer-legal"><div class="ks-footer-links"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/contact">Contact</a></div><div class="ks-footer-copy">© 2026 Keystone Systems LLC · Waco, TX</div></div></div></div>
+</div>
+
+<!-- MODAL -->
+<div class="ia-overlay" id="ia-overlay"><div class="ia-modal"><button class="ia-close" onclick="closeIA()">✕ Close</button><div class="ia-header"><div class="ia-logo">KEYSTONE<span>SYSTEMS</span></div><div class="ia-title">Inspekt Account</div><div class="ia-sub-text">One login. Every Inspekt product.</div></div><div class="ia-tabs"><button class="ia-tab active" id="tab-signin-btn" onclick="switchIA('signin')">Sign In</a><button class="ia-tab" id="tab-create-btn" onclick="switchIA('create')">Schedule Demo</button></div><div class="ia-body hidden" id="panel-signin"><div class="ia-field"><label class="ia-label">Email Address</label><input class="ia-input" type="email" placeholder="you@firm.com" autocomplete="email"></div><div class="ia-field"><label class="ia-label">Password</label><input class="ia-input" type="password" placeholder="••••••••" autocomplete="current-password"></div><button class="ia-btn">Sign In →</button><div class="ia-note" style="margin-top:10px;"><a href="#">Forgot password?</a></div></div><div class="ia-body" id="panel-create"><div class="ia-field"><label class="ia-label">Company Name</label><input class="ia-input" type="text" placeholder="Gulf Coast Adjusting LLC" autocomplete="organization"></div><div class="ia-field"><label class="ia-label">Primary Contact</label><input class="ia-input" type="text" placeholder="Jane Smith" autocomplete="name"></div><div class="ia-field"><label class="ia-label">Email</label><input class="ia-input" type="email" placeholder="you@firm.com" autocomplete="email"></div><div class="ia-field"><label class="ia-label">Phone</label><input class="ia-input" type="tel" placeholder="(555) 555-5555" autocomplete="tel"></div><div class="ia-field"><label class="ia-label">Roster Size</label><div class="ia-roles"><div class="ia-role selected" onclick="selSize(this)">1–15</div><div class="ia-role" onclick="selSize(this)">15–50</div><div class="ia-role" onclick="selSize(this)">50–150</div><div class="ia-role" onclick="selSize(this)">150+</div></div></div><div class="ia-field"><label class="ia-label">Products of Interest</label><div class="ia-products"><label class="ia-product selected"><input type="checkbox" checked onchange="this.closest('.ia-product').classList.toggle('selected',this.checked)"><div><div class="ia-pname">INSPEKT<span style="color:#5BC273;">iQ</span></div><div class="ia-psub">Firm CMS · intake · roster · file tracking · client reporting</div></div><span class="ia-badge">Subscription</span></label><label class="ia-product"><input type="checkbox" onchange="this.closest('.ia-product').classList.toggle('selected',this.checked)"><div><div class="ia-pname">INSPEKT<span style="color:#4298CC;">iT</span></div><div class="ia-psub">Field documentation · GLR · photos · scope only</div></div><span class="ia-badge">Subscription</span></label><label class="ia-product"><input type="checkbox" onchange="this.closest('.ia-product').classList.toggle('selected',this.checked)"><div><div class="ia-pname">INSPEKT<span style="color:#E05C8A;">iV</span></div><div class="ia-psub">Adjuster discovery · verified network · expand coverage areas</div></div><span class="ia-badge">Subscription</span></label></div></div><button class="ia-btn">Request Demo →</button><div class="ia-note">We'll reach out within one business day.<br>Your Inspekt Account is free. Subscriptions billed separately.</div></div></div></div>
+
+<script>
+function openIA(tab){document.getElementById('ia-overlay').classList.add('open');document.body.style.overflow='hidden';if(tab)switchIA(tab);}
+function closeIA(){document.getElementById('ia-overlay').classList.remove('open');document.body.style.overflow='';}
+function switchIA(tab){document.getElementById('tab-signin-btn').classList.toggle('active',tab==='signin');document.getElementById('tab-create-btn').classList.toggle('active',tab==='create');document.getElementById('panel-signin').classList.toggle('hidden',tab!=='signin');document.getElementById('panel-create').classList.toggle('hidden',tab!=='create');}
+function selSize(el){el.parentElement.querySelectorAll('.ia-role').forEach(function(r){r.classList.remove('selected');});el.classList.add('selected');}
+var ham=document.getElementById('navHamburger'),drawer=document.getElementById('navDrawer');
+if(ham&&drawer){ham.addEventListener('click',function(){ham.classList.toggle('is-open');drawer.classList.toggle('open');document.body.style.overflow=drawer.classList.contains('open')?'hidden':'';});}
+function closeDrawer(){if(ham&&drawer){ham.classList.remove('is-open');drawer.classList.remove('open');document.body.style.overflow='';}}
+(function(){var els=document.querySelectorAll('.reveal');var o=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');o.unobserve(e.target);}});},{threshold:.12});els.forEach(function(el){o.observe(el);});})();
+(function(){var dn=document.getElementById('dotNav');if(!dn)return;var dots=dn.querySelectorAll('.dot');var ids=[];dots.forEach(function(d){ids.push(d.getAttribute('data-section'));});function upActive(){var sp=window.scrollY+window.innerHeight*.4;var active=ids[0];var atBottom=(window.innerHeight+window.scrollY)>=(document.body.scrollHeight-60);if(atBottom){active=ids[ids.length-1];}else{for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&el.getBoundingClientRect().top+window.scrollY<=sp)active=ids[i];}}dots.forEach(function(d){d.classList.toggle('active',d.getAttribute('data-section')===active);});}dots.forEach(function(d){d.addEventListener('click',function(){var t=document.getElementById(d.getAttribute('data-section'));if(t){window.scrollTo({top:t.getBoundingClientRect().top+window.scrollY-80,behavior:'smooth'});}});});var ticking=false;window.addEventListener('scroll',function(){if(!ticking){requestAnimationFrame(function(){upActive();ticking=false;});ticking=true;}});upActive();})();
+document.addEventListener('DOMContentLoaded',function(){document.getElementById('ia-overlay').addEventListener('click',function(e){if(e.target===document.getElementById('ia-overlay'))closeIA();});document.addEventListener('keydown',function(e){if(e.key==='Escape')closeIA();});});
+</script>
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INSPEKTiQ — Carrier Portal Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=Orbitron:wght@900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#060608;--surf:#0c0c10;--surf2:#121216;--surf3:#18181e;
+  --border:rgba(255,255,255,.07);--border-hi:rgba(255,255,255,.12);
+  --white:#f2f2f4;--dim:#c8c8d0;--muted:#8a8a96;--muted2:#4a4a56;--muted3:#2a2a34;
+  --green:#5BC273;--green-lo:rgba(91,194,115,.08);--green-hi:rgba(91,194,115,.3);
+  --blue:#4298CC;--blue-lo:rgba(66,152,204,.08);
+  --rose:#E05C8A;--rose-lo:rgba(224,92,138,.08);
+  --amber:#E8A838;--amber-lo:rgba(232,168,56,.08);
+  --red:#E05C5C;--red-lo:rgba(224,92,92,.08);
+  --bronze:#C9A84C;
+}
+body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(6,6,8,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:52px;}
+.tb-left{display:flex;align-items:center;gap:14px;}
+.tb-wm{font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;letter-spacing:.04em;color:var(--white);}.tb-wm .acc{color:var(--green);}
+.tb-div{width:1px;height:18px;background:var(--border);}
+.tb-portal{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--green);}
+.tb-preview{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);border:1px solid rgba(232,168,56,.3);background:var(--amber-lo);padding:2px 8px;margin-left:8px;}
+.tb-right{display:flex;align-items:center;gap:16px;}
+.tb-carrier{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--muted);}.tb-carrier strong{color:var(--white);font-weight:700;}
+.tb-live{display:flex;align-items:center;gap:5px;font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--green);}
+.tb-live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s ease infinite;}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(91,194,115,.4);}50%{opacity:.5;box-shadow:0 0 0 4px rgba(91,194,115,0);}}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 52px);}
+.sidebar{width:200px;flex-shrink:0;background:var(--surf);border-right:1px solid var(--border);padding:16px 0;}
+.sb-label{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);padding:0 14px;margin-bottom:8px;}
+.sb-firm{padding:9px 14px;cursor:pointer;transition:all .15s;border-left:2px solid transparent;display:flex;align-items:center;gap:8px;}
+.sb-firm:hover{background:rgba(255,255,255,.02);}
+.sb-firm.active{background:var(--green-lo);border-left-color:var(--green);}
+.sb-firm-name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--muted);transition:color .15s;}.sb-firm.active .sb-firm-name{color:var(--white);}
+.sb-firm-meta{font-size:9px;color:var(--muted2);margin-top:1px;}.sb-firm.active .sb-firm-meta{color:var(--muted);}
+.sb-firm-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.main{flex:1;padding:24px 32px;overflow-y:auto;max-width:1000px;}
+
+/* HEADER */
+.vh-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;}
+.vh-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:var(--white);}
+.vh-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+.disclaimer{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:500;letter-spacing:.06em;color:var(--muted2);margin-top:6px;font-style:italic;margin-bottom:12px;}
+
+/* PERIOD TABS */
+.ptabs{display:flex;gap:2px;margin-bottom:20px;}
+.ptab{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;background:var(--surf2);border:1px solid var(--border);color:var(--muted2);cursor:pointer;transition:all .15s;}
+.ptab:hover{color:var(--muted);}
+.ptab.active{background:var(--green-lo);border-color:var(--green-hi);color:var(--green);}
+
+/* KPI STRIP */
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin-bottom:28px;}
+.kpi{background:var(--surf);border:1px solid var(--border);padding:14px 12px;position:relative;overflow:hidden;transition:border-color .15s;}
+.kpi:hover{border-color:var(--border-hi);}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity .2s;}.kpi:hover::after{opacity:1;}
+.kpi.g::after{background:var(--green);}.kpi.a::after{background:var(--amber);}.kpi.r::after{background:var(--red);}.kpi.w::after{background:var(--white);}.kpi.b::after{background:var(--blue);}
+.kpi-label{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;}
+.kpi-val{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;line-height:1;transition:all .3s;}
+.kpi-trend{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:600;margin-top:3px;transition:all .3s;}
+.kpi-trend.up{color:var(--green);}.kpi-trend.dn{color:var(--red);}.kpi-trend.neu{color:var(--muted);}
+
+/* SECTIONS */
+.sec{margin-bottom:28px;}
+.sec-bar{display:flex;align-items:flex-start;gap:20px;margin-bottom:12px;}
+.sec-copy{flex:1;}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;color:var(--white);margin-bottom:3px;}
+.sec-desc{font-size:11px;color:var(--muted);line-height:1.5;max-width:500px;}
+
+/* CLAIMS TABLE */
+.ct-panel{background:var(--surf);border:1px solid var(--border);margin-bottom:4px;}
+.ct-head{padding:12px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
+.ct-title{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--white);}
+.ct-count{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:600;color:var(--muted);background:var(--surf2);padding:3px 8px;border:1px solid var(--border);}
+.ct{width:100%;border-collapse:collapse;}
+.ct th{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);text-align:left;padding:7px 10px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015);}
+.ct td{font-size:11px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--border);transition:background .1s;}
+.ct tr:hover td{background:rgba(91,194,115,.02);cursor:pointer;}
+.ct .cid{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--white);font-size:11px;}
+.sp{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;display:inline-block;}
+.sp-i{color:var(--blue);border:1px solid rgba(66,152,204,.3);background:var(--blue-lo);}
+.sp-r{color:var(--amber);border:1px solid rgba(232,168,56,.3);background:var(--amber-lo);}
+.sp-g{color:var(--green);border:1px solid rgba(91,194,115,.3);background:var(--green-lo);}
+.sp-p{color:var(--rose);border:1px solid rgba(224,92,138,.3);background:var(--rose-lo);}
+.sp-s{color:var(--muted);border:1px solid var(--border);background:var(--surf2);}
+.sla-ok{color:var(--green);font-weight:600;font-size:10px;}.sla-warn{color:var(--amber);font-weight:600;font-size:10px;}.sla-breach{color:var(--red);font-weight:600;font-size:10px;}
+
+/* PANELS */
+.panel{background:var(--surf);border:1px solid var(--border);margin-bottom:4px;}
+.p-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.p-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--white);}
+.p-body{padding:16px;}
+.p-filters{display:flex;gap:3px;}
+.p-filter{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);color:var(--muted2);cursor:pointer;background:none;transition:all .15s;}
+.p-filter.active{color:var(--green);border-color:var(--green-hi);background:var(--green-lo);}
+
+/* LIFECYCLE BAR */
+.lc-bar-wrap{display:flex;height:40px;gap:0;margin-bottom:4px;}
+.lc-seg{display:flex;align-items:center;justify-content:center;flex-direction:column;transition:width 1s ease;overflow:hidden;}
+.lc-seg-time{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;color:rgba(255,255,255,.85);line-height:1;}
+.lc-seg-label{font-family:'Barlow Condensed',sans-serif;font-size:6px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-top:1px;}
+.lc-detail-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin-top:3px;}
+.lc-detail{background:var(--surf2);border:1px solid var(--border);padding:10px 8px;text-align:center;}
+.lc-detail-from{font-family:'Barlow Condensed',sans-serif;font-size:6px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin-bottom:4px;}
+.lc-detail-time{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;line-height:1;}
+.lc-detail-unit{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:600;color:var(--muted);margin-top:2px;}
+.lc-detail-trend{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:600;color:var(--green);margin-top:3px;}
+.lc-total{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding:12px 16px;background:var(--surf2);border:1px solid var(--border);}
+.lc-total-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);}
+.lc-total-val{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--green);}
+.lc-total-trend{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;color:var(--green);margin-left:10px;}
+.lc-total-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+
+/* ROW LAYOUTS */
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px;}
+
+/* BAR CHART */
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:100px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%;justify-content:flex-end;}
+.bar-fill{width:100%;background:rgba(91,194,115,.15);border-top:1px solid rgba(91,194,115,.3);transition:height 1s ease;}
+.bar-fill.hl{background:var(--green);border-top-color:var(--green);}
+.bar-lbl{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:600;color:var(--muted2);}
+
+/* GAUGE */
+.gauge-wrap{display:flex;align-items:center;gap:20px;}
+.gauge-val{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;color:var(--green);}
+.gauge-lbl{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);}
+.sla-breakdown{display:flex;flex-direction:column;gap:6px;flex:1;}
+.sla-bar{display:flex;align-items:center;gap:6px;}
+.sla-bar-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;color:var(--muted);width:50px;}
+.sla-bar-track{flex:1;height:5px;background:var(--surf3);overflow:hidden;}
+.sla-bar-fill{height:100%;transition:width 1s ease;}
+.sla-bar-val{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;width:28px;text-align:right;}
+
+/* HEATMAP */
+.hm-table{border-collapse:collapse;width:100%;}
+.hm-table th{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);padding:5px 6px;text-align:center;border-bottom:1px solid var(--border);}
+.hm-table th:first-child{text-align:left;}
+.hm-table td{padding:3px 4px;text-align:center;border-bottom:1px solid rgba(255,255,255,.03);}
+.hm-table td:first-child{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;color:var(--muted);text-align:left;padding-left:6px;}
+.hm-cell{width:24px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;}
+.hm-0{background:rgba(91,194,115,.06);color:var(--muted2);}.hm-1{background:rgba(232,168,56,.15);color:var(--amber);}.hm-2{background:rgba(224,92,92,.2);color:var(--red);}
+
+/* FUNNEL */
+.funnel-stage{display:flex;align-items:center;gap:8px;margin-bottom:2px;}
+.funnel-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:600;color:var(--muted);width:70px;text-align:right;}
+.funnel-bar-wrap{flex:1;height:18px;background:var(--surf3);}
+.funnel-bar{height:100%;transition:width 1s ease;display:flex;align-items:center;padding-left:6px;}
+.funnel-bar span{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;color:rgba(255,255,255,.7);}
+.funnel-days{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:600;color:var(--muted2);width:50px;padding-left:4px;}
+
+/* BREACH CARDS */
+.breach-card{background:var(--surf2);border:1px solid rgba(224,92,92,.15);padding:10px 12px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;margin-bottom:3px;cursor:pointer;transition:border-color .15s;}
+.breach-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--red);}
+.breach-card:hover{border-color:rgba(224,92,92,.3);}
+.breach-info{flex:1;}
+.breach-claim{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--white);}
+.breach-meta{font-size:9px;color:var(--muted);margin-top:1px;}
+.breach-days{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;color:var(--red);text-align:center;}
+.breach-days-lbl{font-family:'Barlow Condensed',sans-serif;font-size:6px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--red);opacity:.7;}
+.no-breaches{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--green);padding:12px;background:var(--green-lo);border:1px solid var(--green-hi);text-align:center;}
+
+/* DETAIL OVERLAY — FULL CLAIM FILE VIEW */
+.detail-overlay{position:fixed;inset:0;background:rgba(3,3,5,.92);z-index:200;display:none;justify-content:center;align-items:flex-start;overflow-y:auto;padding:24px;}
+.detail-overlay.open{display:flex;}
+.dp{width:100%;max-width:960px;background:var(--bg);border:1px solid var(--border);min-height:80vh;animation:dpIn .25s ease;}
+@keyframes dpIn{from{transform:translateY(20px);opacity:0;}to{transform:none;opacity:1;}}
+/* Claim header */
+.dp-top{padding:20px 28px;border-bottom:1px solid var(--border);background:var(--surf);}
+.dp-top-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.dp-insured{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:var(--white);}
+.dp-close{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);cursor:pointer;background:none;border:1px solid var(--border);padding:6px 14px;transition:all .15s;}.dp-close:hover{color:var(--white);border-color:var(--border-hi);}
+.dp-meta{display:flex;gap:16px;flex-wrap:wrap;font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--muted);}.dp-meta strong{color:var(--white);font-weight:700;margin-right:3px;}
+.dp-meta .sp{vertical-align:middle;margin-left:4px;}
+/* Lifecycle stepper */
+.dp-lifecycle{display:flex;align-items:center;padding:16px 28px;border-bottom:1px solid var(--border);background:var(--surf);gap:0;overflow-x:auto;}
+.dp-lc-step{display:flex;align-items:center;gap:0;flex:1;min-width:0;}
+.dp-lc-dot{width:24px;height:24px;border-radius:50%;border:2px solid var(--muted2);background:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:transparent;transition:all .3s;}
+.dp-lc-step.done .dp-lc-dot{border-color:var(--green);background:var(--green);color:var(--white);}
+.dp-lc-step.active .dp-lc-dot{border-color:var(--green);background:none;color:var(--green);box-shadow:0 0 0 3px rgba(91,194,115,.15);}
+.dp-lc-label{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin-top:4px;text-align:center;position:absolute;top:100%;left:50%;transform:translateX(-50%);white-space:nowrap;}
+.dp-lc-step.done .dp-lc-label{color:var(--green);}
+.dp-lc-step.active .dp-lc-label{color:var(--green);}
+.dp-lc-wrap{display:flex;flex-direction:column;align-items:center;position:relative;padding-bottom:18px;}
+.dp-lc-line{flex:1;height:2px;background:var(--muted3);min-width:8px;margin:0 2px;}
+.dp-lc-step.done .dp-lc-line{background:var(--green);}
+.dp-lc-step:last-child .dp-lc-line{display:none;}
+/* Tabs (visual) */
+.dp-tabs{display:flex;gap:0;padding:0 28px;border-bottom:1px solid var(--border);background:var(--surf);overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none;}.dp-tabs::-webkit-scrollbar{display:none;}
+.dp-tab{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:10px 12px;color:var(--muted2);border-bottom:2px solid transparent;white-space:nowrap;cursor:default;transition:color .15s;}
+.dp-tab.active{color:var(--green);border-bottom-color:var(--green);}
+.dp-tab:hover{color:var(--muted);}
+/* Overview cards */
+.dp-overview{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;padding:20px 28px;border-bottom:1px solid var(--border);}
+.dp-ov-card{background:var(--surf);border:1px solid var(--border);padding:14px 16px;}
+.dp-ov-label{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;}
+.dp-ov-val{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;line-height:1;}
+.dp-ov-sub{font-size:9px;color:var(--muted);margin-top:3px;}
+/* Detail panels */
+.dp-panels{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:20px 28px;}
+.dp-panel{background:var(--surf);border:1px solid var(--border);padding:18px 20px;}
+.dp-panel-title{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.dp-panel-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.025);}
+.dp-panel-lbl{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;color:var(--muted2);}
+.dp-panel-v{font-size:11px;font-weight:500;color:var(--white);text-align:right;}
+/* Timeline section */
+.dp-timeline{padding:20px 28px;}
+.dp-tl-title{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.dp-tl{display:flex;flex-direction:column;}
+.dp-tl-item{display:flex;gap:12px;padding:6px 0;}
+.dp-tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.dp-tl-action{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--white);}
+.dp-tl-meta{font-size:9px;color:var(--muted2);margin-top:1px;}
+.dp-tl-line{width:1px;height:8px;background:var(--border);margin-left:3.5px;}
+@media(max-width:900px){.dp-overview{grid-template-columns:repeat(2,1fr);}.dp-panels{grid-template-columns:1fr;}.dp-top,.dp-lifecycle,.dp-tabs,.dp-overview,.dp-panels,.dp-timeline{padding-left:16px;padding-right:16px;}}
+@media(max-width:600px){.dp-overview{grid-template-columns:1fr;}.dp-insured{font-size:18px;}}
+
+/* RESPONSIVE */
+@media(max-width:900px){.sidebar{display:none;}.kpi-strip{grid-template-columns:repeat(3,1fr);}.row2{grid-template-columns:1fr;}.lc-detail-grid{grid-template-columns:repeat(3,1fr);}.main{overflow-x:hidden;}}
+@media(max-width:600px){.kpi-strip{grid-template-columns:repeat(2,1fr);}.lc-detail-grid{grid-template-columns:1fr;}.main{padding:16px;}.topbar{padding:0 16px;flex-wrap:wrap;height:auto;padding-top:8px;padding-bottom:8px;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tb-left">
+    <div class="tb-wm">INSPEKT<span class="acc">iQ</span></div>
+    <div class="tb-div"></div>
+    <div class="tb-portal">Carrier Reporting</div>
+    <div class="tb-preview">Preview</div>
+  </div>
+  <div class="tb-right">
+    <div class="tb-carrier">Logged in as <strong>Midwest Fire & Casualty Co.</strong></div>
+    <div class="tb-live"><div class="tb-live-dot"></div>Live</div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-label">Your Firms</div>
+    <div class="sb-firm active"><div class="sb-firm-dot" style="background:var(--green);"></div><div><div class="sb-firm-name">Gulf Coast Adjusting</div><div class="sb-firm-meta">47 active · 4.2d avg</div></div></div>
+    <div class="sb-firm"><div class="sb-firm-dot" style="background:var(--blue);"></div><div><div class="sb-firm-name">Texas Claims Group</div><div class="sb-firm-meta">31 active · 5.8d avg</div></div></div>
+    <div class="sb-firm"><div class="sb-firm-dot" style="background:var(--amber);"></div><div><div class="sb-firm-name">Southeastern Adjusters</div><div class="sb-firm-meta">22 active · 6.1d avg</div></div></div>
+  </div>
+
+  <div class="main">
+    <div class="vh-row"><div><div class="vh-title">Gulf Coast Adjusting</div><div class="vh-sub">Performance overview · <span id="active-label">47 active files</span> · Updated 2 min ago</div></div></div>
+    <div class="disclaimer">All data is simulated. Functionality is not.</div>
+
+    <div class="ptabs" id="ptabs">
+      <div class="ptab" data-period="1D">1D</div>
+      <div class="ptab" data-period="7D">7D</div>
+      <div class="ptab active" data-period="30D">30D</div>
+      <div class="ptab" data-period="90D">90D</div>
+      <div class="ptab" data-period="YTD">YTD</div>
+    </div>
+
+    <!-- CLAIMS TABLE -->
+    <div class="sec">
+      <div class="sec-bar"><div class="sec-copy"><div class="sec-title">Active Claims</div><div class="sec-desc">Every claim assigned to this firm for Midwest Fire & Casualty. Click any row for full detail.</div></div></div>
+      <div class="ct-panel">
+        <div class="ct-head"><div class="ct-title">All Claims — Midwest Fire & Casualty</div><div class="ct-count" id="ct-count">47 files</div></div>
+        <table class="ct"><thead><tr><th>Claim</th><th>Insured</th><th>Loss</th><th>Status</th><th>Cycle</th><th>SLA</th><th>Touches</th></tr></thead>
+        <tbody id="claims-body"></tbody></table>
+      </div>
+    </div>
+
+    <!-- KPI STRIP -->
+    <div class="sec">
+      <div class="sec-bar"><div class="sec-copy"><div class="sec-title">Performance at a Glance</div><div class="sec-desc">Ten firm-level metrics updated in real time. Trends compare against the prior period.</div></div></div>
+      <div class="kpi-strip" id="kpi-strip"></div>
+    </div>
+
+    <!-- LIFECYCLE -->
+    <div class="sec">
+      <div class="sec-bar"><div class="sec-copy"><div class="sec-title">Claim Lifecycle — Average Time by Stage</div><div class="sec-desc">Measured on every closed claim. Each stage transition is timestamped.</div></div></div>
+      <div class="panel">
+        <div class="p-head"><div class="p-title">Lifecycle Bar</div><div class="p-filters" id="lc-filters"><button class="p-filter active" data-loss="all">All</button><button class="p-filter" data-loss="wind">Wind/Hail</button><button class="p-filter" data-loss="water">Water</button><button class="p-filter" data-loss="fire">Fire</button></div></div>
+        <div class="p-body">
+          <div class="lc-bar-wrap" id="lc-bar"></div>
+          <div class="lc-detail-grid" id="lc-details"></div>
+          <div class="lc-total" id="lc-total"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CYCLE + SLA -->
+    <div class="sec">
+      <div class="row2">
+        <div>
+          <div style="margin-bottom:8px;"><div class="sec-title">Cycle Time Trend</div><div class="sec-desc" style="max-width:none;">Weekly average cycle time. A declining trend tells you this firm is improving.</div></div>
+          <div class="panel"><div class="p-head"><div class="p-title" id="cycle-title">Avg Cycle Time — 8 Weeks</div></div><div class="p-body"><div class="bar-chart" id="cycle-bars"></div></div></div>
+        </div>
+        <div>
+          <div style="margin-bottom:8px;"><div class="sec-title">SLA Compliance</div><div class="sec-desc" style="max-width:none;">Files submitted within the carrier's SLA deadline.</div></div>
+          <div class="panel"><div class="p-head"><div class="p-title">SLA Breakdown</div></div><div class="p-body"><div class="gauge-wrap" id="sla-gauge"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVISIONS + PIPELINE -->
+    <div class="sec">
+      <div class="row2">
+        <div>
+          <div style="margin-bottom:8px;"><div class="sec-title">Revision Rate by Loss Type</div><div class="sec-desc" style="max-width:none;">Carrier-initiated revisions only. Tracked by loss type and week.</div></div>
+          <div class="panel"><div class="p-head"><div class="p-title">Revisions — Last 6 Weeks</div></div><div class="p-body" id="heatmap-body"></div></div>
+        </div>
+        <div>
+          <div style="margin-bottom:8px;"><div class="sec-title">Pipeline Distribution</div><div class="sec-desc" style="max-width:none;">Where files are sitting right now.</div></div>
+          <div class="panel"><div class="p-head"><div class="p-title">Files by Stage</div></div><div class="p-body"><div id="funnel"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BREACHES -->
+    <div class="sec">
+      <div class="sec-bar"><div class="sec-copy"><div class="sec-title">SLA Breaches</div><div class="sec-desc">Files that have exceeded the carrier's SLA deadline.</div></div></div>
+      <div id="breaches"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL OVERLAY — FULL CLAIM FILE VIEW -->
+<div class="detail-overlay" id="detail-overlay" onclick="if(event.target===this)closeDetail();">
+  <div class="dp" id="dp-content"></div>
+</div>
+
+<script>
+// ═══ DATA ═══
+var CLAIMS=[
+  {id:'CLM-04892',name:'Patricia Garza',loss:'Wind/Hail',loc:'Waco, TX',status:'Inspecting',statusCls:'sp-i',cycle:'Day 2',sla:'On Track',slaCls:'sla-ok',touches:2,dol:'Mar 28, 2026',policy:'MFC-2026-881204',contact:'1.4h',revisions:0},
+  {id:'CLM-04891',name:'James Morton',loss:'Water',loc:'Austin, TX',status:'Review',statusCls:'sp-r',cycle:'Day 3',sla:'On Track',slaCls:'sla-ok',touches:3,dol:'Mar 27, 2026',policy:'MFC-2026-881198',contact:'2.1h',revisions:1},
+  {id:'CLM-04887',name:'Carol Nguyen',loss:'Fire',loc:'Dallas, TX',status:'Ready',statusCls:'sp-g',cycle:'Day 4',sla:'On Track',slaCls:'sla-ok',touches:4,dol:'Mar 26, 2026',policy:'MFC-2026-881187',contact:'1.8h',revisions:0},
+  {id:'CLM-04885',name:'Robert Chen',loss:'Wind/Hail',loc:'Houston, TX',status:'Intake',statusCls:'sp-p',cycle:'Day 1',sla:'On Track',slaCls:'sla-ok',touches:1,dol:'Mar 30, 2026',policy:'MFC-2026-881210',contact:'—',revisions:0},
+  {id:'CLM-04878',name:'Marcus Williams',loss:'Hail',loc:'Dallas, TX',status:'Review',statusCls:'sp-r',cycle:'Day 5',sla:'At Risk',slaCls:'sla-warn',touches:5,dol:'Mar 25, 2026',policy:'MFC-2026-881172',contact:'3.2h',revisions:2},
+  {id:'CLM-04871',name:'Sandra Kim',loss:'Wind',loc:'San Antonio, TX',status:'Submitted',statusCls:'sp-s',cycle:'Day 6',sla:'Met',slaCls:'sla-ok',touches:3,dol:'Mar 24, 2026',policy:'MFC-2026-881165',contact:'1.6h',revisions:0},
+  {id:'CLM-04869',name:'Thomas Reed',loss:'Water',loc:'Houston, TX',status:'Inspecting',statusCls:'sp-i',cycle:'Day 7',sla:'Breached',slaCls:'sla-breach',touches:6,dol:'Mar 23, 2026',policy:'MFC-2026-881158',contact:'4.1h',revisions:1},
+  {id:'CLM-04865',name:'Angela Torres',loss:'Wind/Hail',loc:'Corpus Christi, TX',status:'Review',statusCls:'sp-r',cycle:'Day 3',sla:'On Track',slaCls:'sla-ok',touches:3,dol:'Mar 27, 2026',policy:'MFC-2026-881149',contact:'1.9h',revisions:0},
+  {id:'CLM-04862',name:'David Park',loss:'Fire',loc:'Fort Worth, TX',status:'Inspecting',statusCls:'sp-i',cycle:'Day 2',sla:'On Track',slaCls:'sla-ok',touches:2,dol:'Mar 28, 2026',policy:'MFC-2026-881142',contact:'2.3h',revisions:0},
+  {id:'CLM-04858',name:'Lisa Hernandez',loss:'Water',loc:'Waco, TX',status:'Ready',statusCls:'sp-g',cycle:'Day 5',sla:'On Track',slaCls:'sla-ok',touches:4,dol:'Mar 25, 2026',policy:'MFC-2026-881133',contact:'1.2h',revisions:0},
+  {id:'CLM-04854',name:'Kevin Brooks',loss:'Roof',loc:'Plano, TX',status:'Submitted',statusCls:'sp-s',cycle:'Day 4',sla:'Met',slaCls:'sla-ok',touches:3,dol:'Mar 26, 2026',policy:'MFC-2026-881126',contact:'2.0h',revisions:1},
+  {id:'CLM-04849',name:'Maria Santos',loss:'Wind/Hail',loc:'Laredo, TX',status:'Intake',statusCls:'sp-p',cycle:'Day 1',sla:'On Track',slaCls:'sla-ok',touches:1,dol:'Mar 30, 2026',policy:'MFC-2026-881118',contact:'—',revisions:0}
+];
+
+var PERIODS={
+  '1D':{active:47,closed:4,kpis:[{l:'Avg Cycle Time',v:'3.8d',c:'var(--green)',t:'↓ 0.4d',tc:'up'},{l:'First Contact',v:'1.6h',c:'var(--white)',t:'↓ 0.5h',tc:'up'},{l:'SLA Compliance',v:'100%',c:'var(--green)',t:'—',tc:'neu'},{l:'First-Pass Rate',v:'100%',c:'var(--white)',t:'—',tc:'neu'},{l:'Revision Rate',v:'0%',c:'var(--green)',t:'—',tc:'neu'},{l:'Doc Completeness',v:'98%',c:'var(--green)',t:'↑ 1%',tc:'up'},{l:'Touches / Claim',v:'2.8',c:'var(--blue)',t:'↓ 0.6',tc:'up'},{l:'Firm Throughput',v:'4',c:'var(--white)',t:'closed today',tc:'neu'},{l:'SLA Breaches',v:'0',c:'var(--green)',t:'none today',tc:'up'},{l:'Active Files',v:'47',c:'var(--white)',t:'↑ 2 vs yesterday',tc:'up'}],cycle:{label:'Avg Cycle Time — Today',bars:[{h:'44%',l:'Now',hl:true}]},sla:{val:'100%',met:4,risk:0,breach:0},total:{val:'3.8d',trend:'↓ 0.4d vs yesterday',sub:'Based on 4 closed claims today'},breaches:[]},
+  '7D':{active:47,closed:12,kpis:[{l:'Avg Cycle Time',v:'4.0d',c:'var(--green)',t:'↓ 0.8d',tc:'up'},{l:'First Contact',v:'1.9h',c:'var(--white)',t:'↓ 0.3h',tc:'up'},{l:'SLA Compliance',v:'95.8%',c:'var(--green)',t:'↑ 1.6%',tc:'up'},{l:'First-Pass Rate',v:'93%',c:'var(--white)',t:'↑ 3%',tc:'up'},{l:'Revision Rate',v:'7%',c:'var(--amber)',t:'↓ 2%',tc:'up'},{l:'Doc Completeness',v:'97%',c:'var(--green)',t:'↑ 2%',tc:'up'},{l:'Touches / Claim',v:'3.2',c:'var(--blue)',t:'↓ 0.5',tc:'up'},{l:'Firm Throughput',v:'12',c:'var(--white)',t:'closed / 7d',tc:'neu'},{l:'SLA Breaches',v:'1',c:'var(--amber)',t:'1 past deadline',tc:'dn'},{l:'Active Files',v:'47',c:'var(--white)',t:'↑ 5 vs prior',tc:'up'}],cycle:{label:'Avg Cycle Time — 7 Days',bars:[{h:'52%',l:'Mon'},{h:'48%',l:'Tue'},{h:'46%',l:'Wed'},{h:'50%',l:'Thu'},{h:'45%',l:'Fri'},{h:'42%',l:'Sat'},{h:'44%',l:'Now',hl:true}]},sla:{val:'95.8%',met:11,risk:1,breach:1},total:{val:'4.0d',trend:'↓ 0.8d vs prior week',sub:'Based on 12 closed claims this week'},breaches:[{id:'CLM-04869',name:'Thomas Reed',loss:'Water · Houston, TX',stage:'In Inspection',days:2}]},
+  '30D':{active:47,closed:41,kpis:[{l:'Avg Cycle Time',v:'4.2d',c:'var(--green)',t:'↓ 1.3d',tc:'up'},{l:'First Contact',v:'2.1h',c:'var(--white)',t:'↓ 0.4h',tc:'up'},{l:'SLA Compliance',v:'94.2%',c:'var(--green)',t:'↑ 3.1%',tc:'up'},{l:'First-Pass Rate',v:'92%',c:'var(--white)',t:'↑ 5%',tc:'up'},{l:'Revision Rate',v:'8%',c:'var(--amber)',t:'↓ 4%',tc:'up'},{l:'Doc Completeness',v:'96%',c:'var(--green)',t:'↑ 4%',tc:'up'},{l:'Touches / Claim',v:'3.4',c:'var(--blue)',t:'↓ 0.8',tc:'up'},{l:'Firm Throughput',v:'41',c:'var(--white)',t:'closed / 30d',tc:'neu'},{l:'SLA Breaches',v:'2',c:'var(--red)',t:'2 past deadline',tc:'dn'},{l:'Active Files',v:'47',c:'var(--white)',t:'↑ 8 vs prior',tc:'up'}],cycle:{label:'Avg Cycle Time — 8 Weeks',bars:[{h:'95%',l:'W1'},{h:'80%',l:'W2'},{h:'72%',l:'W3'},{h:'62%',l:'W4'},{h:'55%',l:'W5'},{h:'50%',l:'W6'},{h:'46%',l:'W7'},{h:'44%',l:'Now',hl:true}]},sla:{val:'94.2%',met:41,risk:4,breach:2},total:{val:'4.2d',trend:'↓ 1.3d vs prior',sub:'Based on 41 closed claims this period'},breaches:[{id:'CLM-04869',name:'Thomas Reed',loss:'Water · Houston, TX',stage:'In Inspection',days:2},{id:'CLM-04878',name:'Marcus Williams',loss:'Hail · Dallas, TX',stage:'In Review',days:1}]},
+  '90D':{active:47,closed:118,kpis:[{l:'Avg Cycle Time',v:'4.8d',c:'var(--green)',t:'↓ 1.9d',tc:'up'},{l:'First Contact',v:'2.4h',c:'var(--white)',t:'↓ 0.8h',tc:'up'},{l:'SLA Compliance',v:'91.5%',c:'var(--green)',t:'↑ 5.2%',tc:'up'},{l:'First-Pass Rate',v:'89%',c:'var(--white)',t:'↑ 8%',tc:'up'},{l:'Revision Rate',v:'11%',c:'var(--amber)',t:'↓ 6%',tc:'up'},{l:'Doc Completeness',v:'94%',c:'var(--green)',t:'↑ 7%',tc:'up'},{l:'Touches / Claim',v:'3.8',c:'var(--blue)',t:'↓ 1.2',tc:'up'},{l:'Firm Throughput',v:'118',c:'var(--white)',t:'closed / 90d',tc:'neu'},{l:'SLA Breaches',v:'5',c:'var(--red)',t:'trending down',tc:'up'},{l:'Active Files',v:'47',c:'var(--white)',t:'↑ 14 vs prior',tc:'up'}],cycle:{label:'Avg Cycle Time — 12 Weeks',bars:[{h:'98%',l:'W1'},{h:'92%',l:'W2'},{h:'88%',l:'W3'},{h:'82%',l:'W4'},{h:'78%',l:'W5'},{h:'70%',l:'W6'},{h:'65%',l:'W7'},{h:'58%',l:'W8'},{h:'55%',l:'W9'},{h:'50%',l:'W10'},{h:'46%',l:'W11'},{h:'44%',l:'Now',hl:true}]},sla:{val:'91.5%',met:108,risk:5,breach:5},total:{val:'4.8d',trend:'↓ 1.9d vs prior quarter',sub:'Based on 118 closed claims this quarter'},breaches:[{id:'CLM-04869',name:'Thomas Reed',loss:'Water · Houston, TX',stage:'In Inspection',days:2},{id:'CLM-04878',name:'Marcus Williams',loss:'Hail · Dallas, TX',stage:'In Review',days:1}]},
+  'YTD':{active:47,closed:156,kpis:[{l:'Avg Cycle Time',v:'5.1d',c:'var(--green)',t:'↓ 2.4d',tc:'up'},{l:'First Contact',v:'2.6h',c:'var(--white)',t:'↓ 1.1h',tc:'up'},{l:'SLA Compliance',v:'90.1%',c:'var(--green)',t:'↑ 6.8%',tc:'up'},{l:'First-Pass Rate',v:'87%',c:'var(--white)',t:'↑ 10%',tc:'up'},{l:'Revision Rate',v:'13%',c:'var(--amber)',t:'↓ 8%',tc:'up'},{l:'Doc Completeness',v:'93%',c:'var(--green)',t:'↑ 9%',tc:'up'},{l:'Touches / Claim',v:'4.0',c:'var(--blue)',t:'↓ 1.5',tc:'up'},{l:'Firm Throughput',v:'156',c:'var(--white)',t:'closed YTD',tc:'neu'},{l:'SLA Breaches',v:'8',c:'var(--red)',t:'trending down',tc:'up'},{l:'Active Files',v:'47',c:'var(--white)',t:'steady',tc:'neu'}],cycle:{label:'Avg Cycle Time — YTD by Month',bars:[{h:'98%',l:'Jan'},{h:'85%',l:'Feb'},{h:'68%',l:'Mar'},{h:'44%',l:'Apr',hl:true}]},sla:{val:'90.1%',met:140,risk:8,breach:8},total:{val:'5.1d',trend:'↓ 2.4d vs prior year',sub:'Based on 156 closed claims year to date'},breaches:[{id:'CLM-04869',name:'Thomas Reed',loss:'Water · Houston, TX',stage:'In Inspection',days:2},{id:'CLM-04878',name:'Marcus Williams',loss:'Hail · Dallas, TX',stage:'In Review',days:1}]}
+};
+var kpiClasses=['g','w','g','w','a','g','b','w','r','w'];
+
+// ═══ RENDER FUNCTIONS ═══
+function renderKPIs(p){var d=PERIODS[p];var el=document.getElementById('kpi-strip');el.innerHTML='';d.kpis.forEach(function(k,i){el.innerHTML+='<div class="kpi '+kpiClasses[i]+'"><div class="kpi-label">'+k.l+'</div><div class="kpi-val" style="color:'+k.c+';">'+k.v+'</div><div class="kpi-trend '+k.tc+'">'+k.t+'</div></div>';});}
+
+function renderClaims(){var el=document.getElementById('claims-body');el.innerHTML='';CLAIMS.forEach(function(c){el.innerHTML+='<tr onclick="openDetail(\''+c.id+'\')"><td class="cid">'+c.id+'</td><td>'+c.name+'</td><td>'+c.loss+'</td><td><span class="sp '+c.statusCls+'">'+c.status+'</span></td><td>'+c.cycle+'</td><td class="'+c.slaCls+'">'+c.sla+'</td><td>'+c.touches+'</td></tr>';});}
+
+function renderCycle(p){var d=PERIODS[p].cycle;document.getElementById('cycle-title').textContent=d.label;var el=document.getElementById('cycle-bars');el.innerHTML='';d.bars.forEach(function(b){el.innerHTML+='<div class="bar-col"><div class="bar-fill'+(b.hl?' hl':'')+'" style="height:0;" data-h="'+b.h+'"></div><div class="bar-lbl"'+(b.hl?' style="color:var(--green);"':'')+'>'+b.l+'</div></div>';});setTimeout(function(){el.querySelectorAll('.bar-fill').forEach(function(f){f.style.height=f.dataset.h;});},50);}
+
+function renderSLA(p){var d=PERIODS[p].sla;var total=d.met+d.risk+d.breach;var el=document.getElementById('sla-gauge');el.innerHTML='<div style="text-align:center;"><div class="gauge-val">'+d.val+'</div><div class="gauge-lbl">Compliance</div></div><div class="sla-breakdown"><div class="sla-bar"><div class="sla-bar-label">Met</div><div class="sla-bar-track"><div class="sla-bar-fill" style="width:0;background:var(--green);" data-w="'+Math.round(d.met/total*100)+'%"></div></div><div class="sla-bar-val" style="color:var(--green);">'+d.met+'</div></div><div class="sla-bar"><div class="sla-bar-label">At Risk</div><div class="sla-bar-track"><div class="sla-bar-fill" style="width:0;background:var(--amber);" data-w="'+Math.round(d.risk/total*100)+'%"></div></div><div class="sla-bar-val" style="color:var(--amber);">'+d.risk+'</div></div><div class="sla-bar"><div class="sla-bar-label">Breached</div><div class="sla-bar-track"><div class="sla-bar-fill" style="width:0;background:var(--red);" data-w="'+Math.round(d.breach/total*100)+'%"></div></div><div class="sla-bar-val" style="color:var(--red);">'+d.breach+'</div></div></div>';setTimeout(function(){el.querySelectorAll('.sla-bar-fill').forEach(function(f){f.style.width=f.dataset.w;});},50);}
+
+function renderLC(p){var d=PERIODS[p];var segs=[{w:'7%',bg:'var(--rose)',t:'0.3d',l:'Intake'},{w:'5%',bg:'rgba(224,92,138,.6)',t:'0.2d',l:'Assign'},{w:'10%',bg:'var(--amber)',t:'2.1h',l:'Contact'},{w:'43%',bg:'var(--blue)',t:'1.8d',l:'Inspect'},{w:'26%',bg:'rgba(232,168,56,.7)',t:'1.1d',l:'Review'},{w:'9%',bg:'var(--green)',t:'0.3d',l:'Submit'}];
+var bar=document.getElementById('lc-bar');bar.innerHTML='';segs.forEach(function(s){bar.innerHTML+='<div class="lc-seg" style="width:0;background:'+s.bg+';" data-w="'+s.w+'"><div class="lc-seg-time">'+s.t+'</div><div class="lc-seg-label">'+s.l+'</div></div>';});
+var details=[{from:'Intake → Assigned',time:'0.3d',c:'var(--rose)',unit:'~7.2 hours',trend:'↓ 0.1d'},{from:'Assigned → Contacted',time:'2.1h',c:'var(--amber)',unit:'first contact',trend:'↓ 0.4h'},{from:'Contacted → Inspected',time:'1.8d',c:'var(--blue)',unit:'~43.2 hours',trend:'↓ 0.6d'},{from:'Inspected → Reviewed',time:'1.1d',c:'var(--amber)',unit:'~26.4 hours',trend:'↓ 0.3d'},{from:'Reviewed → Submitted',time:'0.3d',c:'var(--green)',unit:'~7.2 hours',trend:'↓ 0.1d'}];
+var det=document.getElementById('lc-details');det.innerHTML='';details.forEach(function(dd){det.innerHTML+='<div class="lc-detail"><div class="lc-detail-from">'+dd.from+'</div><div class="lc-detail-time" style="color:'+dd.c+';">'+dd.time+'</div><div class="lc-detail-unit">'+dd.unit+'</div><div class="lc-detail-trend">'+dd.trend+'</div></div>';});
+var tot=document.getElementById('lc-total');tot.innerHTML='<div><div class="lc-total-label">Average Total Cycle Time</div><div class="lc-total-sub">'+d.total.sub+'</div></div><div style="display:flex;align-items:baseline;"><div class="lc-total-val">'+d.total.val+'</div><div class="lc-total-trend">'+d.total.trend+'</div></div>';
+setTimeout(function(){bar.querySelectorAll('.lc-seg').forEach(function(s,i){setTimeout(function(){s.style.width=s.dataset.w;},i*80);});},50);}
+
+function renderBreaches(p){var d=PERIODS[p].breaches;var el=document.getElementById('breaches');if(!d.length){el.innerHTML='<div class="no-breaches">No SLA breaches in this period</div>';return;}
+el.innerHTML='';d.forEach(function(b){el.innerHTML+='<div class="breach-card" onclick="openDetail(\''+b.id+'\')"><div class="breach-info"><div class="breach-claim">'+b.id+' · '+b.name+'</div><div class="breach-meta">'+b.loss+' · '+b.stage+'</div></div><div style="text-align:center;"><div class="breach-days">'+b.days+'</div><div class="breach-days-lbl">Day'+(b.days>1?'s':'')+' Over</div></div></div>';});}
+
+function renderHeatmap(){document.getElementById('heatmap-body').innerHTML='<table class="hm-table"><thead><tr><th style="width:80px;">Loss Type</th><th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>W5</th><th>W6</th><th>Total</th></tr></thead><tbody><tr><td>Wind/Hail</td><td><div class="hm-cell hm-1">1</div></td><td><div class="hm-cell hm-1">1</div></td><td><div class="hm-cell hm-0">0</div></td><td><div class="hm-cell hm-0">0</div></td><td><div class="hm-cell hm-1">1</div></td><td><div class="hm-cell hm-0">0</div></td><td style="color:var(--amber);font-weight:700;">3</td></tr><tr><td>Water</td><td><div class="hm-cell hm-1">1</div></td><td><div class="hm-cell hm-2">2</div></td><td><div class="hm-cell hm-1">1</div></td><td><div class="hm-cell hm-1">1</div></td><td><div class="hm-cell hm-0">0</div></td><td><div class="hm-cell hm-1">1</div></td><td style="color:var(--red);font-weight:700;">6</td></tr><tr><td>Fire</td><td><div class="hm-cell hm-0">0</div></td><td><div class="hm-cell hm-0">0</div></td><td><div class="hm-cell hm-1">1</div></td><td><div class="hm-cell hm-0">0</div></td><td><div class="hm-cell hm-0">0</div></td><td><div class="hm-cell hm-0">0</div></td><td style="color:var(--green);font-weight:700;">1</td></tr><tr><td>Roof</td><td><div class="hm-cell hm-0">0</div></td><td><div class="hm-cell hm-0">0</div></td><td><div class="hm-cell hm-0">0</div></td><td><div class="hm-cell hm-0">0</div></td><td><div class="hm-cell hm-1">1</div></td><td><div class="hm-cell hm-0">0</div></td><td style="color:var(--green);font-weight:700;">1</td></tr></tbody></table>';}
+
+function renderFunnel(){document.getElementById('funnel').innerHTML='<div class="funnel-stage"><div class="funnel-label">Intake</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:0;background:var(--rose);" data-w="13%"><span>6</span></div></div><div class="funnel-days">0.4d</div></div><div class="funnel-stage"><div class="funnel-label">Inspecting</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:0;background:var(--blue);" data-w="40%"><span>19</span></div></div><div class="funnel-days">1.8d</div></div><div class="funnel-stage"><div class="funnel-label">Review</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:0;background:var(--amber);" data-w="26%"><span>12</span></div></div><div class="funnel-days">1.1d</div></div><div class="funnel-stage"><div class="funnel-label">Ready</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:0;background:var(--green);" data-w="15%"><span>7</span></div></div><div class="funnel-days">0.3d</div></div><div class="funnel-stage"><div class="funnel-label">Submitted</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:0;background:var(--muted2);" data-w="6%"><span>3</span></div></div><div class="funnel-days">—</div></div>';setTimeout(function(){document.querySelectorAll('#funnel .funnel-bar').forEach(function(b){b.style.width=b.dataset.w;});},50);}
+
+// ═══ DETAIL — FULL CLAIM FILE VIEW ═══
+var STAGES=['Received','Assigned','Accepted','Contacted','Scheduled','Inspected','In Review','Approved','Submitted','Closed'];
+var STATUS_STAGE={'Intake':0,'Inspecting':5,'Review':6,'Ready':7,'Submitted':8};
+var ADDRS={'CLM-04892':'4490 Bosque Blvd, Waco, TX 76710','CLM-04891':'2814 S Lamar Blvd, Austin, TX 78704','CLM-04887':'1422 Elm St, Dallas, TX 75201','CLM-04885':'9102 Westheimer Rd, Houston, TX 77063','CLM-04878':'3311 Oak Lawn Ave, Dallas, TX 75219','CLM-04871':'1604 Nogalitos St, San Antonio, TX 78204','CLM-04869':'7720 Bellaire Blvd, Houston, TX 77036','CLM-04865':'4218 S Staples St, Corpus Christi, TX 78411','CLM-04862':'2900 W 7th St, Fort Worth, TX 76107','CLM-04858':'1200 Hewitt Dr, Waco, TX 76712','CLM-04854':'3108 Custer Rd, Plano, TX 75075','CLM-04849':'502 Shiloh Dr, Laredo, TX 78045'};
+var TABS=['Overview','Contacts','Notes','Documents','Photos','Inspection','Time & Expense','Tasks','Reserves','Claimants','Coverages','Loss Locations','Carrier Forms','Firm Forms','Links','Timeline'];
+
+function openDetail(id){
+  var c=CLAIMS.find(function(x){return x.id===id;});if(!c)return;
+  var si=STATUS_STAGE[c.status]||0;
+  var addr=ADDRS[c.id]||'Texas';
+  // Header
+  var h='<div class="dp-top"><div class="dp-top-row"><div class="dp-insured">'+c.name+'</div><button class="dp-close" onclick="closeDetail()">✕ Close</button></div>';
+  h+='<div class="dp-meta"><span><strong>Claim #</strong>'+c.id+'</span><span><strong>Client</strong>Midwest Fire & Casualty</span><span><strong>Type</strong>'+c.loss+'</span><span><strong>DOL</strong>'+c.dol+'</span><span><strong>Due</strong>Apr 14, 2026</span><span><span class="sp '+c.statusCls+'">'+c.status+'</span></span></div></div>';
+  // Lifecycle stepper
+  h+='<div class="dp-lifecycle">';
+  STAGES.forEach(function(s,i){
+    var cls=i<si?'done':i===si?'active':'';
+    var icon=i<si?'✓':i===si?'●':'';
+    h+='<div class="dp-lc-step '+cls+'"><div class="dp-lc-wrap"><div class="dp-lc-dot">'+icon+'</div><div class="dp-lc-label">'+s+'</div></div>'+(i<STAGES.length-1?'<div class="dp-lc-line"></div>':'')+'</div>';
+  });
+  h+='</div>';
+  // Tabs
+  h+='<div class="dp-tabs">';
+  TABS.forEach(function(t,i){h+='<div class="dp-tab'+(i===0?' active':'')+'">'+t+'</div>';});
+  h+='</div>';
+  // Overview cards
+  h+='<div class="dp-overview">';
+  h+='<div class="dp-ov-card"><div class="dp-ov-label">Claim Status + SLA</div><div class="dp-ov-val" style="color:var(--white);">'+c.status+'</div><div class="dp-ov-sub '+c.slaCls+'">SLA: '+c.sla+'</div></div>';
+  h+='<div class="dp-ov-card"><div class="dp-ov-label">Cycle Day</div><div class="dp-ov-val" style="color:var(--green);">'+c.cycle+'</div><div class="dp-ov-sub">First contact: '+c.contact+'</div></div>';
+  h+='<div class="dp-ov-card"><div class="dp-ov-label">Revisions</div><div class="dp-ov-val" style="color:'+(c.revisions>0?'var(--amber)':'var(--green)')+';">'+c.revisions+'</div><div class="dp-ov-sub">'+(c.revisions>0?'Carrier-initiated':'No revisions')+'</div></div>';
+  h+='<div class="dp-ov-card"><div class="dp-ov-label">Touches</div><div class="dp-ov-val" style="color:var(--blue);">'+c.touches+'</div><div class="dp-ov-sub">Total file interactions</div></div>';
+  h+='</div>';
+  // Detail panels
+  h+='<div class="dp-panels">';
+  h+='<div class="dp-panel"><div class="dp-panel-title">Claim Details</div><div class="dp-panel-row"><div class="dp-panel-lbl">Policy Number</div><div class="dp-panel-v">'+c.policy+'</div></div><div class="dp-panel-row"><div class="dp-panel-lbl">Loss Cause</div><div class="dp-panel-v">'+c.loss+'</div></div><div class="dp-panel-row"><div class="dp-panel-lbl">Date of Loss</div><div class="dp-panel-v">'+c.dol+'</div></div><div class="dp-panel-row"><div class="dp-panel-lbl">Client</div><div class="dp-panel-v">Midwest Fire & Casualty</div></div></div>';
+  h+='<div class="dp-panel"><div class="dp-panel-title">Insured Information</div><div class="dp-panel-row"><div class="dp-panel-lbl">Name</div><div class="dp-panel-v">'+c.name+'</div></div><div class="dp-panel-row"><div class="dp-panel-lbl">Address</div><div class="dp-panel-v">'+addr+'</div></div><div class="dp-panel-row"><div class="dp-panel-lbl">City</div><div class="dp-panel-v">'+c.loc+'</div></div><div class="dp-panel-row"><div class="dp-panel-lbl">Special Instructions</div><div class="dp-panel-v" style="color:var(--muted);">—</div></div></div>';
+  h+='</div>';
+  // Timeline
+  h+='<div class="dp-timeline"><div class="dp-tl-title">Claim Timeline</div><div class="dp-tl">';
+  h+='<div class="dp-tl-item"><div class="dp-tl-dot" style="background:var(--rose);"></div><div><div class="dp-tl-action">Claim Received</div><div class="dp-tl-meta">'+c.dol+' · 9:14 AM · Auto-ingested from client feed</div></div></div><div class="dp-tl-line"></div>';
+  h+='<div class="dp-tl-item"><div class="dp-tl-dot" style="background:var(--green);"></div><div><div class="dp-tl-action">Assigned to Field</div><div class="dp-tl-meta">'+c.dol+' · 10:02 AM · Via dispatch map</div></div></div><div class="dp-tl-line"></div>';
+  h+='<div class="dp-tl-item"><div class="dp-tl-dot" style="background:var(--white);"></div><div><div class="dp-tl-action">Assignment Accepted</div><div class="dp-tl-meta">'+c.dol+' · 10:18 AM · Push notification confirmed</div></div></div>';
+  if(c.contact!=='—'){h+='<div class="dp-tl-line"></div><div class="dp-tl-item"><div class="dp-tl-dot" style="background:var(--white);"></div><div><div class="dp-tl-action">First Contact — Policyholder</div><div class="dp-tl-meta">'+c.contact+' after assignment · Phone call logged</div></div></div>';}
+  if(si>=5){h+='<div class="dp-tl-line"></div><div class="dp-tl-item"><div class="dp-tl-dot" style="background:var(--blue);"></div><div><div class="dp-tl-action">Inspection Completed</div><div class="dp-tl-meta">Field documentation via INSPEKTiT · 47 photos · GLR generated on-site</div></div></div>';}
+  if(si>=6){h+='<div class="dp-tl-line"></div><div class="dp-tl-item"><div class="dp-tl-dot" style="background:var(--amber);"></div><div><div class="dp-tl-action">File In Review</div><div class="dp-tl-meta">QA workflow initiated · Examiner assigned</div></div></div>';}
+  if(si>=7){h+='<div class="dp-tl-line"></div><div class="dp-tl-item"><div class="dp-tl-dot" style="background:var(--green);"></div><div><div class="dp-tl-action">Report Approved</div><div class="dp-tl-meta">File packaged for submission</div></div></div>';}
+  if(si>=8){h+='<div class="dp-tl-line"></div><div class="dp-tl-item"><div class="dp-tl-dot" style="background:var(--muted);"></div><div><div class="dp-tl-action">Submitted to Carrier</div><div class="dp-tl-meta">Delivered to Midwest Fire & Casualty · File closed</div></div></div>';}
+  h+='</div></div>';
+  h+='<div style="padding:16px 28px 24px;"><div class="disclaimer" style="margin:0;">All data is simulated. Functionality is not.</div></div>';
+  document.getElementById('dp-content').innerHTML=h;
+  document.getElementById('detail-overlay').classList.add('open');document.body.style.overflow='hidden';
+}
+function closeDetail(){document.getElementById('detail-overlay').classList.remove('open');document.body.style.overflow='';}
+
+// ═══ PERIOD SWITCHING ═══
+function switchPeriod(p){
+  document.querySelectorAll('.ptab').forEach(function(t){t.classList.toggle('active',t.dataset.period===p);});
+  renderKPIs(p);renderCycle(p);renderSLA(p);renderLC(p);renderBreaches(p);
+  document.getElementById('active-label').textContent=PERIODS[p].active+' active files';
+}
+
+// ═══ INIT ═══
+document.addEventListener('DOMContentLoaded',function(){
+  renderClaims();switchPeriod('30D');renderHeatmap();renderFunnel();
+  document.querySelectorAll('.ptab').forEach(function(t){t.addEventListener('click',function(){switchPeriod(this.dataset.period);});});
+  document.querySelectorAll('.p-filter').forEach(function(f){f.addEventListener('click',function(){this.parentElement.querySelectorAll('.p-filter').forEach(function(x){x.classList.remove('active');});this.classList.add('active');});});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDetail();});
+});
+</script>
+</body>
+</html>
