@@ -96,11 +96,15 @@ export function ClaimRow({
   role,
   archivedView = false,
   onRestore,
+  selected,
+  onToggleSelect,
 }: {
   claim: Claim;
   role: Role;
   archivedView?: boolean;
   onRestore?: (claimId: string) => Promise<void>;
+  selected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }) {
   const router = useRouter();
   const canRestore = archivedView && ['firm_admin', 'super_admin'].includes(role);
@@ -194,6 +198,35 @@ export function ClaimRow({
           background: accentColorVar(displayStatus),
         }}
       />
+
+      {/* Checkbox */}
+      {onToggleSelect && (
+        <div
+          onClick={e => { e.preventDefault(); e.stopPropagation(); onToggleSelect(claim.id); }}
+          style={{
+            width: '32px',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+          }}
+        >
+          <div style={{
+            width: '16px',
+            height: '16px',
+            borderRadius: '4px',
+            border: `2px solid ${selected ? 'var(--sage)' : 'var(--border-hi)'}`,
+            background: selected ? 'var(--sage)' : 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            {selected && <span style={{ color: '#06120C', fontSize: '10px', fontWeight: 700, lineHeight: 1 }}>✓</span>}
+          </div>
+        </div>
+      )}
 
       {/* Sections grid */}
       <div
