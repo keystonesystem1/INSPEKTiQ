@@ -182,7 +182,7 @@ export function AssignModal({
                               ? 'var(--sage-dim)'
                               : adjuster.availability === 'busy'
                                 ? 'var(--orange-dim)'
-                                : 'rgba(255,255,255,0.05)',
+                                : 'var(--card-hi)',
                         }}
                       >
                         {adjuster.initials}

@@ -181,19 +181,39 @@ export function ClaimFormModal({
             </select>
           </label>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <label style={{ display: 'grid', gap: '5px' }}>
-            <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>
-              Date of Loss
-            </span>
-            <input
-              type="date"
-              value={values.dateOfLoss}
-              onChange={(event) => setField('dateOfLoss', event.target.value)}
-              style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '9px 12px', color: 'var(--white)', width: '100%' }}
-            />
-          </label>
-          <FormInput label="Loss Description" value={values.lossDescription} onChange={(value) => setField('lossDescription', value)} />
+        <label style={{ display: 'grid', gap: '5px' }}>
+          <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+            Date of Loss
+          </span>
+          <input
+            type="date"
+            value={values.dateOfLoss}
+            onChange={(event) => setField('dateOfLoss', event.target.value)}
+            style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '9px 12px', color: 'var(--white)', width: '100%' }}
+          />
+        </label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--muted)' }}>Loss Description</span>
+          <textarea
+            value={values.lossDescription}
+            onChange={(e) => setField('lossDescription', e.target.value)}
+            placeholder="Describe the loss..."
+            rows={4}
+            style={{
+              background: 'var(--card)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-md)',
+              padding: '9px 12px',
+              color: 'var(--white)',
+              width: '100%',
+              resize: 'vertical',
+              minHeight: '96px',
+              fontFamily: 'inherit',
+              fontSize: '13px',
+              lineHeight: '1.5',
+              boxSizing: 'border-box',
+            }}
+          />
         </div>
         {error ? <div style={{ color: 'var(--red)', fontSize: '12px' }}>{error}</div> : null}
       </div>

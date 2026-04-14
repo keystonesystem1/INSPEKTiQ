@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns';
 import mapboxgl from 'mapbox-gl';
 import type { Feature, FeatureCollection, LineString } from 'geojson';
 import type { Appointment, SchedulingQueueItem } from '@/lib/types';
+import { useTheme } from '@/components/providers/ThemeProvider';
 
 interface RouteMapProps {
   open: boolean;
@@ -70,7 +71,7 @@ function createStopPinElement(color: string, label: string) {
   text.style.fontFamily = 'Barlow Condensed, sans-serif';
   text.style.fontWeight = '800';
   text.style.fontSize = label.length > 1 ? '10px' : '11px';
-  text.style.color = color === '#5BC273' || color === '#C9A84C' ? '#06120C' : '#F2F2F4';
+  text.style.color = color === '#5BC273' || color === '#C9A84C' ? '#06120C' : 'var(--white)';
   text.style.lineHeight = '1';
   element.appendChild(text);
 
@@ -83,7 +84,7 @@ function buildAppointmentPopup(appointment: Appointment, stopNumber: number) {
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:rgba(242,242,244,0.45)">
         Stop ${stopNumber}
       </div>
-      <div style="margin-top:4px;font-size:14px;font-weight:600;color:#F2F2F4">${appointment.insuredName}</div>
+      <div style="margin-top:4px;font-size:14px;font-weight:600;color:var(--white)">${appointment.insuredName}</div>
       <div style="margin-top:2px;font-size:12px;color:rgba(242,242,244,0.55)">${appointment.lossAddress || 'Address unavailable'}</div>
       <div style="margin-top:8px;font-size:12px;color:rgba(242,242,244,0.72)">${formatTime(appointment.arrivalTime)} · ${appointment.lossType}</div>
     </div>
@@ -102,7 +103,7 @@ function createBronzePopupContent(
   title.textContent = claim.insuredName;
   title.style.fontSize = '14px';
   title.style.fontWeight = '600';
-  title.style.color = '#F2F2F4';
+  title.style.color = 'var(--white)';
   container.appendChild(title);
 
   const address = document.createElement('div');
@@ -212,6 +213,10 @@ export function RouteMap({
   const [mapReady, setMapReady] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
   const [is3D, setIs3D] = useState(false);
+  const { theme } = useTheme();
+  const resolvedTheme = theme === 'system'
+    ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+    : theme;
 
   const sortedAppointments = useMemo(
     () =>
@@ -255,7 +260,7 @@ export function RouteMap({
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? '';
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: resolvedTheme === 'light' ? 'mapbox://styles/mapbox/light-v11' : 'mapbox://styles/mapbox/dark-v11',
       center: DEFAULT_CENTER,
       zoom: DEFAULT_ZOOM,
       attributionControl: false,
@@ -334,6 +339,12 @@ export function RouteMap({
       ensureBuildingLayer(mapRef.current, false);
     }
   }, [is3D, mapReady]);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const style = resolvedTheme === 'light' ? 'mapbox://styles/mapbox/light-v11' : 'mapbox://styles/mapbox/dark-v11';
+    mapRef.current.setStyle(style);
+  }, [resolvedTheme]);
 
   useEffect(() => {
     if (!open || !mapRef.current || !mapReady) {
@@ -482,14 +493,14 @@ export function RouteMap({
 
           <div className="relative m-4 min-h-0 flex-1 overflow-hidden rounded-[12px] border border-[var(--border)] bg-[var(--card)]">
             {hasToken ? <div ref={containerRef} className="h-full w-full" /> : null}
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(10,10,10,0.28),transparent)]" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--bg)_30%,transparent),transparent)]" />
             {!selectedDay ? (
-              <div className="pointer-events-none absolute inset-x-6 top-6 rounded-[10px] border border-[var(--border)] bg-[rgba(15,25,35,0.88)] px-4 py-3 text-[12px] text-[var(--muted)] backdrop-blur">
+              <div className="pointer-events-none absolute inset-x-6 top-6 rounded-[10px] border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm px-4 py-3 text-[12px] text-[var(--muted)] backdrop-blur">
                 Select a day to see your route.
               </div>
             ) : null}
             {selectedDay && !visibleAppointments.length ? (
-              <div className="pointer-events-none absolute inset-x-6 top-6 rounded-[10px] border border-[var(--border)] bg-[rgba(15,25,35,0.88)] px-4 py-3 text-[12px] text-[var(--muted)] backdrop-blur">
+              <div className="pointer-events-none absolute inset-x-6 top-6 rounded-[10px] border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm px-4 py-3 text-[12px] text-[var(--muted)] backdrop-blur">
                 No scheduled stops for this day.
               </div>
             ) : null}

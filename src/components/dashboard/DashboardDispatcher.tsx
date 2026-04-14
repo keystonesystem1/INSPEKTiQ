@@ -82,7 +82,7 @@ export function DashboardDispatcher({
           <EmptyState message="No adjusters are marked available — update adjuster profiles in the Adjusters tab." />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ fontSize: '36px', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 900, color: 'var(--sage)' }}>
+            <div style={{ fontSize: '36px', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 900, color: 'var(--white)' }}>
               {stats.availableAdjusters}
             </div>
             <div style={{ fontSize: '13px', color: 'var(--muted)' }}>

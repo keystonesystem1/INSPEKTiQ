@@ -12,7 +12,7 @@ type AdjusterFilter = 'all' | 'available' | 'busy' | 'needs_setup';
 
 function getAvatarStyle(adjuster: AdjusterRow) {
   if (!adjuster.isActive) {
-    return { background: 'rgba(255,255,255,0.06)', color: 'var(--muted)', border: '1px solid var(--border)' };
+    return { background: 'var(--card-hi)', color: 'var(--muted)', border: '1px solid var(--border)' };
   }
   if (adjuster.availability === 'available') {
     return { background: 'var(--sage-dim)', color: 'var(--sage)', border: '1px solid rgba(91,194,115,0.2)' };
@@ -20,7 +20,7 @@ function getAvatarStyle(adjuster: AdjusterRow) {
   if (adjuster.availability === 'busy') {
     return { background: 'var(--orange-dim)', color: 'var(--orange)', border: '1px solid rgba(224,123,63,0.2)' };
   }
-  return { background: 'rgba(255,255,255,0.06)', color: 'var(--muted)', border: '1px solid var(--border)' };
+  return { background: 'var(--card-hi)', color: 'var(--muted)', border: '1px solid var(--border)' };
 }
 
 function getStatusBadge(adjuster: AdjusterRow) {

@@ -70,7 +70,7 @@ const fieldValue: CSSProperties = {
 
 const linkValue: CSSProperties = {
   ...fieldValue,
-  color: 'var(--sage)',
+  color: 'var(--white)',
 };
 
 const emptyValue: CSSProperties = {
@@ -220,7 +220,7 @@ export function ClaimRow({
                 fontFamily: 'Barlow Condensed, sans-serif',
                 fontWeight: 700,
                 fontSize: '14px',
-                color: 'var(--sage)',
+                color: 'var(--white)',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -261,7 +261,7 @@ export function ClaimRow({
                 fontSize: '9px',
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                background: 'rgba(255,255,255,0.05)',
+                background: 'var(--card-hi)',
                 color: 'var(--white)',
                 border: '1px solid var(--border)',
               }}
@@ -303,11 +303,11 @@ export function ClaimRow({
             <span style={fieldLabel}>Contacted</span>
             <span style={fieldValue}>
               {claim.milestones.contacted ? (
-                <span style={{ color: 'var(--sage)' }}>
+                <span style={{ color: 'var(--white)' }}>
                   {new Date(claim.milestones.contacted).toLocaleDateString()}
                 </span>
               ) : (
-                <span style={{ color: 'var(--sage)' }}>Contact Activity</span>
+                <span style={{ color: 'var(--muted)' }}>Contact Activity</span>
               )}
             </span>
           </div>
@@ -317,7 +317,7 @@ export function ClaimRow({
               {claim.milestones.inspection_completed ? (
                 <span>{new Date(claim.milestones.inspection_completed).toLocaleDateString()}</span>
               ) : (
-                <span style={{ color: 'var(--sage)' }}>Mark Inspected</span>
+                <span style={{ color: 'var(--muted)' }}>Mark Inspected</span>
               )}
             </span>
           </div>

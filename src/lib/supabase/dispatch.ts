@@ -342,14 +342,6 @@ export async function getAssignedActiveClaims(firmId: string): Promise<DispatchC
   const latestAppointmentByClaim = getLatestAppointmentsByClaim((appointmentRows ?? []) as RawAppointmentRow[]);
 
   return (claimRows as RawClaimRow[])
-    .filter((claim) => {
-      const appointment = latestAppointmentByClaim.get(claim.id);
-      if (appointment) {
-        return true;
-      }
-
-      return claim.status === 'assigned' || claim.status === 'accepted' || claim.status === 'contacted';
-    })
     .map((claim) => mapDispatchClaim(claim, latestAppointmentByClaim.get(claim.id)?.status ?? null));
 }
 

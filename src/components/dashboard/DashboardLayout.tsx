@@ -142,7 +142,7 @@ export function DashboardLayout({
       {/* Customizing hint */}
       {customizing ? (
         <div style={{
-          background: 'rgba(255,255,255,0.04)',
+          background: 'var(--surface)',
           border: '1px dashed var(--border)',
           borderRadius: 'var(--radius-lg)',
           padding: '10px 14px',

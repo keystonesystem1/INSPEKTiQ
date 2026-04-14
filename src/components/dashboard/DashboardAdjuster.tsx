@@ -100,7 +100,7 @@ export function DashboardAdjuster({
               href={`/claims/${appt.claimId}`}
               style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: '1px solid var(--border)', textDecoration: 'none', color: 'inherit' }}
             >
-              <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, color: 'var(--sage)', minWidth: '48px' }}>
+              <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, color: 'var(--white)', minWidth: '48px' }}>
                 {appt.arrivalTime}
               </div>
               <div style={{ flex: 1, fontSize: '13px' }}>

@@ -7,6 +7,7 @@ import type { Feature, LineString, Polygon } from 'geojson';
 import type { LassoFilterState } from '@/components/dispatch/LassoFilters';
 import { Button } from '@/components/ui/Button';
 import type { DispatchAdjuster, DispatchClaim } from '@/lib/types';
+import { useTheme } from '@/components/providers/ThemeProvider';
 
 interface DispatchMapProps {
   claims: DispatchClaim[];
@@ -30,6 +31,7 @@ const DRAW_MODE_FREEHAND = 'draw_freehand_polygon';
 const FREEHAND_DISTANCE_THRESHOLD = 0.00005;
 const MAP_STYLES = {
   dark: 'mapbox://styles/mapbox/dark-v11',
+  light: 'mapbox://styles/mapbox/light-v11',
   satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
 } as const;
 
@@ -499,7 +501,7 @@ function createClaimPinElement(claim: DispatchClaim, selected: boolean) {
   pin.style.display = 'flex';
   pin.style.alignItems = 'center';
   pin.style.justifyContent = 'center';
-  pin.style.border = selected ? '2px solid var(--sage)' : '2px solid rgba(255,255,255,0.2)';
+  pin.style.border = selected ? '2px solid var(--sage)' : '2px solid var(--border-hi)';
   pin.style.background = getClaimPinBackground(claim);
   pin.style.boxShadow = selected ? '0 0 0 4px rgba(91,194,115,0.22)' : 'none';
   pin.style.willChange = 'transform';
@@ -550,7 +552,7 @@ function createActivityPinElement(claim: DispatchClaim) {
   pin.style.display = 'flex';
   pin.style.alignItems = 'center';
   pin.style.justifyContent = 'center';
-  pin.style.border = '2px solid rgba(255,255,255,0.18)';
+  pin.style.border = '2px solid var(--border-hi)';
   pin.style.background = style.background;
   pin.style.filter = 'saturate(0.92)';
 
@@ -645,6 +647,10 @@ export function DispatchMap({
   const [showAdjusterActivity, setShowAdjusterActivity] = useState(false);
   const [lassoPreviewCount, setLassoPreviewCount] = useState(0);
   const [mapStyle, setMapStyle] = useState<MapStyleKey>('dark');
+  const { theme } = useTheme();
+  const resolvedTheme = theme === 'system'
+    ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+    : theme;
   const [is3D, setIs3D] = useState(false);
 
   const recenterMap = useCallback(() => {
@@ -719,7 +725,7 @@ export function DispatchMap({
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? '';
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: MAP_STYLES.dark,
+      style: MAP_STYLES[resolvedTheme as 'dark' | 'light'] ?? MAP_STYLES.dark,
       center: DEFAULT_CENTER,
       zoom: DEFAULT_ZOOM,
       attributionControl: false,
@@ -832,6 +838,13 @@ export function DispatchMap({
 
     mapRef.current.setStyle(MAP_STYLES[mapStyle]);
   }, [mapStyle]);
+
+  useEffect(() => {
+    if (!mapRef.current || !mapReady) return;
+    if (mapStyle === 'satellite') return;
+    const newStyle = MAP_STYLES[resolvedTheme as 'dark' | 'light'] ?? MAP_STYLES.dark;
+    mapRef.current.setStyle(newStyle);
+  }, [resolvedTheme, mapReady, mapStyle]);
 
   useEffect(() => {
     if (!mapRef.current || !mapReady) {
@@ -991,7 +1004,7 @@ export function DispatchMap({
   const lassoIndicatorCount = lassoActive ? lassoPreviewCount : selectedCount;
 
   return (
-    <section className="relative h-full min-h-0 overflow-hidden bg-[#080f18]">
+    <section className="relative h-full min-h-0 overflow-hidden bg-[var(--surface)]">
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
 
       <div className="absolute left-3 top-3 z-20 grid gap-1">

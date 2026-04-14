@@ -7,7 +7,7 @@ const tones: Record<BadgeTone, CSSProperties> = {
   orange: { background: 'var(--orange-dim)', color: 'var(--orange)', border: '1px solid rgba(224,123,63,0.2)' },
   red: { background: 'var(--red-dim)', color: 'var(--red)', border: '1px solid rgba(224,92,92,0.2)' },
   bronze: { background: 'var(--bronze-dim)', color: 'var(--bronze)', border: '1px solid rgba(201,168,76,0.2)' },
-  faint: { background: 'rgba(255,255,255,0.05)', color: 'var(--muted)', border: '1px solid var(--border)' },
+  faint: { background: 'var(--card-hi)', color: 'var(--muted)', border: '1px solid var(--border)' },
 };
 
 export function Badge({
