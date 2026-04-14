@@ -9,7 +9,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No IDs provided' }, { status: 400 });
   }
 
-  // Delete in dependency order — children before parent
+  // Fetch assignment IDs for these claims first — needed to delete invoices and claim_status_log
+  const { data: assignments } = await supabase
+    .from('claim_assignments')
+    .select('id')
+    .in('claim_id', ids);
+  const assignmentIds = (assignments ?? []).map((a: { id: string }) => a.id);
+
+  // Delete invoices and claim_status_log by assignment_id before claim_assignments
+  if (assignmentIds.length > 0) {
+    await supabase.from('invoices' as any).delete().in('assignment_id', assignmentIds);
+    await supabase.from('claim_status_log' as any).delete().in('assignment_id', assignmentIds);
+  }
+
+  // Delete claim_shares if table exists
+  await supabase.from('claim_shares' as any).delete().in('claim_id', ids);
+
+  // Delete all direct claim_id children in dependency order
   const tables = [
     'claim_milestones',
     'claim_notes',
@@ -31,7 +47,10 @@ export async function POST(request: Request) {
   ];
 
   for (const table of tables) {
-    await supabase.from(table as any).delete().in('claim_id', ids);
+    const { error: childError } = await supabase.from(table as any).delete().in('claim_id', ids);
+    if (childError) {
+      return NextResponse.json({ error: `Failed deleting ${table}: ${childError.message}` }, { status: 500 });
+    }
   }
 
   const { error } = await supabase.from('claims').delete().in('id', ids);

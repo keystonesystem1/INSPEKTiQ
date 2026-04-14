@@ -87,6 +87,9 @@ export function ClaimsList({
       if (res.ok) {
         setSelectedIds(new Set());
         window.location.reload();
+      } else {
+        const data = await res.json();
+        window.alert(`Delete failed: ${data.error ?? 'Unknown error'}`);
       }
     } finally {
       setIsDeleting(false);
