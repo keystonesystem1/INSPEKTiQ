@@ -35,7 +35,7 @@ function mapClaimRow(raw: RawClaim, adjusterEmail?: string): Claim {
 
   return {
     id: raw.id,
-    number: raw.claim_number ?? 'UNPARSED',
+    number: raw.claim_number ?? '—',
     isArchived: raw.is_archived ?? false,
     insured: raw.insured_name ?? 'Unknown',
     insuredPhone: raw.insured_phone ?? '',

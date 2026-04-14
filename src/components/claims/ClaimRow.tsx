@@ -19,7 +19,13 @@ function toneForStatus(status: ClaimStatus) {
 function accentColorVar(status: ClaimStatus): string {
   if (status === 'pending_acceptance') return 'var(--bronze)';
   if (status === 'approved' || status === 'submitted' || status === 'closed') return 'var(--sage)';
-  if (status === 'in_review' || status === 'scheduled' || status === 'inspected') return 'var(--orange)';
+  if (
+    status === 'in_review' ||
+    status === 'scheduled' ||
+    status === 'inspection_started' ||
+    status === 'inspection_completed'
+  )
+    return 'var(--orange)';
   if (status === 'received' || status === 'on_hold') return 'var(--red)';
   return 'var(--blue)';
 }
@@ -308,8 +314,8 @@ export function ClaimRow({
           <div style={fieldRow}>
             <span style={fieldLabel}>Inspected</span>
             <span style={fieldValue}>
-              {claim.milestones.inspected ? (
-                <span>{new Date(claim.milestones.inspected).toLocaleDateString()}</span>
+              {claim.milestones.inspection_completed ? (
+                <span>{new Date(claim.milestones.inspection_completed).toLocaleDateString()}</span>
               ) : (
                 <span style={{ color: 'var(--sage)' }}>Mark Inspected</span>
               )}

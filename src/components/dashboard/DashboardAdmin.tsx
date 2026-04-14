@@ -17,6 +17,13 @@ const LABEL: React.CSSProperties = {
   marginBottom: '14px',
 };
 
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
 function EmptyState({ message }: { message: string }) {
   return <p style={{ color: 'var(--muted)', fontSize: '13px', margin: 0 }}>{message}</p>;
 }
@@ -133,7 +140,7 @@ export function DashboardAdmin({
   const header = (
     <div>
       <h1 style={{ margin: 0, fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '26px', letterSpacing: '0.04em' }}>
-        {`Good morning, ${greetingName}.`}
+        {`${getGreeting()}, ${greetingName}.`}
       </h1>
       <p style={{ margin: '6px 0 0', color: 'var(--muted)' }}>
         {`Today, ${subtitleDate} · ${firmName} · Your daily brief is ready.`}

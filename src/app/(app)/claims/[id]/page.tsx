@@ -5,6 +5,7 @@ import { getClaimDocuments } from '@/lib/supabase/documents';
 import { getInspectionData } from '@/lib/supabase/inspections';
 import { getClaimNotes } from '@/lib/supabase/notes';
 import { requireAuthenticatedFirmUser } from '@/lib/supabase/user';
+import { buildSyntheticTimeline } from '@/lib/utils/timeline';
 import { Card } from '@/components/ui/Card';
 import { ClaimHeader } from '@/components/claims/ClaimDetail/ClaimHeader';
 import { MilestoneBar } from '@/components/claims/ClaimDetail/MilestoneBar';
@@ -66,7 +67,7 @@ export default async function ClaimDetailPage({
         <ClaimHeader claim={claim} role={role} adjusters={adjusters} />
         <MilestoneBar claim={claim} />
       </Card>
-      <ClaimTabs claim={claim} role={role} notes={notes} documents={documents} inspection={inspection} timeline={[]} contacts={contacts} initialTab={tab} />
+      <ClaimTabs claim={claim} role={role} notes={notes} documents={documents} inspection={inspection} timeline={buildSyntheticTimeline(claim)} contacts={contacts} initialTab={tab} />
     </div>
   );
 }

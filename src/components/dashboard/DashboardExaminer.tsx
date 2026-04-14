@@ -18,7 +18,7 @@ const LABEL: React.CSSProperties = {
 
 const STATUS_TONE: Record<string, 'orange' | 'sage' | 'faint'> = {
   in_review: 'orange',
-  inspected: 'faint',
+  inspection_completed: 'faint',
   approved: 'sage',
 };
 

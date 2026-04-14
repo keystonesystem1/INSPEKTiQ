@@ -19,19 +19,20 @@ export default async function BillingPage() {
       />
       <div
         style={{
-          border: '1px solid rgba(224,123,63,0.35)',
-          background: 'rgba(224,123,63,0.08)',
-          color: 'var(--orange)',
+          border: '1px solid var(--border)',
+          background: 'var(--surface)',
           borderRadius: 'var(--radius-lg)',
-          padding: '12px 16px',
-          fontFamily: 'Barlow Condensed, sans-serif',
-          fontWeight: 700,
-          fontSize: '12px',
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
+          padding: '32px',
+          textAlign: 'center',
+          color: 'var(--muted)',
         }}
       >
-        Billing module not yet configured — invoice generation and fee schedules are coming in a future release.
+        <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '20px', letterSpacing: '0.06em', color: 'var(--white)', marginBottom: '8px' }}>
+          Coming Soon
+        </div>
+        <p style={{ margin: 0, fontSize: '13px' }}>
+          Invoice generation, fee schedules, and examiner billing review are in active development.
+        </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3" style={{ gap: '12px' }}>
         <StatCard label="Pending Invoices" value="—" accent="var(--orange)" />

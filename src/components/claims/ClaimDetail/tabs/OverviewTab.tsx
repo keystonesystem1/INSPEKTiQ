@@ -19,8 +19,8 @@ export function OverviewTab({ claim, role, documentCount }: { claim: Claim; role
         className={isCarrierRole ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'}
         style={{ gap: '12px' }}
       >
-        <Card><div style={{ color: 'var(--muted)', fontSize: '11px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.14em' }}>Claim Status + SLA</div><div style={{ marginTop: '8px' }}>{claim.status.replace('_', ' ')}</div></Card>
-        <Card><div style={{ color: 'var(--muted)', fontSize: '11px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.14em' }}>Key Contacts</div><div style={{ marginTop: '8px' }}>Insured, adjuster, examiner</div></Card>
+        <Card><div style={{ color: 'var(--muted)', fontSize: '11px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.14em' }}>Claim Status + SLA</div><div style={{ marginTop: '8px' }}><div style={{ textTransform: 'capitalize' }}>{claim.status.replace(/_/g, ' ')}</div><div style={{ color: 'var(--muted)', fontSize: '11px', marginTop: '4px' }}>Due {claim.dueDate?.slice(0, 10) ?? '—'}</div></div></Card>
+        <Card><div style={{ color: 'var(--muted)', fontSize: '11px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.14em' }}>Key Contacts</div><div style={{ marginTop: '8px', fontSize: '12px', lineHeight: '1.7' }}><div><strong style={{ color: 'var(--white)' }}>Insured</strong> {claim.insured}</div>{claim.adjuster ? <div><strong style={{ color: 'var(--white)' }}>Adjuster</strong> {claim.adjuster}</div> : null}{claim.examiner ? <div><strong style={{ color: 'var(--white)' }}>Examiner</strong> {claim.examiner}</div> : null}</div></Card>
         {!isCarrierRole ? (
           <Card><div style={{ color: 'var(--muted)', fontSize: '11px', textTransform: 'uppercase', fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.14em' }}>Reserves Total</div><div style={{ marginTop: '8px' }}>${claim.reserveTotal.toLocaleString()}</div></Card>
         ) : null}

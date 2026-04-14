@@ -75,7 +75,7 @@ export default function SignInPage() {
             Sign In
           </h1>
           <p style={{ margin: '8px 0 0', color: 'var(--muted)' }}>
-            Phase 2 shell wired for role-based navigation and protected routes.
+            The intelligent claims management platform for independent adjusting firms.
           </p>
         </div>
 
@@ -109,7 +109,7 @@ export default function SignInPage() {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', gap: '12px' }}>
           <p style={{ margin: 0, color: 'var(--faint)', maxWidth: '280px' }}>
-            Supabase credentials remain untouched. Sign in now uses the live auth session instead of the demo cookie path.
+            Need access? Contact your firm administrator.
           </p>
           <Button onClick={handleSignIn} disabled={submitting}>
             {submitting ? 'Signing In' : 'Enter Workspace'}

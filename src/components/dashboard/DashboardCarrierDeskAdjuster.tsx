@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { StatCard } from '@/components/ui/StatCard';
@@ -7,9 +8,11 @@ const ACTIVE_STATUSES = new Set<ClaimStatus>([
   'received',
   'assigned',
   'accepted',
+  'contact_attempted',
   'contacted',
   'scheduled',
-  'inspected',
+  'inspection_started',
+  'inspection_completed',
   'in_review',
   'approved',
   'pending_te',
@@ -39,24 +42,29 @@ export function DashboardCarrierDeskAdjuster({ claims }: { claims: Claim[] }) {
         ) : (
           <div style={{ display: 'grid', gap: '8px' }}>
             {active.slice(0, 8).map((claim) => (
-              <div
+              <Link
                 key={claim.id}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr auto',
-                  gap: '12px',
-                  padding: '10px 12px',
-                  background: 'var(--card)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md)',
-                }}
+                href={`/claims/${claim.id}`}
+                style={{ textDecoration: 'none', color: 'inherit' }}
               >
-                <div>
-                  <div style={{ fontSize: '13px', color: 'var(--white)' }}>{claim.insured}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{claim.number} · {claim.address}</div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto',
+                    gap: '12px',
+                    padding: '10px 12px',
+                    background: 'var(--card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-md)',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '13px', color: 'var(--white)' }}>{claim.insured}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{claim.number} · {claim.address}</div>
+                  </div>
+                  <Badge tone="blue">{claim.status.replace(/_/g, ' ')}</Badge>
                 </div>
-                <Badge tone="blue">{claim.status.replace(/_/g, ' ')}</Badge>
-              </div>
+              </Link>
             ))}
           </div>
         )}

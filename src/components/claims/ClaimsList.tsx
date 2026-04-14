@@ -12,7 +12,7 @@ const claimFilters: Array<{ label: string; value: ClaimStatus | 'all' }> = [
   { label: 'Assigned', value: 'assigned' },
   { label: 'Accepted', value: 'accepted' },
   { label: 'Scheduled', value: 'scheduled' },
-  { label: 'Inspected', value: 'inspected' },
+  { label: 'Inspection completed', value: 'inspection_completed' },
   { label: 'In Review', value: 'in_review' },
   { label: 'Approved', value: 'approved' },
   { label: 'Submitted', value: 'submitted' },

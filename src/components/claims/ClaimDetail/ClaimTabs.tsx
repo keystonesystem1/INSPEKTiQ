@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import type { ClaimDocuments } from '@/lib/supabase/documents';
 import type { ClaimInspectionData } from '@/lib/supabase/inspections';
 import type { Claim, ClaimContactsData, NoteItem, Role, TimelineItem } from '@/lib/types';
-import { Button } from '@/components/ui/Button';
 import { OverviewTab } from '@/components/claims/ClaimDetail/tabs/OverviewTab';
 import { ContactsTab } from '@/components/claims/ClaimDetail/tabs/ContactsTab';
 import { NotesTab } from '@/components/claims/ClaimDetail/tabs/NotesTab';
@@ -22,7 +21,6 @@ import { CarrierFormsTab } from '@/components/claims/ClaimDetail/tabs/CarrierFor
 import { FirmFormsTab } from '@/components/claims/ClaimDetail/tabs/FirmFormsTab';
 import { LinksTab } from '@/components/claims/ClaimDetail/tabs/LinksTab';
 import { TimelineTab } from '@/components/claims/ClaimDetail/tabs/TimelineTab';
-import { OverviewCustomizer } from '@/components/claims/ClaimDetail/OverviewCustomizer';
 
 const ALL_TABS = ['Overview', 'Contacts', 'Notes', 'Documents', 'Photos', 'Inspection', 'Time & Expense', 'Tasks', 'Reserves', 'Claimants', 'Coverages', 'Loss Locations', 'Carrier Forms', 'Firm Forms', 'Links', 'Timeline'] as const;
 
@@ -91,7 +89,6 @@ export function ClaimTabs({
   }
 
   const [activeTab, setActiveTab] = useState<Tab>(resolveInitialTab);
-  const [customizerOpen, setCustomizerOpen] = useState(false);
 
   function handleTabChange(tab: Tab) {
     setActiveTab(tab);
@@ -123,11 +120,6 @@ export function ClaimTabs({
           </button>
         ))}
         <div style={{ flex: 1 }} />
-        {!isCarrierRole ? (
-          <Button variant={customizerOpen ? 'primary' : 'ghost'} size="sm" onClick={() => setCustomizerOpen((value) => !value)} style={{ marginLeft: '12px' }}>
-            Customize Overview
-          </Button>
-        ) : null}
       </div>
 
       <div style={{ paddingTop: '20px' }}>
@@ -149,7 +141,6 @@ export function ClaimTabs({
         {activeTab === 'Timeline' ? <TimelineTab items={timeline} /> : null}
       </div>
 
-      <OverviewCustomizer open={customizerOpen} onClose={() => setCustomizerOpen(false)} />
     </div>
   );
 }

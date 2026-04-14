@@ -50,7 +50,20 @@ interface RawCarrierFirmUserRow {
 const CARRIER_COLUMNS =
   'id, firm_id, name, contact_name, contact_email, phone, address, city, state, zip, billing_preference, billing_contact_name, billing_contact_email, billing_address, billing_city, billing_state, billing_zip, portal_enabled, invite_status, logo_url, notes, guidelines_url, guidelines_notes, is_active, created_at';
 
-const ACTIVE_CLAIM_STATUSES = new Set(['received', 'assigned', 'accepted', 'contacted', 'scheduled', 'inspected', 'in_review', 'approved', 'pending_te', 'on_hold']);
+const ACTIVE_CLAIM_STATUSES = new Set([
+  'received',
+  'assigned',
+  'accepted',
+  'contact_attempted',
+  'contacted',
+  'scheduled',
+  'inspection_started',
+  'inspection_completed',
+  'in_review',
+  'approved',
+  'pending_te',
+  'on_hold',
+]);
 
 function normalizeBillingPreference(value: string | null): 'desk_adjuster' | 'billing_contact' {
   return value === 'billing_contact' ? 'billing_contact' : 'desk_adjuster';

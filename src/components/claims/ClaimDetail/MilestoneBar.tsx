@@ -4,9 +4,11 @@ const stages: Array<{ key: MilestoneKey; label: string }> = [
   { key: 'received', label: 'Received' },
   { key: 'assigned', label: 'Assigned' },
   { key: 'accepted', label: 'Accepted' },
+  { key: 'contact_attempted', label: 'Contact attempted' },
   { key: 'contacted', label: 'Contacted' },
   { key: 'scheduled', label: 'Scheduled' },
-  { key: 'inspected', label: 'Inspected' },
+  { key: 'inspection_started', label: 'Inspection started' },
+  { key: 'inspection_completed', label: 'Inspection completed' },
   { key: 'in_review', label: 'In Review' },
   { key: 'approved', label: 'Approved' },
   { key: 'submitted', label: 'Submitted' },
@@ -19,18 +21,24 @@ function getStageKeyFromStatus(status: Claim['status']): MilestoneKey {
       return 'assigned';
     case 'accepted':
       return 'accepted';
+    case 'contact_attempted':
+      return 'contact_attempted';
     case 'contacted':
       return 'contacted';
     case 'scheduled':
       return 'scheduled';
-    case 'inspected':
-      return 'inspected';
+    case 'inspection_started':
+      return 'inspection_started';
+    case 'inspection_completed':
+      return 'inspection_completed';
     case 'in_review':
     case 'pending_te':
     case 'pending_carrier_direction':
     case 'pending_engineer':
     case 'on_hold':
       return 'in_review';
+    case 'needs_attention':
+      return 'received';
     case 'approved':
       return 'approved';
     case 'submitted':

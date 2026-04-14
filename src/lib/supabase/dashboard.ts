@@ -1,7 +1,23 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 
-const ACTIVE_STATUSES = ['received', 'assigned', 'accepted', 'contacted', 'scheduled', 'inspected', 'in_review', 'approved', 'on_hold', 'needs_attention', 'pending_te', 'pending_carrier_direction', 'pending_engineer'];
+const ACTIVE_STATUSES = [
+  'received',
+  'assigned',
+  'accepted',
+  'contact_attempted',
+  'contacted',
+  'scheduled',
+  'inspection_started',
+  'inspection_completed',
+  'in_review',
+  'approved',
+  'on_hold',
+  'needs_attention',
+  'pending_te',
+  'pending_carrier_direction',
+  'pending_engineer',
+];
 
 export async function getDashboardStats(firmId: string) {
   const supabase = await createClient();
@@ -71,6 +87,8 @@ export interface AdjusterDashboardData {
     arrivalTime: string;
     endTime: string;
     status: string;
+    insuredName: string;
+    lossAddress: string;
   }>;
   stats: {
     active: number;
@@ -103,12 +121,13 @@ export async function getAdjusterDashboardData(firmId: string, adjusterUserId: s
 
   const claims = (claimRows ?? []) as RawClaimRow[];
   const appointments = (appointmentRows ?? []) as RawAppointmentRow[];
+  const claimById = new Map(claims.map((c) => [c.id, c]));
 
   const activeClaims = claims
     .filter((c) => ACTIVE_STATUSES.includes(c.status ?? ''))
     .map((c) => ({
       id: c.id,
-      number: c.claim_number ?? 'UNPARSED',
+      number: c.claim_number ?? '—',
       insured: c.insured_name ?? 'Unknown',
       address: c.loss_address ?? '',
       carrier: c.carrier ?? '',
@@ -142,6 +161,8 @@ export async function getAdjusterDashboardData(firmId: string, adjusterUserId: s
       arrivalTime: a.arrival_time.slice(0, 5),
       endTime: a.end_time.slice(0, 5),
       status: a.status,
+      insuredName: claimById.get(a.claim_id)?.insured_name ?? '—',
+      lossAddress: claimById.get(a.claim_id)?.loss_address ?? '',
     })),
     stats: {
       active: activeClaims.length,
@@ -203,7 +224,7 @@ export async function getDispatcherDashboardData(firmId: string): Promise<Dispat
   return {
     unassignedClaims: claims.map((c) => ({
       id: c.id,
-      number: c.claim_number ?? 'UNPARSED',
+      number: c.claim_number ?? '—',
       insured: c.insured_name ?? 'Unknown',
       address: c.loss_address ?? '',
       carrier: c.carrier ?? '',
@@ -243,7 +264,7 @@ export async function getExaminerDashboardData(firmId: string): Promise<Examiner
       .select('id, claim_number, insured_name, loss_address, carrier, status')
       .eq('firm_id', firmId)
       .eq('is_archived', false)
-      .in('status', ['in_review', 'inspected'])
+      .in('status', ['in_review', 'inspection_completed'])
       .order('created_at', { ascending: true })
       .limit(20),
     supabase
@@ -262,7 +283,7 @@ export async function getExaminerDashboardData(firmId: string): Promise<Examiner
   return {
     reviewQueue: claims.map((c) => ({
       id: c.id,
-      number: c.claim_number ?? 'UNPARSED',
+      number: c.claim_number ?? '—',
       insured: c.insured_name ?? 'Unknown',
       address: c.loss_address ?? '',
       carrier: c.carrier ?? '',

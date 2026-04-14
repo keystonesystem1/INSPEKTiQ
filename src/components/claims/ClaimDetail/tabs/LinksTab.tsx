@@ -12,9 +12,6 @@ export function LinksTab({ claim }: { claim: Claim }) {
 
   return (
     <Card>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
-        <Button size="sm">Add Link</Button>
-      </div>
       {links.map(([label, href], index) => (
         <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
           <div>

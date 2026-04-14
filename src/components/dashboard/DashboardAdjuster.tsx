@@ -17,10 +17,24 @@ const LABEL: React.CSSProperties = {
 };
 
 const STATUS_TONE: Record<string, 'sage' | 'orange' | 'blue' | 'red' | 'faint'> = {
-  assigned: 'blue', accepted: 'blue', contacted: 'blue',
-  scheduled: 'sage', inspected: 'sage', in_review: 'orange',
-  on_hold: 'faint', needs_attention: 'red',
+  assigned: 'blue',
+  accepted: 'blue',
+  contact_attempted: 'blue',
+  contacted: 'blue',
+  scheduled: 'sage',
+  inspection_started: 'sage',
+  inspection_completed: 'sage',
+  in_review: 'orange',
+  on_hold: 'faint',
+  needs_attention: 'red',
 };
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
 
 function EmptyState({ message }: { message: string }) {
   return <p style={{ color: 'var(--muted)', fontSize: '13px', margin: 0 }}>{message}</p>;
@@ -89,7 +103,10 @@ export function DashboardAdjuster({
               <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, color: 'var(--sage)', minWidth: '48px' }}>
                 {appt.arrivalTime}
               </div>
-              <div style={{ flex: 1, fontSize: '13px' }}>View Claim</div>
+              <div style={{ flex: 1, fontSize: '13px' }}>
+                <div style={{ fontWeight: 600, color: 'var(--white)' }}>{appt.insuredName}</div>
+                {appt.lossAddress ? <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>{appt.lossAddress}</div> : null}
+              </div>
               <Badge tone={appt.status === 'confirmed' ? 'sage' : 'orange'}>{appt.status}</Badge>
             </a>
           ))
@@ -101,7 +118,7 @@ export function DashboardAdjuster({
   const header = (
     <div>
       <h1 style={{ margin: 0, fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 800, fontSize: '26px' }}>
-        Good morning, {firstName}.
+        {getGreeting()}, {firstName}.
       </h1>
       <p style={{ margin: '6px 0 0', color: 'var(--muted)' }}>Your daily brief.</p>
     </div>

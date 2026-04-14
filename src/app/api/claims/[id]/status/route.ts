@@ -9,9 +9,11 @@ const allowedStatuses: ClaimStatus[] = [
   'received',
   'assigned',
   'accepted',
+  'contact_attempted',
   'contacted',
   'scheduled',
-  'inspected',
+  'inspection_started',
+  'inspection_completed',
   'in_review',
   'approved',
   'submitted',
@@ -20,6 +22,7 @@ const allowedStatuses: ClaimStatus[] = [
   'pending_te',
   'pending_carrier_direction',
   'pending_engineer',
+  'needs_attention',
 ];
 
 export async function PATCH(

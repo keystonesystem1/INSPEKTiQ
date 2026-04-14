@@ -12,12 +12,15 @@ import { AssignAdjusterModal } from '@/components/claims/ClaimDetail/AssignAdjus
 import { ClaimFormModal, getClaimFormValues } from '@/components/claims/ClaimFormModal';
 
 const statusOptions: ClaimStatus[] = [
+  'pending_acceptance',
   'received',
   'assigned',
   'accepted',
+  'contact_attempted',
   'contacted',
   'scheduled',
-  'inspected',
+  'inspection_started',
+  'inspection_completed',
   'in_review',
   'approved',
   'submitted',
@@ -26,6 +29,7 @@ const statusOptions: ClaimStatus[] = [
   'pending_te',
   'pending_carrier_direction',
   'pending_engineer',
+  'needs_attention',
 ];
 
 export function ClaimHeader({
@@ -132,9 +136,6 @@ export function ClaimHeader({
             <Button size="sm" variant="ghost" onClick={() => updateStatus('submitted')} disabled={isPending}>
               Submit to Carrier
             </Button>
-          ) : null}
-          {!['carrier', 'carrier_admin', 'carrier_desk_adjuster'].includes(role) ? (
-            <Button variant="ghost" size="sm" disabled={isPending}>Request Changes</Button>
           ) : null}
           <div style={{ position: 'relative' }}>
             <Button variant="ghost" size="sm" onClick={() => setMenuOpen((value) => !value)} disabled={isPending}>
