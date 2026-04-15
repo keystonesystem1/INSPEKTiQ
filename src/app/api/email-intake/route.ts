@@ -42,7 +42,10 @@ function parseLabelValueText(text: string) {
 
 function parseClaimNumber(subject: string) {
   const match = subject.match(/[A-Z]{2}-\d{7}/);
-  return match?.[0] ?? 'UNPARSED';
+  if (match?.[0]) return match[0];
+  const now = new Date();
+  const random = crypto.randomUUID().replace(/-/g, '').slice(0, 6).toUpperCase();
+  return `EML-${now.getFullYear()}-${random}`;
 }
 
 /**
@@ -63,15 +66,15 @@ function extractToToken(toField: string): string | null {
   return token || null;
 }
 
-async function resolveFirmByToken(token: string): Promise<{ id: string } | null> {
+async function resolveFirmByToken(token: string): Promise<{ id: string; name: string } | null> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('firms')
-    .select('id')
+    .select('id, name')
     .eq('intake_token', token.toLowerCase())
     .maybeSingle();
   if (error || !data) return null;
-  return { id: (data as { id: string }).id };
+  return { id: (data as { id: string; name: string }).id, name: (data as { id: string; name: string }).name };
 }
 
 function sanitizeFilename(name: string) {
@@ -170,6 +173,8 @@ export async function POST(request: Request) {
   const record = {
     ...baseRecord,
     firm_id: firm.id,
+    firm_name: firm.name,
+    policy_type: 'Residential',
     status: 'received',
   };
 
