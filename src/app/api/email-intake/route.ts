@@ -186,6 +186,7 @@ export async function POST(request: Request) {
     .single();
 
   if (error) {
+    console.error('[email-intake] claim insert failed:', JSON.stringify({ message: error.message, code: error.code, details: error.details, hint: error.hint, record }));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
