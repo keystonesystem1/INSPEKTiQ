@@ -69,19 +69,20 @@ export function MilestoneBar({ claim }: { claim: Claim }) {
                   width: '22px',
                   height: '22px',
                   borderRadius: '50%',
-                  border: `2px solid ${done ? 'var(--sage)' : current ? 'var(--orange)' : 'var(--border)'}`,
-                  background: done ? 'var(--sage)' : current ? 'var(--orange-dim)' : 'var(--bg)',
-                  color: done ? '#06120C' : current ? 'var(--orange)' : 'var(--faint)',
+                  border: `2px solid ${done ? 'var(--sage)' : current ? 'var(--sage)' : 'var(--border)'}`,
+                  background: done ? 'var(--sage)' : current ? 'var(--white)' : 'var(--bg)',
+                  color: done ? '#06120C' : current ? 'var(--bg)' : 'var(--faint)',
                   display: 'grid',
                   placeItems: 'center',
                   fontFamily: 'Barlow Condensed, sans-serif',
                   fontWeight: 800,
                   fontSize: '9px',
+                  boxShadow: current ? '0 0 0 3px rgba(91,194,115,0.2)' : 'none',
                 }}
               >
-                {done ? '✓' : '•'}
+                {done ? '✓' : current ? '●' : '•'}
               </div>
-              <div style={{ marginTop: '4px', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '9px', letterSpacing: '0.07em', textTransform: 'uppercase', color: done ? 'var(--sage)' : current ? 'var(--orange)' : 'var(--faint)' }}>
+              <div style={{ marginTop: '4px', fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '9px', letterSpacing: '0.07em', textTransform: 'uppercase', color: done ? 'var(--sage)' : current ? 'var(--white)' : 'var(--faint)' }}>
                 {stage.label}
               </div>
             </div>
