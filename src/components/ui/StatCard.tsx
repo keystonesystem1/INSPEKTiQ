@@ -15,8 +15,7 @@ export function StatCard({
     <Card
       style={{
         padding: '20px',
-        background:
-          'linear-gradient(180deg, rgba(24,24,25,0.98), rgba(24,24,25,0.78))',
+        background: 'var(--card)',
       }}
     >
       <span

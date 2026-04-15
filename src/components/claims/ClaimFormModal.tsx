@@ -102,7 +102,7 @@ export function ClaimFormModal({
 
   async function handleSubmit() {
     if (!values.insuredName || !values.lossAddress || !values.carrier || !values.lossType || !values.dateOfLoss) {
-      setError('Insured name, loss address, carrier, loss type, and date of loss are required.');
+      setError('Insured name, loss address, carrier, cause of loss, and date of loss are required.');
       return;
     }
 
@@ -165,7 +165,7 @@ export function ClaimFormModal({
           <FormInput label="Zip" value={values.zip} onChange={(value) => setField('zip', value)} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <FormInput label="Loss Type" value={values.lossType} onChange={(value) => setField('lossType', value)} />
+          <FormInput label="Cause of Loss" value={values.lossType} onChange={(value) => setField('lossType', value)} />
           <label style={{ display: 'grid', gap: '5px' }}>
             <span style={{ fontFamily: 'Barlow Condensed, sans-serif', fontWeight: 700, fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>
               Claim Category

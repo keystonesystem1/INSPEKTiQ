@@ -25,8 +25,10 @@ function matchSummary(wf: WorkflowRow): string {
   return parts.join(' · ');
 }
 
-export function WorkflowList({ workflows }: WorkflowListProps) {
+export function WorkflowList({ workflows: initialWorkflows }: WorkflowListProps) {
+  const [workflows, setWorkflows] = useState<WorkflowRow[]>(initialWorkflows);
   const [filter, setFilter] = useState<StatusFilter>('all');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const filtered = filter === 'all'
     ? workflows
@@ -37,6 +39,24 @@ export function WorkflowList({ workflows }: WorkflowListProps) {
     { label: 'Active', value: 'active', count: workflows.filter((w) => deriveStatus(w) === 'active').length },
     { label: 'Draft', value: 'draft', count: workflows.filter((w) => deriveStatus(w) === 'draft').length },
   ];
+
+  async function handleDelete(wf: WorkflowRow) {
+    if (!window.confirm('Delete this workflow? This cannot be undone.')) return;
+    setDeletingId(wf.id);
+    try {
+      const res = await fetch(`/api/workflows/${wf.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        alert(body.error ?? 'Failed to delete workflow.');
+        return;
+      }
+      setWorkflows((prev) => prev.filter((w) => w.id !== wf.id));
+    } catch {
+      alert('Failed to delete workflow.');
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <div>
@@ -102,7 +122,7 @@ export function WorkflowList({ workflows }: WorkflowListProps) {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
-                {['Workflow Name', 'Status', 'Match Criteria', 'Claim Type', 'Loss Type', 'Property', 'Updated'].map((col) => (
+                {['Workflow Name', 'Status', 'Match Criteria', 'Claim Type', 'Loss Type', 'Property', 'Updated', ''].map((col) => (
                   <th
                     key={col}
                     style={{
@@ -130,7 +150,7 @@ export function WorkflowList({ workflows }: WorkflowListProps) {
                   <tr
                     key={wf.id}
                     style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
-                    onClick={() => window.location.href = `/workflow-studio/${wf.id}`}
+                    onClick={() => { window.location.href = `/workflow-studio/${wf.id}`; }}
                   >
                     <td style={{ padding: '12px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -163,6 +183,15 @@ export function WorkflowList({ workflows }: WorkflowListProps) {
                     <td style={{ padding: '12px 14px', fontSize: '11px', color: 'var(--faint)' }}>
                       {wf.updatedAt}
                     </td>
+                    <td
+                      style={{ padding: '12px 14px' }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <DeleteButton
+                        disabled={deletingId === wf.id}
+                        onClick={() => void handleDelete(wf)}
+                      />
+                    </td>
                   </tr>
                 );
               })}
@@ -171,5 +200,39 @@ export function WorkflowList({ workflows }: WorkflowListProps) {
         </div>
       )}
     </div>
+  );
+}
+
+function DeleteButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      title="Delete workflow"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '28px',
+        height: '28px',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-md)',
+        background: 'transparent',
+        color: hovered ? 'var(--red)' : 'var(--faint)',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.4 : 1,
+        transition: 'color 0.15s, border-color 0.15s',
+        borderColor: hovered ? 'var(--red)' : 'var(--border)',
+      }}
+    >
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M1.5 3.5h10M5 3.5V2.5a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1M2.5 3.5l.7 7a1 1 0 0 0 1 .93h4.6a1 1 0 0 0 1-.93l.7-7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </button>
   );
 }

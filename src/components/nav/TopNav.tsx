@@ -49,10 +49,10 @@ export function TopNav({ user }: { user: UserSession }) {
         display: 'flex',
         alignItems: 'center',
         padding: '0 24px',
-        background: 'rgba(9, 9, 9, 0.92)',
+        background: 'var(--surface)',
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid var(--border)',
-        boxShadow: '0 1px 0 rgba(0, 0, 0, 0.4)',
+        boxShadow: '0 1px 0 var(--border)',
         zIndex: 100,
       }}
     >
@@ -95,9 +95,9 @@ export function TopNav({ user }: { user: UserSession }) {
             onChange={(e) => handleSearch(e.target.value)}
             style={{
               width: '260px',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: '0',
+              background: 'var(--card-hi)',
+              border: '1px solid var(--border-hi)',
+              borderRadius: 'var(--radius-md)',
               color: 'var(--white)',
               padding: '7px 12px 7px 34px',
             }}
