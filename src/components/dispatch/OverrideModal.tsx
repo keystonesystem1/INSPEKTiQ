@@ -56,7 +56,7 @@ export function OverrideModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[320] flex items-center justify-center bg-[rgba(0,0,0,0.65)] px-6">
+    <div className="fixed inset-0 z-[320] flex items-center justify-center bg-[rgba(0,0,0,0.45)] px-6">
       <div className="w-[min(420px,90vw)] overflow-hidden rounded-[12px] border border-[rgba(224,123,63,0.4)] bg-[var(--surface)]">
         <div className="border-b border-[rgba(224,123,63,0.2)] bg-[var(--orange-dim)] px-5 py-4">
           <div className="font-['Barlow_Condensed'] text-[15px] font-extrabold tracking-[0.04em] text-[var(--orange)]">

@@ -145,7 +145,7 @@ export function ClaimsList({
             onClick={() => void handleDeleteSelected()}
             disabled={isDeleting}
             style={{
-              background: '#c0392b',
+              background: 'var(--red)',
               color: '#fff',
               border: 'none',
               borderRadius: 'var(--radius-md)',

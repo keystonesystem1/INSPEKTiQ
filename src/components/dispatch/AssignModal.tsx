@@ -96,7 +96,7 @@ export function AssignModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[rgba(0,0,0,0.65)] px-6">
+      <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[rgba(0,0,0,0.45)] px-6">
         <div className="w-[min(540px,92vw)] overflow-hidden rounded-[12px] border border-[var(--border-hi)] bg-[var(--surface)]">
           <div className="border-b border-[var(--border)] px-6 py-5">
             <div className="font-['Barlow_Condensed'] text-[18px] font-extrabold tracking-[0.04em] text-[var(--white)]">

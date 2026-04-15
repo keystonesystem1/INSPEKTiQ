@@ -199,7 +199,7 @@ export function MonthCalendar({
                 setDragOverDate(null);
                 onOpenSchedule(claimId || undefined, dateKey);
               }}
-              className={`relative flex min-h-0 flex-col border-b border-r border-[var(--border)] px-3 py-2 text-left transition hover:bg-[rgba(255,255,255,0.02)] ${
+              className={`relative flex min-h-0 flex-col border-b border-r border-[var(--border)] px-3 py-2 text-left transition hover:bg-[var(--card-hi)] ${
                 dragOverDate === dateKey ? 'outline outline-1 outline-dashed outline-[var(--sage)] bg-[rgba(91,194,115,0.08)]' : ''
               } ${index % 7 === 6 ? 'border-r-0' : ''}`}
             >

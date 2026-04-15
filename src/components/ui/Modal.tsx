@@ -20,7 +20,7 @@ export function Modal({ open, title, subtitle, children, onClose, footer }: Moda
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.65)',
+        background: 'rgba(0,0,0,0.45)',
         zIndex: 200,
         display: 'flex',
         alignItems: 'center',

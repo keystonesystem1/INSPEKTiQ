@@ -81,12 +81,12 @@ function createStopPinElement(color: string, label: string) {
 function buildAppointmentPopup(appointment: Appointment, stopNumber: number) {
   return `
     <div style="min-width:180px">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:rgba(242,242,244,0.45)">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--faint)">
         Stop ${stopNumber}
       </div>
       <div style="margin-top:4px;font-size:14px;font-weight:600;color:var(--white)">${appointment.insuredName}</div>
-      <div style="margin-top:2px;font-size:12px;color:rgba(242,242,244,0.55)">${appointment.lossAddress || 'Address unavailable'}</div>
-      <div style="margin-top:8px;font-size:12px;color:rgba(242,242,244,0.72)">${formatTime(appointment.arrivalTime)} · ${appointment.lossType}</div>
+      <div style="margin-top:2px;font-size:12px;color:var(--muted)">${appointment.lossAddress || 'Address unavailable'}</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--dim)">${formatTime(appointment.arrivalTime)} · ${appointment.lossType}</div>
     </div>
   `;
 }
@@ -110,14 +110,14 @@ function createBronzePopupContent(
   address.textContent = claim.lossAddress || 'Address unavailable';
   address.style.marginTop = '3px';
   address.style.fontSize = '12px';
-  address.style.color = 'rgba(242,242,244,0.55)';
+  address.style.color = 'var(--muted)';
   container.appendChild(address);
 
   const meta = document.createElement('div');
   meta.textContent = claim.lossType;
   meta.style.marginTop = '8px';
   meta.style.fontSize = '12px';
-  meta.style.color = 'rgba(242,242,244,0.72)';
+  meta.style.color = 'var(--dim)';
   container.appendChild(meta);
 
   const action = document.createElement('button');
@@ -127,7 +127,7 @@ function createBronzePopupContent(
   action.style.padding = '0';
   action.style.border = 'none';
   action.style.background = 'transparent';
-  action.style.color = '#5BC273';
+  action.style.color = 'var(--sage)';
   action.style.fontFamily = 'Barlow Condensed, sans-serif';
   action.style.fontWeight = '800';
   action.style.fontSize = '12px';

@@ -1172,9 +1172,9 @@ export function DispatchMap({
           <Button
             onClick={onOpenAssignModal}
             style={{
-              background: '#5bc273',
-              color: '#06120C',
-              border: '1px solid #8be0a0',
+              background: 'var(--sage)',
+              color: 'var(--bg)',
+              border: '1px solid var(--sage)',
               boxShadow: '0 0 26px rgba(91,194,115,0.45)',
             }}
           >

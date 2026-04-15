@@ -17,12 +17,7 @@ function deriveStatus(wf: WorkflowRow): 'active' | 'draft' {
 }
 
 function matchSummary(wf: WorkflowRow): string {
-  const parts = [
-    wf.carrier ?? 'Any carrier',
-    wf.lossType ?? 'Any loss',
-    wf.propertyType ?? 'Any property',
-  ];
-  return parts.join(' · ');
+  return wf.carrier ?? 'Any carrier';
 }
 
 export function WorkflowList({ workflows: initialWorkflows }: WorkflowListProps) {
