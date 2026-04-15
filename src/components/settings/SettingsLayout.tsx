@@ -32,8 +32,6 @@ const ROW: React.CSSProperties = {
   borderBottom: '1px solid var(--border)',
 };
 
-const INTAKE_EMAIL = process.env.NEXT_PUBLIC_FIRM_INTAKE_EMAIL ?? 'intake+e79f863e@parse.keystonestack.com';
-
 const NOTIFICATION_ITEMS = [
   { id: 'new_claim_assigned', label: 'New claim assigned', hint: 'Sent to the assigned adjuster' },
   { id: 'sla_alert', label: 'SLA alert', hint: 'Sent to firm admin and dispatcher when a claim goes at-risk' },
@@ -86,6 +84,7 @@ export function SettingsLayout({
   userFullName: initialFullName,
   userEmail,
   firmUserId: _firmUserId,
+  intakeToken,
 }: {
   firmName: string;
   firmSettings: Record<string, unknown> | null;
@@ -94,10 +93,12 @@ export function SettingsLayout({
   userFullName: string;
   userEmail: string;
   firmUserId: string;
+  intakeToken?: string;
 }) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [active, setActive] = useState<Section>('Firm Profile');
+  const intakeEmail = intakeToken ? `intake+${intakeToken}@parse.keystonestack.com` : null;
 
   // ── Firm Profile state ───────────────────────────────────────────────────
   const [firmName, setFirmName] = useState(initialFirmName);
@@ -274,18 +275,20 @@ export function SettingsLayout({
             <div style={ROW}>
               <div>
                 <span style={LABEL}>Intake Email</span>
-                <strong style={{ fontSize: '13px', fontFamily: 'monospace' }}>{INTAKE_EMAIL}</strong>
+                <strong style={{ fontSize: '13px', fontFamily: 'monospace' }}>{intakeEmail ?? 'Not configured'}</strong>
               </div>
-              <button
-                onClick={() => {
-                  void navigator.clipboard.writeText(INTAKE_EMAIL).then(() => {
-                    setCopied(true); setTimeout(() => setCopied(false), 2000);
-                  });
-                }}
-                style={{ padding: '4px 10px', borderRadius: '6px', background: 'var(--card)', border: '1px solid var(--border)', color: copied ? 'var(--sage)' : 'var(--muted)', fontSize: '11px', cursor: 'pointer' }}
-              >
-                {copied ? 'Copied!' : 'Copy'}
-              </button>
+              {intakeEmail ? (
+                <button
+                  onClick={() => {
+                    void navigator.clipboard.writeText(intakeEmail).then(() => {
+                      setCopied(true); setTimeout(() => setCopied(false), 2000);
+                    });
+                  }}
+                  style={{ padding: '4px 10px', borderRadius: '6px', background: 'var(--card)', border: '1px solid var(--border)', color: copied ? 'var(--sage)' : 'var(--muted)', fontSize: '11px', cursor: 'pointer' }}
+                >
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              ) : null}
             </div>
 
             <SaveRow saving={firmSaving} saved={firmSaved} error={firmError} onSave={() => void saveFirmProfile()} />
@@ -436,7 +439,7 @@ export function SettingsLayout({
         {active === 'Integrations' ? (
           <div style={{ display: 'grid', gap: '6px' }}>
             {[
-              { name: 'Xactware Email Intake', status: 'Active', detail: INTAKE_EMAIL },
+              { name: 'Xactware Email Intake', status: 'Active', detail: intakeEmail },
               { name: 'Symbility', status: 'Coming Soon', detail: null },
               { name: 'EagleView', status: 'Coming Soon', detail: null },
               { name: 'CoreLogic', status: 'Coming Soon', detail: null },

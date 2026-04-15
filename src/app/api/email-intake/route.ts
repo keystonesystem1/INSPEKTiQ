@@ -8,8 +8,6 @@ interface IntakePayload {
   text?: string;
 }
 
-const INTAKE_FIRM_ID = '919d3aed-3ae9-4feb-9b70-f2f8adbe314d';
-
 function normalizeKey(label: string) {
   return label.trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ');
 }
@@ -47,10 +45,6 @@ function parseClaimNumber(subject: string) {
   return match?.[0] ?? 'UNPARSED';
 }
 
-function stripHyphens(value: string) {
-  return value.replace(/-/g, '').toLowerCase();
-}
-
 /**
  * Extract the `+token` suffix from a To: address of the form
  * "Name <intake+TOKEN@parse.keystonestack.com>" or "intake+TOKEN@..."
@@ -69,26 +63,15 @@ function extractToToken(toField: string): string | null {
   return token || null;
 }
 
-interface ResolvedCarrier {
-  id: string;
-  firmId: string;
-  name: string;
-}
-
-async function resolveCarrierByToken(token: string): Promise<ResolvedCarrier | null> {
+async function resolveFirmByToken(token: string): Promise<{ id: string } | null> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from('carriers')
-    .select('id, firm_id, name, intake_token')
-    .not('intake_token', 'is', null);
+    .from('firms')
+    .select('id')
+    .eq('intake_token', token.toLowerCase())
+    .maybeSingle();
   if (error || !data) return null;
-
-  const normalizedToken = stripHyphens(token);
-  const match = (data as Array<{ id: string; firm_id: string; name: string; intake_token: string | null }>).find(
-    (row) => row.intake_token && stripHyphens(row.intake_token) === normalizedToken,
-  );
-  if (!match) return null;
-  return { id: match.id, firmId: match.firm_id, name: match.name };
+  return { id: (data as { id: string }).id };
 }
 
 function sanitizeFilename(name: string) {
@@ -156,16 +139,14 @@ export async function POST(request: Request) {
 
   const subject = payload.subject ?? '';
   const text = payload.text ?? '';
-  const from = payload.from ?? '';
   const to = payload.to ?? '';
   const parsed = parseLabelValueText(text);
   const now = new Date().toISOString();
 
-  // Try per-carrier routing first via the +token suffix in the To: address.
-  let carrierMatch: ResolvedCarrier | null = null;
   const token = extractToToken(to);
-  if (token) {
-    carrierMatch = await resolveCarrierByToken(token);
+  const firm = token ? await resolveFirmByToken(token) : null;
+  if (!firm) {
+    return NextResponse.json({ skipped: true, reason: 'no firm match' });
   }
 
   const baseRecord = {
@@ -186,20 +167,11 @@ export async function POST(request: Request) {
     updated_at: now,
   };
 
-  const record = carrierMatch
-    ? {
-        ...baseRecord,
-        firm_id: carrierMatch.firmId,
-        carrier_id: carrierMatch.id,
-        carrier: carrierMatch.name,
-        status: 'pending_acceptance',
-      }
-    : {
-        ...baseRecord,
-        firm_id: INTAKE_FIRM_ID,
-        carrier: parsed.carrier || null,
-        status: 'received',
-      };
+  const record = {
+    ...baseRecord,
+    firm_id: firm.id,
+    status: 'received',
+  };
 
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -219,7 +191,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     success: true,
     record: data,
-    routedTo: carrierMatch ? { carrierId: carrierMatch.id, carrierName: carrierMatch.name } : 'firm_intake',
     attachmentsProcessed: attachments.length,
   });
 }
